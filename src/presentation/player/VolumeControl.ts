@@ -85,15 +85,13 @@ export class VolumeControl {
   }
 
   private syncUi(document: Document, button: HTMLButtonElement, slider: HTMLInputElement): void {
-    const isMuted = this.media.muted;
-    const effectiveMuted = isMuted || this.media.volume === 0;
-    const buttonLabel = isMuted ? this.labels.unmute : this.labels.mute;
+    const buttonLabel = this.media.muted ? this.labels.unmute : this.labels.mute;
 
     slider.value = this.media.volume.toString();
     slider.style.setProperty("--floatplay-volume-progress", `${Math.round(this.media.volume * 100)}%`);
     button.setAttribute("aria-label", buttonLabel);
     button.title = buttonLabel;
-    button.replaceChildren(this.createIcon(document, effectiveMuted, this.media.volume));
+    button.replaceChildren(this.createIcon(document, this.media.muted, this.media.volume));
   }
 
   private createIcon(document: Document, muted: boolean, volume: number): SVGSVGElement {
@@ -110,11 +108,9 @@ export class VolumeControl {
     svg.setAttribute("stroke-linecap", "round");
     svg.setAttribute("stroke-linejoin", "round");
 
-    for (const data of ["M11 5 6 9H3v6h3l5 4V5Z"]) {
-      const path = document.createElementNS(namespace, "path");
-      path.setAttribute("d", data);
-      svg.append(path);
-    }
+    const speaker = document.createElementNS(namespace, "path");
+    speaker.setAttribute("d", "M11 5 6 9H3v6h3l5 4V5Z");
+    svg.append(speaker);
 
     if (muted) {
       for (const data of ["m16 9 5 5", "m21 9-5 5"]) {
@@ -122,6 +118,10 @@ export class VolumeControl {
         path.setAttribute("d", data);
         svg.append(path);
       }
+      return svg;
+    }
+
+    if (volume === 0) {
       return svg;
     }
 
