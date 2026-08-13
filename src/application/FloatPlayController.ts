@@ -172,6 +172,7 @@ export class FloatPlayController {
       session.pipWindow,
       session.signal,
       this.labels,
+      this.youtube,
       this.logger
     );
     const originSurface = new OriginPlaybackSurface(
