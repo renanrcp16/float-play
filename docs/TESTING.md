@@ -52,6 +52,18 @@ Run these tests for changes that affect the first production player shell or Pla
 
 PS-01 through PS-07 completed successfully on real Chrome/YouTube on Windows on 2026-08-13 after the PiP video surface was finalized as passive. Standard-video and live-stream origin clicks behaved consistently, native YouTube controls remained usable, lifecycle regressions did not reproduce, and keyboard focus remained visibly identifiable.
 
+## Media navigation smoke tests
+
+Run these tests for changes that affect backward or forward media navigation.
+
+- **MN-01 — Standard backward:** on a standard video away from boundaries, activate `-10` and confirm playback moves approximately 10 seconds backward.
+- **MN-02 — Standard forward:** on a standard video away from boundaries, activate `+10` and confirm playback moves approximately 10 seconds forward.
+- **MN-03 — Standard boundaries:** near the beginning and end of a standard video, repeatedly activate the relevant navigation control and confirm FloatPlay never produces an invalid time or breaks playback.
+- **MN-04 — Live navigation:** on a live stream with a seekable history window, move away from the live edge and confirm `-10` and `+10` navigate inside the currently reported seekable range.
+- **MN-05 — Live-edge guard:** repeatedly activate `+10` near the live edge and confirm FloatPlay does not intentionally seek to the exact reported range end or expose a persistent end-of-media state.
+- **MN-06 — Playback regression:** confirm explicit Play/Pause, the passive PiP video image, the origin Play/Pause surface, and native YouTube controls still behave as previously validated.
+- **MN-07 — Accessibility:** use keyboard navigation to focus the backward, Play/Pause, and forward controls. Each control must have a visible focus indicator and a meaningful localized accessible name.
+
 ## Result recording
 
 For each browser run, record Chrome version, operating system, tested commit, date, other YouTube-modifying extensions, FloatPlay console errors, and a result or observation for every relevant scenario.
