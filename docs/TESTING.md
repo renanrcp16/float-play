@@ -15,7 +15,7 @@ Run `pnpm validate` before browser testing. It runs lint, TypeScript type checki
 - **S0-05 — State preservation:** current time, volume, mute state, and playback rate are preserved. An external rate above 2x is not reduced merely by opening FloatPlay.
 - **S0-06 — Restore:** closing PiP restores the exact video element to its original logical DOM position.
 - **S0-07 — Repeatability:** repeated open/close cycles do not create duplicate behavior, lose the media element, or accumulate FloatPlay errors.
-- **S0-08 — Resize:** resizing PiP keeps the video visible and contained.
+- **S0-08 — Resize and aspect ratio:** the initial PiP window should follow the media's intrinsic aspect ratio when dimensions are available. User-driven native window resizing may change the window aspect ratio; FloatPlay must keep the full video visible with `object-fit: contain` rather than cropping it.
 
 ## Spike 0 architectural investigation
 
