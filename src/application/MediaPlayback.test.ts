@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { togglePlayback } from "./MediaPlayback";
 
@@ -10,28 +10,42 @@ interface MutablePlaybackMedia {
 
 describe("togglePlayback", () => {
   it("plays paused media", async () => {
+    let playCalls = 0;
+    let pauseCalls = 0;
     const media: MutablePlaybackMedia = {
       paused: true,
-      play: vi.fn(async () => undefined),
-      pause: vi.fn()
+      play: () => {
+        playCalls += 1;
+        return Promise.resolve();
+      },
+      pause: () => {
+        pauseCalls += 1;
+      }
     };
 
     await togglePlayback(media);
 
-    expect(media.play).toHaveBeenCalledOnce();
-    expect(media.pause).not.toHaveBeenCalled();
+    expect(playCalls).toBe(1);
+    expect(pauseCalls).toBe(0);
   });
 
   it("pauses playing media", async () => {
+    let playCalls = 0;
+    let pauseCalls = 0;
     const media: MutablePlaybackMedia = {
       paused: false,
-      play: vi.fn(async () => undefined),
-      pause: vi.fn()
+      play: () => {
+        playCalls += 1;
+        return Promise.resolve();
+      },
+      pause: () => {
+        pauseCalls += 1;
+      }
     };
 
     await togglePlayback(media);
 
-    expect(media.pause).toHaveBeenCalledOnce();
-    expect(media.play).not.toHaveBeenCalled();
+    expect(pauseCalls).toBe(1);
+    expect(playCalls).toBe(0);
   });
 });
