@@ -3,6 +3,7 @@ interface SpikeTriggerOptions {
 }
 
 export class SpikeTrigger {
+  private readonly lifecycle = new AbortController();
   private readonly host: HTMLDivElement;
   private readonly button: HTMLButtonElement;
 
@@ -49,7 +50,9 @@ export class SpikeTrigger {
     this.button.type = "button";
     this.button.textContent = "Open FloatPlay PiP";
     this.button.setAttribute("aria-label", "Open FloatPlay Picture-in-Picture");
-    this.button.addEventListener("click", options.onActivate);
+    this.button.addEventListener("click", options.onActivate, {
+      signal: this.lifecycle.signal
+    });
 
     shadowRoot.append(style, this.button);
   }
@@ -78,6 +81,7 @@ export class SpikeTrigger {
   }
 
   public dispose(): void {
+    this.lifecycle.abort();
     this.host.remove();
   }
 }
