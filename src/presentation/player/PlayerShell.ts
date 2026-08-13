@@ -145,14 +145,18 @@ export class PlayerShell {
     const svg = document.createElementNS(svgNamespace, "svg");
     svg.classList.add("floatplay-navigation-icon");
     svg.setAttribute("viewBox", "0 0 24 24");
-    svg.setAttribute("width", "17");
-    svg.setAttribute("height", "17");
+    svg.setAttribute("width", "15");
+    svg.setAttribute("height", "15");
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("fill", "none");
     svg.setAttribute("stroke", "currentColor");
     svg.setAttribute("stroke-width", "2");
     svg.setAttribute("stroke-linecap", "round");
     svg.setAttribute("stroke-linejoin", "round");
+
+    const group = document.createElementNS(svgNamespace, "g");
+    group.setAttribute("transform", "translate(0 -0.5)");
 
     const arrow = document.createElementNS(svgNamespace, "path");
     const curve = document.createElementNS(svgNamespace, "path");
@@ -165,7 +169,8 @@ export class PlayerShell {
       curve.setAttribute("d", "M20 9H10a6 6 0 0 0 0 12h1");
     }
 
-    svg.append(arrow, curve);
+    group.append(arrow, curve);
+    svg.append(group);
     return svg;
   }
 
@@ -207,11 +212,13 @@ export class PlayerShell {
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("width", "21");
     svg.setAttribute("height", "21");
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
     svg.setAttribute("aria-hidden", "true");
 
     if (showPlayIcon) {
       const path = document.createElementNS(svgNamespace, "path");
       path.setAttribute("d", "M8 5v14l11-7z");
+      path.setAttribute("transform", "translate(-1.5 0)");
       svg.append(path);
       return svg;
     }
@@ -262,18 +269,22 @@ export class PlayerShell {
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 100%;
+        min-height: 28px;
         gap: 8px;
       }
 
       .floatplay-playback-button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        display: grid;
+        place-items: center;
+        flex: 0 0 28px;
         width: 28px;
         height: 28px;
         padding: 0;
         border: 0;
         border-radius: 999px;
+        box-sizing: border-box;
+        line-height: 0;
         color: #fff;
         background: rgb(0 0 0 / 68%);
         cursor: pointer;
@@ -295,16 +306,20 @@ export class PlayerShell {
         outline-offset: 2px;
       }
 
-      .floatplay-playback-icon {
+      .floatplay-playback-icon,
+      .floatplay-navigation-icon {
         display: block;
-        fill: currentColor;
+        place-self: center;
+        margin: 0;
         pointer-events: none;
       }
 
+      .floatplay-playback-icon {
+        fill: currentColor;
+      }
+
       .floatplay-navigation-icon {
-        display: block;
         flex: none;
-        pointer-events: none;
       }
 
       .floatplay-timeline-group {
