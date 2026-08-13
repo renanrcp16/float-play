@@ -127,12 +127,12 @@ export class PlayerShell {
     const svg = document.createElementNS(svgNamespace, "svg");
     svg.classList.add("floatplay-navigation-icon");
     svg.setAttribute("viewBox", "0 0 24 24");
-    svg.setAttribute("width", "17");
-    svg.setAttribute("height", "17");
+    svg.setAttribute("width", "15");
+    svg.setAttribute("height", "15");
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("fill", "none");
     svg.setAttribute("stroke", "currentColor");
-    svg.setAttribute("stroke-width", "2.1");
+    svg.setAttribute("stroke-width", "2");
     svg.setAttribute("stroke-linecap", "round");
     svg.setAttribute("stroke-linejoin", "round");
 
@@ -251,17 +251,15 @@ export class PlayerShell {
         background: rgb(0 0 0 / 68%);
         cursor: pointer;
         pointer-events: auto;
-        transition: background-color 120ms ease, transform 120ms ease;
+        transition: background-color 100ms ease;
       }
 
       .floatplay-playback-button:hover {
-        background: rgb(0 0 0 / 84%);
-        transform: scale(1.04);
+        background: rgb(0 0 0 / 58%);
       }
 
       .floatplay-playback-button:active {
-        background: rgb(0 0 0 / 94%);
-        transform: scale(0.94);
+        background: rgb(0 0 0 / 48%);
       }
 
       .floatplay-playback-button:focus-visible {
@@ -284,11 +282,6 @@ export class PlayerShell {
       @media (prefers-reduced-motion: reduce) {
         .floatplay-playback-button {
           transition: none;
-        }
-
-        .floatplay-playback-button:hover,
-        .floatplay-playback-button:active {
-          transform: none;
         }
       }
     `;
