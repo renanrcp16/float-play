@@ -22,5 +22,8 @@
   },
   "fitAction": {
     "message": "Ajustar ao vídeo"
+  },
+  "moreOptionsAction": {
+    "message": "Mais opções"
   }
 }
