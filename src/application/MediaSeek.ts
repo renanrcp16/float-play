@@ -40,15 +40,35 @@ export function calculateSeekTarget(
   }
 
   const requestedTime = currentTime + deltaSeconds;
-  const activeRange = findActiveSeekRange(currentTime, seekable);
+  const ranges = readSeekRanges(seekable);
 
-  if (activeRange !== null) {
-    if (deltaSeconds > 0) {
-      const guardedEnd = getGuardedRangeEnd(activeRange);
-      return clamp(requestedTime, activeRange.start, guardedEnd);
+  if (ranges.length > 0) {
+    const activeRange = findContainingRange(currentTime, ranges);
+
+    if (activeRange !== null) {
+      return clampWithinRange(requestedTime, deltaSeconds, activeRange);
     }
 
-    return clamp(requestedTime, activeRange.start, activeRange.end);
+    const requestedRange = findContainingRange(requestedTime, ranges);
+
+    if (requestedRange !== null) {
+      return clampWithinRange(requestedTime, deltaSeconds, requestedRange);
+    }
+
+    if (deltaSeconds > 0) {
+      const nextRange = ranges.find((range) => range.start > currentTime);
+      return nextRange?.start ?? null;
+    }
+
+    for (let index = ranges.length - 1; index >= 0; index -= 1) {
+      const range = ranges[index];
+
+      if (range !== undefined && range.end < currentTime) {
+        return getGuardedRangeEnd(range);
+      }
+    }
+
+    return null;
   }
 
   if (Number.isFinite(duration) && duration >= 0) {
@@ -58,7 +78,9 @@ export function calculateSeekTarget(
   return null;
 }
 
-function findActiveSeekRange(currentTime: number, seekable: SeekableRanges): SeekRange | null {
+function readSeekRanges(seekable: SeekableRanges): SeekRange[] {
+  const ranges: SeekRange[] = [];
+
   for (let index = 0; index < seekable.length; index += 1) {
     const start = seekable.start(index);
     const end = seekable.end(index);
@@ -67,12 +89,19 @@ function findActiveSeekRange(currentTime: number, seekable: SeekableRanges): See
       continue;
     }
 
-    if (currentTime >= start && currentTime <= end) {
-      return { start, end };
-    }
+    ranges.push({ start, end });
   }
 
-  return null;
+  return ranges;
+}
+
+function findContainingRange(time: number, ranges: readonly SeekRange[]): SeekRange | null {
+  return ranges.find((range) => time >= range.start && time <= range.end) ?? null;
+}
+
+function clampWithinRange(requestedTime: number, deltaSeconds: number, range: SeekRange): number {
+  const maximum = deltaSeconds > 0 ? getGuardedRangeEnd(range) : range.end;
+  return clamp(requestedTime, range.start, maximum);
 }
 
 function getGuardedRangeEnd(range: SeekRange): number {
