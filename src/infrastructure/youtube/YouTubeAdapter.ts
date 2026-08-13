@@ -1,5 +1,10 @@
+interface PageLocation {
+  readonly hostname: string;
+  readonly pathname: string;
+}
+
 export class YouTubeAdapter {
-  public isSupportedPage(location: Location = window.location): boolean {
+  public isSupportedPage(location: PageLocation = window.location): boolean {
     const isYouTubeHost = location.hostname === "www.youtube.com" || location.hostname === "youtube.com";
 
     return isYouTubeHost && location.pathname === "/watch";
