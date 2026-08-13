@@ -155,22 +155,18 @@ export class PlayerShell {
     svg.setAttribute("stroke-linecap", "round");
     svg.setAttribute("stroke-linejoin", "round");
 
-    const group = document.createElementNS(svgNamespace, "g");
-    group.setAttribute("transform", "translate(0 -0.5)");
-
     const arrow = document.createElementNS(svgNamespace, "path");
     const curve = document.createElementNS(svgNamespace, "path");
 
     if (direction === "backward") {
       arrow.setAttribute("d", "M9 14 4 9l5-5");
-      curve.setAttribute("d", "M4 9h10a6 6 0 0 1 0 12h-1");
+      curve.setAttribute("d", "M4 9h10.5A5.5 5.5 0 0 1 20 14.5 5.5 5.5 0 0 1 14.5 20H11");
     } else {
       arrow.setAttribute("d", "m15 14 5-5-5-5");
-      curve.setAttribute("d", "M20 9H10a6 6 0 0 0 0 12h1");
+      curve.setAttribute("d", "M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13");
     }
 
-    group.append(arrow, curve);
-    svg.append(group);
+    svg.append(arrow, curve);
     return svg;
   }
 
@@ -217,8 +213,7 @@ export class PlayerShell {
 
     if (showPlayIcon) {
       const path = document.createElementNS(svgNamespace, "path");
-      path.setAttribute("d", "M8 5v14l11-7z");
-      path.setAttribute("transform", "translate(-1.5 0)");
+      path.setAttribute("d", "M6.5 5v14l11-7z");
       svg.append(path);
       return svg;
     }
