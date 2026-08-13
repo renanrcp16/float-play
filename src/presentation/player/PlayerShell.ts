@@ -23,7 +23,10 @@ export class PlayerShell {
       () => {
         this.dispose();
       },
-      { once: true }
+      {
+        once: true,
+        signal: this.lifecycle.signal
+      }
     );
   }
 
@@ -55,9 +58,14 @@ export class PlayerShell {
           return;
         }
 
+        event.preventDefault();
+        event.stopPropagation();
         this.togglePlayback();
       },
-      { signal: this.lifecycle.signal }
+      {
+        capture: true,
+        signal: this.lifecycle.signal
+      }
     );
 
     playbackButton.addEventListener(
