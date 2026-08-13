@@ -1,9 +1,12 @@
+import { DEFAULT_SEEK_SECONDS, seekBy } from "../../application/MediaSeek";
 import { togglePlayback } from "../../application/MediaPlayback";
 import type { Logger } from "../../shared/Logger";
 
 export interface PlayerPlaybackLabels {
   readonly play: string;
   readonly pause: string;
+  readonly backward: string;
+  readonly forward: string;
 }
 
 export class PlayerShell {
@@ -43,18 +46,36 @@ export class PlayerShell {
     const controls = document.createElement("div");
     controls.className = "floatplay-controls";
 
+    const backwardButton = this.createNavigationButton(document, this.labels.backward, `-${DEFAULT_SEEK_SECONDS}`);
     const playbackButton = document.createElement("button");
     playbackButton.type = "button";
     playbackButton.className = "floatplay-playback-button";
-    controls.append(playbackButton);
+    const forwardButton = this.createNavigationButton(document, this.labels.forward, `+${DEFAULT_SEEK_SECONDS}`);
 
+    controls.append(backwardButton, playbackButton, forwardButton);
     root.append(this.media, controls);
     document.body.replaceChildren(root);
+
+    backwardButton.addEventListener(
+      "click",
+      () => {
+        this.navigate(-DEFAULT_SEEK_SECONDS);
+      },
+      { signal: this.lifecycle.signal }
+    );
 
     playbackButton.addEventListener(
       "click",
       () => {
         this.togglePlayback();
+      },
+      { signal: this.lifecycle.signal }
+    );
+
+    forwardButton.addEventListener(
+      "click",
+      () => {
+        this.navigate(DEFAULT_SEEK_SECONDS);
       },
       { signal: this.lifecycle.signal }
     );
@@ -83,6 +104,26 @@ export class PlayerShell {
     this.lifecycle.abort();
     this.playbackButton = null;
     this.mounted = false;
+  }
+
+  private createNavigationButton(document: Document, label: string, text: string): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "floatplay-playback-button floatplay-navigation-button";
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    button.textContent = text;
+    return button;
+  }
+
+  private navigate(deltaSeconds: number): void {
+    try {
+      if (!seekBy(this.media, deltaSeconds)) {
+        this.logger.debug("No safe media navigation target is currently available.");
+      }
+    } catch (error) {
+      this.logger.error("Unable to navigate media from the player window.", error);
+    }
   }
 
   private togglePlayback(): void {
@@ -156,6 +197,7 @@ export class PlayerShell {
         inset: 0;
         display: flex;
         align-items: flex-end;
+        gap: 8px;
         padding: 12px;
         pointer-events: none;
       }
@@ -181,6 +223,10 @@ export class PlayerShell {
       .floatplay-playback-button:focus-visible {
         outline: 2px solid #fff;
         outline-offset: 2px;
+      }
+
+      .floatplay-navigation-button {
+        font: 700 12px/1 system-ui, sans-serif;
       }
 
       .floatplay-playback-button svg {
