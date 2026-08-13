@@ -79,7 +79,8 @@ export class SpikeController {
 
   private reconcile(): void {
     const hasMedia = this.youtube.findActiveMedia() !== null;
-    const shouldShow = this.youtube.isSupportedPage() && hasMedia && !this.pip.isOpen();
+    const shouldShow =
+      this.pip.isSupported() && this.youtube.isSupportedPage() && hasMedia && !this.pip.isOpen();
 
     this.trigger.setVisible(shouldShow);
   }

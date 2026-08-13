@@ -48,6 +48,10 @@ export class DocumentPipManager {
 
   public constructor(private readonly logger: Logger) {}
 
+  public isSupported(): boolean {
+    return this.getApi() !== null;
+  }
+
   public isOpen(): boolean {
     return this.session !== null;
   }
@@ -61,16 +65,14 @@ export class DocumentPipManager {
       throw new Error("The selected media element is no longer connected to the page.");
     }
 
-    const api = (window as WindowWithDocumentPictureInPicture).documentPictureInPicture;
+    const api = this.getApi();
 
-    if (api === undefined) {
+    if (api === null) {
       throw new DocumentPipUnavailableError();
     }
 
     const parent = media.parentNode;
     const nextSibling = media.nextSibling;
-
-    // requestWindow must be reached synchronously from the user's activation path.
     const pipWindow = await api.requestWindow({
       width: 480,
       height: 320
@@ -132,6 +134,16 @@ export class DocumentPipManager {
 
     this.restoreSession(session);
     session.pipWindow.close();
+  }
+
+  private getApi(): DocumentPictureInPictureApi | null {
+    const api = (window as WindowWithDocumentPictureInPicture).documentPictureInPicture;
+
+    if (api === undefined || typeof api.requestWindow !== "function") {
+      return null;
+    }
+
+    return api;
   }
 
   private preparePipDocument(document: Document): void {
