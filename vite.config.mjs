@@ -1,4 +1,4 @@
-import { fileURLToPath } from "node:url";
+import { URL, fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
 const contentEntry = fileURLToPath(new URL("./src/content.ts", import.meta.url));
