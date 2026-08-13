@@ -1,29 +1,14 @@
 {
-  "extensionName": {
-    "message": "FloatPlay"
-  },
-  "extensionDescription": {
-    "message": "Melhore o Picture-in-Picture do YouTube com controles de reprodução mais completos."
-  },
-  "playAction": {
-    "message": "Reproduzir"
-  },
-  "pauseAction": {
-    "message": "Pausar"
-  },
-  "backwardAction": {
-    "message": "Voltar 10 segundos"
-  },
-  "forwardAction": {
-    "message": "Avançar 10 segundos"
-  },
-  "timelineAction": {
-    "message": "Linha do tempo da reprodução"
-  },
-  "fitAction": {
-    "message": "Ajustar ao vídeo"
-  },
-  "moreOptionsAction": {
-    "message": "Mais opções"
-  }
+  "extensionName": {"message": "FloatPlay"},
+  "extensionDescription": {"message": "Melhore o Picture-in-Picture do YouTube com controles de reprodução mais completos."},
+  "playAction": {"message": "Reproduzir"},
+  "pauseAction": {"message": "Pausar"},
+  "backwardAction": {"message": "Voltar 10 segundos"},
+  "forwardAction": {"message": "Avançar 10 segundos"},
+  "timelineAction": {"message": "Linha do tempo da reprodução"},
+  "fitAction": {"message": "Ajustar ao vídeo"},
+  "moreOptionsAction": {"message": "Mais opções"},
+  "volumeAction": {"message": "Volume"},
+  "muteAction": {"message": "Silenciar"},
+  "unmuteAction": {"message": "Ativar som"}
 }
