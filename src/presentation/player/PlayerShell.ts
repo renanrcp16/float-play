@@ -51,7 +51,7 @@ export class PlayerShell {
     root.addEventListener(
       "click",
       (event) => {
-        if (event.target instanceof Node && controls.contains(event.target)) {
+        if (event.composedPath().includes(controls)) {
           return;
         }
 
