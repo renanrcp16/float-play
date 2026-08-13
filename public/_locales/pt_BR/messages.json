@@ -16,5 +16,8 @@
   },
   "forwardAction": {
     "message": "Avançar 10 segundos"
+  },
+  "timelineAction": {
+    "message": "Linha do tempo da reprodução"
   }
 }
