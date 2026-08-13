@@ -22,11 +22,17 @@ export function calculateAspectAdjustment(
     return null;
   }
 
-  const ratio = mediaWidth / mediaHeight;
-  const widthAdjustment = Math.round(viewportHeight * ratio) - viewportWidth;
-  const heightAdjustment = Math.round(viewportWidth / ratio) - viewportHeight;
+  const aspectRatio = mediaWidth / mediaHeight;
 
-  return Math.abs(widthAdjustment) <= Math.abs(heightAdjustment)
-    ? { width: widthAdjustment, height: 0 }
-    : { width: 0, height: heightAdjustment };
+  if (aspectRatio >= 1) {
+    return {
+      width: Math.round(viewportHeight * aspectRatio) - viewportWidth,
+      height: 0
+    };
+  }
+
+  return {
+    width: 0,
+    height: Math.round(viewportWidth / aspectRatio) - viewportHeight
+  };
 }
