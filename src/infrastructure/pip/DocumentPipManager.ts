@@ -1,3 +1,4 @@
+import { calculateInitialPipSize } from "./PipWindowSize";
 import type { Logger } from "../../shared/Logger";
 
 interface DocumentPictureInPictureOptions {
@@ -73,9 +74,13 @@ export class DocumentPipManager {
 
     const parent = media.parentNode;
     const nextSibling = media.nextSibling;
+    const mediaWidth = media.videoWidth > 0 ? media.videoWidth : media.clientWidth;
+    const mediaHeight = media.videoHeight > 0 ? media.videoHeight : media.clientHeight;
+    const initialSize = calculateInitialPipSize(mediaWidth, mediaHeight);
     const pipWindow = await api.requestWindow({
-      width: 480,
-      height: 320
+      width: initialSize.width,
+      height: initialSize.height,
+      disallowReturnToOpener: true
     });
 
     if (!media.isConnected || media.parentNode !== parent) {
