@@ -80,7 +80,8 @@ export class DocumentPipManager {
     const pipWindow = await api.requestWindow({
       width: initialSize.width,
       height: initialSize.height,
-      disallowReturnToOpener: true
+      disallowReturnToOpener: true,
+      preferInitialWindowPlacement: true
     });
 
     if (!media.isConnected || media.parentNode !== parent) {
