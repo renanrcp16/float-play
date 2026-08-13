@@ -9,7 +9,18 @@ export function calculateAspectAdjustment(
   mediaWidth: number,
   mediaHeight: number
 ): AspectAdjustment | null {
-  if (viewportWidth <= 0 || viewportHeight <= 0 || mediaWidth <= 0 || mediaHeight <= 0) return null;
+  if (
+    !Number.isFinite(viewportWidth) ||
+    !Number.isFinite(viewportHeight) ||
+    !Number.isFinite(mediaWidth) ||
+    !Number.isFinite(mediaHeight) ||
+    viewportWidth <= 0 ||
+    viewportHeight <= 0 ||
+    mediaWidth <= 0 ||
+    mediaHeight <= 0
+  ) {
+    return null;
+  }
 
   const ratio = mediaWidth / mediaHeight;
   const widthAdjustment = Math.round(viewportHeight * ratio) - viewportWidth;
