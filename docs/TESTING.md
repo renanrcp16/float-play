@@ -41,12 +41,12 @@ The live test also showed that seeking directly to the reported end of the seeka
 Run these tests for changes that affect the first production player shell or Play/Pause interaction behavior.
 
 - **PS-01 — Visible Play/Pause control:** open FloatPlay on a standard video and confirm the visible PiP button toggles playback exactly once and updates its icon and accessible name to match the media state.
-- **PS-02 — PiP surface click:** click the non-control video surface inside the PiP window and confirm each click toggles playback exactly once. Clicking the visible Play/Pause button must not also trigger the surface handler.
+- **PS-02 — Passive PiP video surface:** click the video image inside the PiP window, away from controls, and confirm playback does not change. Pointer Play/Pause inside PiP must require activation of the explicit Play/Pause control.
 - **PS-03 — Origin surface, standard video:** while PiP is active, click the non-interactive central video area left in the YouTube player and confirm playback toggles exactly once.
 - **PS-04 — Origin surface, live stream:** repeat PS-03 on a live stream and confirm the behavior matches standard video playback.
 - **PS-05 — Native YouTube controls:** while PiP is active, interact with visible native YouTube controls that remain on the page. FloatPlay must not intercept buttons, sliders, links, form controls, or other semantically interactive elements.
 - **PS-06 — Session lifecycle regression:** verify video A → B navigation, automatic playlist progression, PiP close/restoration, and leaving `/watch` still behave as validated by Spike 0.
-- **PS-07 — Localization and accessibility:** verify the Play/Pause control exposes English labels in English/fallback locales and Brazilian Portuguese labels in `pt-BR`; keyboard focus on the control must remain visibly identifiable.
+- **PS-07 — Localization and accessibility:** verify the Play/Pause control exposes English labels in English/fallback locales and Brazilian Portuguese labels in `pt-BR` through its accessible name. The label is not required to be visually rendered; keyboard focus on the control must remain visibly identifiable.
 
 ## Result recording
 
