@@ -76,6 +76,11 @@ export class DocumentPipManager {
       height: 320
     });
 
+    if (!media.isConnected || media.parentNode !== parent) {
+      pipWindow.close();
+      throw new Error("The media element changed while the Picture-in-Picture window was opening.");
+    }
+
     const placeholder = document.createComment("floatplay-media-origin");
     parent.insertBefore(placeholder, media);
 
