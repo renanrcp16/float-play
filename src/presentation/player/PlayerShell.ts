@@ -1,12 +1,14 @@
 import { DEFAULT_SEEK_SECONDS, seekBy } from "../../application/MediaSeek";
 import { togglePlayback } from "../../application/MediaPlayback";
 import type { Logger } from "../../shared/Logger";
+import { TimelineControl } from "./TimelineControl";
 
 export interface PlayerPlaybackLabels {
   readonly play: string;
   readonly pause: string;
   readonly backward: string;
   readonly forward: string;
+  readonly timeline: string;
 }
 
 type NavigationDirection = "backward" | "forward";
@@ -15,6 +17,7 @@ export class PlayerShell {
   private readonly lifecycle = new AbortController();
   private mounted = false;
   private playbackButton: HTMLButtonElement | null = null;
+  private timelineControl: TimelineControl | null = null;
 
   public constructor(
     private readonly media: HTMLVideoElement,
@@ -48,13 +51,25 @@ export class PlayerShell {
     const controls = document.createElement("div");
     controls.className = "floatplay-controls";
 
+    const buttonRow = document.createElement("div");
+    buttonRow.className = "floatplay-button-row";
+
     const backwardButton = this.createNavigationButton(document, this.labels.backward, "backward");
     const playbackButton = document.createElement("button");
     playbackButton.type = "button";
     playbackButton.className = "floatplay-playback-button";
     const forwardButton = this.createNavigationButton(document, this.labels.forward, "forward");
 
-    controls.append(backwardButton, playbackButton, forwardButton);
+    const timelineControl = new TimelineControl(
+      this.media,
+      document,
+      this.lifecycle.signal,
+      this.labels.timeline,
+      this.logger
+    );
+
+    buttonRow.append(backwardButton, playbackButton, forwardButton);
+    controls.append(timelineControl.create(), buttonRow);
     root.append(this.media, controls);
     document.body.replaceChildren(root);
 
@@ -93,6 +108,7 @@ export class PlayerShell {
     }
 
     this.playbackButton = playbackButton;
+    this.timelineControl = timelineControl;
     this.mounted = true;
     this.installStyles(document);
     this.updatePlaybackButton();
@@ -103,8 +119,10 @@ export class PlayerShell {
       return;
     }
 
+    this.timelineControl?.dispose();
     this.lifecycle.abort();
     this.playbackButton = null;
+    this.timelineControl = null;
     this.mounted = false;
   }
 
@@ -230,12 +248,20 @@ export class PlayerShell {
 
       .floatplay-controls {
         position: absolute;
-        inset: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
         display: flex;
-        align-items: flex-end;
+        flex-direction: column;
         gap: 8px;
         padding: 12px;
         pointer-events: none;
+      }
+
+      .floatplay-button-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .floatplay-playback-button {
@@ -262,7 +288,8 @@ export class PlayerShell {
         background: rgb(0 0 0 / 48%);
       }
 
-      .floatplay-playback-button:focus-visible {
+      .floatplay-playback-button:focus-visible,
+      .floatplay-timeline:focus-visible {
         outline: 2px solid #fff;
         outline-offset: 2px;
       }
@@ -277,6 +304,59 @@ export class PlayerShell {
         display: block;
         flex: none;
         pointer-events: none;
+      }
+
+      .floatplay-timeline-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        pointer-events: auto;
+      }
+
+      .floatplay-timeline {
+        --floatplay-timeline-progress: 0%;
+        flex: 1;
+        min-width: 0;
+        height: 20px;
+        margin: 0;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .floatplay-timeline::-webkit-slider-runnable-track {
+        height: 4px;
+        border-radius: 999px;
+        background: linear-gradient(to right, #fff 0 var(--floatplay-timeline-progress), rgb(255 255 255 / 35%) var(--floatplay-timeline-progress) 100%);
+      }
+
+      .floatplay-timeline::-webkit-slider-thumb {
+        width: 12px;
+        height: 12px;
+        margin-top: -4px;
+        appearance: none;
+        border: 0;
+        border-radius: 999px;
+        background: #fff;
+      }
+
+      .floatplay-timeline:hover::-webkit-slider-runnable-track {
+        background: linear-gradient(to right, #fff 0 var(--floatplay-timeline-progress), rgb(255 255 255 / 48%) var(--floatplay-timeline-progress) 100%);
+      }
+
+      .floatplay-timeline:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+
+      .floatplay-time-display {
+        flex: none;
+        color: #fff;
+        font: 500 12px/1.2 system-ui, sans-serif;
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 1px 2px rgb(0 0 0 / 75%);
+        user-select: none;
       }
 
       @media (prefers-reduced-motion: reduce) {
