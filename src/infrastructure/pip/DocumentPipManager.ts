@@ -19,7 +19,7 @@ type WindowWithDocumentPictureInPicture = Window & {
 
 interface MediaOrigin {
   readonly placeholder: Comment;
-  readonly parent: Node;
+  readonly parent: HTMLElement;
   readonly nextSibling: Node | null;
 }
 
@@ -28,6 +28,13 @@ interface PipSession {
   readonly pipWindow: Window;
   readonly origin: MediaOrigin;
   readonly lifecycle: AbortController;
+}
+
+export interface DocumentPipSession {
+  readonly media: HTMLVideoElement;
+  readonly pipWindow: Window;
+  readonly originElement: HTMLElement;
+  readonly signal: AbortSignal;
 }
 
 export class DocumentPipUnavailableError extends Error {
@@ -57,12 +64,14 @@ export class DocumentPipManager {
     return this.session !== null;
   }
 
-  public async open(media: HTMLVideoElement): Promise<void> {
+  public async open(media: HTMLVideoElement): Promise<DocumentPipSession> {
     if (this.session !== null) {
-      return;
+      return this.toPublicSession(this.session);
     }
 
-    if (!media.isConnected || media.parentNode === null) {
+    const parent = media.parentElement;
+
+    if (!media.isConnected || parent === null) {
       throw new Error("The selected media element is no longer connected to the page.");
     }
 
@@ -72,7 +81,6 @@ export class DocumentPipManager {
       throw new DocumentPipUnavailableError();
     }
 
-    const parent = media.parentNode;
     const nextSibling = media.nextSibling;
     const mediaWidth = media.videoWidth > 0 ? media.videoWidth : media.clientWidth;
     const mediaHeight = media.videoHeight > 0 ? media.videoHeight : media.clientHeight;
@@ -84,7 +92,7 @@ export class DocumentPipManager {
       preferInitialWindowPlacement: true
     });
 
-    if (!media.isConnected || media.parentNode !== parent) {
+    if (!media.isConnected || media.parentElement !== parent) {
       pipWindow.close();
       throw new Error("The media element changed while the Picture-in-Picture window was opening.");
     }
@@ -125,6 +133,8 @@ export class DocumentPipManager {
       pipWindow.close();
       throw error;
     }
+
+    return this.toPublicSession(session);
   }
 
   public close(): void {
@@ -218,5 +228,14 @@ export class DocumentPipManager {
       session.origin.placeholder.remove();
       this.session = null;
     }
+  }
+
+  private toPublicSession(session: PipSession): DocumentPipSession {
+    return {
+      media: session.media,
+      pipWindow: session.pipWindow,
+      originElement: session.origin.parent,
+      signal: session.lifecycle.signal
+    };
   }
 }
