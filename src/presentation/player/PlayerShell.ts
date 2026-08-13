@@ -9,6 +9,8 @@ export interface PlayerPlaybackLabels {
   readonly forward: string;
 }
 
+type NavigationDirection = "backward" | "forward";
+
 export class PlayerShell {
   private readonly lifecycle = new AbortController();
   private mounted = false;
@@ -46,11 +48,11 @@ export class PlayerShell {
     const controls = document.createElement("div");
     controls.className = "floatplay-controls";
 
-    const backwardButton = this.createNavigationButton(document, this.labels.backward, `-${DEFAULT_SEEK_SECONDS}`);
+    const backwardButton = this.createNavigationButton(document, this.labels.backward, "backward");
     const playbackButton = document.createElement("button");
     playbackButton.type = "button";
     playbackButton.className = "floatplay-playback-button";
-    const forwardButton = this.createNavigationButton(document, this.labels.forward, `+${DEFAULT_SEEK_SECONDS}`);
+    const forwardButton = this.createNavigationButton(document, this.labels.forward, "forward");
 
     controls.append(backwardButton, playbackButton, forwardButton);
     root.append(this.media, controls);
@@ -106,14 +108,45 @@ export class PlayerShell {
     this.mounted = false;
   }
 
-  private createNavigationButton(document: Document, label: string, text: string): HTMLButtonElement {
+  private createNavigationButton(
+    document: Document,
+    label: string,
+    direction: NavigationDirection
+  ): HTMLButtonElement {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "floatplay-playback-button floatplay-navigation-button";
     button.setAttribute("aria-label", label);
     button.title = label;
-    button.textContent = text;
+    button.append(this.createNavigationIcon(document, direction));
     return button;
+  }
+
+  private createNavigationIcon(
+    document: Document,
+    direction: NavigationDirection
+  ): SVGSVGElement {
+    const svgNamespace = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNamespace, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("width", "20");
+    svg.setAttribute("height", "20");
+    svg.setAttribute("aria-hidden", "true");
+    svg.classList.add("floatplay-navigation-icon");
+
+    const first = document.createElementNS(svgNamespace, "path");
+    const second = document.createElementNS(svgNamespace, "path");
+
+    if (direction === "backward") {
+      first.setAttribute("d", "m13 7-5 5 5 5");
+      second.setAttribute("d", "m19 7-5 5 5 5");
+    } else {
+      first.setAttribute("d", "m11 7 5 5-5 5");
+      second.setAttribute("d", "m5 7 5 5-5 5");
+    }
+
+    svg.append(first, second);
+    return svg;
   }
 
   private navigate(deltaSeconds: number): void {
@@ -225,13 +258,17 @@ export class PlayerShell {
         outline-offset: 2px;
       }
 
-      .floatplay-navigation-button {
-        font: 700 12px/1 system-ui, sans-serif;
-      }
-
       .floatplay-playback-button svg {
         fill: currentColor;
         pointer-events: none;
+      }
+
+      .floatplay-navigation-button .floatplay-navigation-icon {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
       }
     `;
 
