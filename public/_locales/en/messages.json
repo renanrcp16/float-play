@@ -1,23 +1,10 @@
 {
-  "extensionName": {
-    "message": "FloatPlay"
-  },
-  "extensionDescription": {
-    "message": "Enhance YouTube Picture-in-Picture with better playback controls."
-  },
-  "playAction": {
-    "message": "Play"
-  },
-  "pauseAction": {
-    "message": "Pause"
-  },
-  "backwardAction": {
-    "message": "Skip backward 10 seconds"
-  },
-  "forwardAction": {
-    "message": "Skip forward 10 seconds"
-  },
-  "timelineAction": {
-    "message": "Playback timeline"
-  }
+  "extensionName": { "message": "FloatPlay" },
+  "extensionDescription": { "message": "Enhance YouTube Picture-in-Picture with better playback controls." },
+  "playAction": { "message": "Play" },
+  "pauseAction": { "message": "Pause" },
+  "backwardAction": { "message": "Skip backward 10 seconds" },
+  "forwardAction": { "message": "Skip forward 10 seconds" },
+  "timelineAction": { "message": "Playback timeline" },
+  "fitAction": { "message": "Fit to video" }
 }
