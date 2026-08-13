@@ -1,1 +1,0 @@
-Canonical browser smoke-test documentation will be added after the initial package validation.
