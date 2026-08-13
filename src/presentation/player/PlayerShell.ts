@@ -145,8 +145,8 @@ export class PlayerShell {
     const svg = document.createElementNS(svgNamespace, "svg");
     svg.classList.add("floatplay-navigation-icon");
     svg.setAttribute("viewBox", "0 0 24 24");
-    svg.setAttribute("width", "15");
-    svg.setAttribute("height", "15");
+    svg.setAttribute("width", "17");
+    svg.setAttribute("height", "17");
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("fill", "none");
     svg.setAttribute("stroke", "currentColor");
@@ -205,8 +205,8 @@ export class PlayerShell {
     const svg = document.createElementNS(svgNamespace, "svg");
     svg.classList.add("floatplay-playback-icon");
     svg.setAttribute("viewBox", "0 0 24 24");
-    svg.setAttribute("width", "20");
-    svg.setAttribute("height", "20");
+    svg.setAttribute("width", "21");
+    svg.setAttribute("height", "21");
     svg.setAttribute("aria-hidden", "true");
 
     if (showPlayIcon) {
@@ -261,6 +261,7 @@ export class PlayerShell {
       .floatplay-button-row {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
       }
 
@@ -268,8 +269,8 @@ export class PlayerShell {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
+        width: 28px;
+        height: 28px;
         padding: 0;
         border: 0;
         border-radius: 999px;
