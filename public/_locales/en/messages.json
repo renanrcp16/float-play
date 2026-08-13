@@ -16,5 +16,8 @@
   },
   "forwardAction": {
     "message": "Skip forward 10 seconds"
+  },
+  "timelineAction": {
+    "message": "Playback timeline"
   }
 }
