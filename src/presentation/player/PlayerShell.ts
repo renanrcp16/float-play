@@ -55,7 +55,13 @@ export class PlayerShell {
     playbackButton.type = "button";
     playbackButton.className = "floatplay-playback-button";
     const forwardButton = this.createNavigationButton(document, this.labels.forward, "forward");
-    const fitButton = new FitControl(this.media, this.playerWindow, this.labels.fit, this.logger).create(document);
+    const fitButton = new FitControl(
+      this.media,
+      this.playerWindow,
+      this.labels.fit,
+      this.lifecycle.signal,
+      this.logger
+    ).create(document);
 
     const timelineControl = new TimelineControl(
       this.media,
