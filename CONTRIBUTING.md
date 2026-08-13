@@ -2,7 +2,7 @@
 
 Thank you for helping improve FloatPlay. Contributions are welcome through issues and pull requests.
 
-This document is the canonical source for the repository's development workflow and contribution process. Product behavior belongs in `docs/PRD.md`, and architectural constraints belong in `docs/ARCHITECTURE.md`.
+This document is the canonical source for the repository's development workflow and contribution process. Product behavior belongs in `docs/PRD.md`, architectural constraints belong in `docs/ARCHITECTURE.md`, and test strategy and browser smoke procedures belong in `docs/TESTING.md`.
 
 ## Contribution license
 
@@ -21,7 +21,7 @@ Follow the repository language requirement defined in `docs/PRD.md`. Repository-
 ## Development requirements
 
 - Node.js 22.12 or newer.
-- pnpm 11.
+- pnpm version declared by the `packageManager` field in `package.json`.
 - Google Chrome desktop for extension smoke testing.
 
 Install dependencies with:
@@ -29,6 +29,8 @@ Install dependencies with:
 ```bash
 pnpm install
 ```
+
+The generated `pnpm-lock.yaml` is part of the repository's reproducibility contract and must be committed. Do not delete or regenerate the lockfile merely to bypass dependency or policy failures; investigate the underlying cause instead.
 
 ## Development workflow
 
@@ -73,7 +75,7 @@ pnpm validate
 
 It runs linting, TypeScript type checking, automated tests, and the production build.
 
-Run relevant browser-level or manual smoke tests when the change affects Chrome extension behavior or YouTube integration.
+Follow `docs/TESTING.md` for browser-level and real YouTube validation when the change affects extension behavior, media lifecycle, or YouTube integration.
 
 Do not mark a validation item as complete when it was not executed. If an environment prevents a required check from running, document that limitation explicitly in the pull request.
 
@@ -86,7 +88,7 @@ A pull request should:
 - Stay within the approved issue scope.
 - Include validation results.
 - Describe relevant manual testing.
-- Update canonical documentation when behavior, architecture, workflow, or legal terms change.
+- Update canonical documentation when behavior, architecture, workflow, testing strategy, or legal terms change.
 - Avoid unrelated cleanup unless it is required for the change.
 
 The repository uses squash merge for completed pull requests so `main` keeps a concise history. The feature branch should be deleted after merge.
@@ -107,7 +109,7 @@ A significant decision that introduces or replaces a long-term architectural cho
 
 Dependency and Chrome permission decisions are governed by `docs/ARCHITECTURE.md` and the product security requirements in `docs/PRD.md`.
 
-A new dependency or permission must solve a concrete requirement. Do not add either speculatively.
+A new dependency or permission must solve a concrete requirement. Do not add either speculatively. Dependency version changes must be intentional and reviewed; do not rely on broad version ranges as a substitute for the lockfile.
 
 ## Documentation ownership
 
@@ -116,6 +118,7 @@ Keep project rules single-sourced:
 - `README.md` — project entry point.
 - `docs/PRD.md` — product requirements.
 - `docs/ARCHITECTURE.md` — architecture.
+- `docs/TESTING.md` — testing strategy and smoke-test procedures.
 - `CONTRIBUTING.md` — contribution and development workflow.
 - `AGENTS.md` — coding-agent entry point.
 - `LICENSE` — license terms.
