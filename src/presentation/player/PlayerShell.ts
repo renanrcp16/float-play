@@ -270,16 +270,16 @@ export class PlayerShell {
         align-items: center;
         justify-content: center;
         width: 100%;
-        min-height: 28px;
+        min-height: 29px;
         gap: 8px;
       }
 
       .floatplay-playback-button {
         display: grid;
         place-items: center;
-        flex: 0 0 28px;
-        width: 28px;
-        height: 28px;
+        flex: 0 0 29px;
+        width: 29px;
+        height: 29px;
         padding: 0;
         border: 0;
         border-radius: 999px;
