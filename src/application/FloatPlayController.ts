@@ -1,10 +1,16 @@
 import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
 import type { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
 import { OriginPlaybackSurface } from "../presentation/player/OriginPlaybackSurface";
+import { PlayerOverflow } from "../presentation/player/PlayerOverflow";
 import { PlayerShell } from "../presentation/player/PlayerShell";
 import type { PlayerPlaybackLabels } from "../presentation/player/PlayerShell";
 import { SpikeTrigger } from "../presentation/spike/SpikeTrigger";
 import type { Logger } from "../shared/Logger";
+
+interface FloatPlayLabels extends PlayerPlaybackLabels {
+  readonly fit: string;
+  readonly moreOptions: string;
+}
 
 export class FloatPlayController {
   private readonly lifecycle = new AbortController();
@@ -18,7 +24,7 @@ export class FloatPlayController {
   public constructor(
     private readonly youtube: YouTubeAdapter,
     private readonly pip: DocumentPipManager,
-    private readonly labels: PlayerPlaybackLabels,
+    private readonly labels: FloatPlayLabels,
     private readonly logger: Logger
   ) {
     this.trigger = new SpikeTrigger({
@@ -151,6 +157,14 @@ export class FloatPlayController {
       this.labels,
       this.logger
     );
+    const playerOverflow = new PlayerOverflow(
+      session.media,
+      session.pipWindow,
+      session.signal,
+      this.labels.fit,
+      this.labels.moreOptions,
+      this.logger
+    );
     const originSurface = new OriginPlaybackSurface(
       session.media,
       session.originElement,
@@ -159,6 +173,7 @@ export class FloatPlayController {
     );
 
     playerShell.mount();
+    playerOverflow.mount();
     originSurface.mount();
 
     this.playerShell = playerShell;

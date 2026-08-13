@@ -19,5 +19,11 @@
   },
   "timelineAction": {
     "message": "Linha do tempo da reprodução"
+  },
+  "fitAction": {
+    "message": "Ajustar ao vídeo"
+  },
+  "moreOptionsAction": {
+    "message": "Mais opções"
   }
 }

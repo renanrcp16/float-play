@@ -16,7 +16,9 @@ const controller = new FloatPlayController(
     pause: i18n.getMessage("pauseAction", "Pause"),
     backward: i18n.getMessage("backwardAction", "Skip backward 10 seconds"),
     forward: i18n.getMessage("forwardAction", "Skip forward 10 seconds"),
-    timeline: i18n.getMessage("timelineAction", "Playback timeline")
+    timeline: i18n.getMessage("timelineAction", "Playback timeline"),
+    fit: i18n.getMessage("fitAction", "Fit to video"),
+    moreOptions: i18n.getMessage("moreOptionsAction", "More options")
   },
   logger
 );
