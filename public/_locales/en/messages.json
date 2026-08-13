@@ -10,5 +10,11 @@
   },
   "pauseAction": {
     "message": "Pause"
+  },
+  "backwardAction": {
+    "message": "Skip backward 10 seconds"
+  },
+  "forwardAction": {
+    "message": "Skip forward 10 seconds"
   }
 }
