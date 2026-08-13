@@ -6,6 +6,7 @@ export class FitControl {
     private readonly media: HTMLVideoElement,
     private readonly playerWindow: Window,
     private readonly label: string,
+    private readonly signal: AbortSignal,
     private readonly logger: Logger
   ) {}
 
@@ -16,7 +17,7 @@ export class FitControl {
     button.setAttribute("aria-label", this.label);
     button.title = this.label;
     button.append(this.createIcon(document));
-    button.addEventListener("click", () => this.fit());
+    button.addEventListener("click", () => this.fit(), { signal: this.signal });
     return button;
   }
 
