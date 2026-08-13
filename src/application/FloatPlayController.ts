@@ -4,6 +4,7 @@ import { OriginPlaybackSurface } from "../presentation/player/OriginPlaybackSurf
 import { PlayerOverflow } from "../presentation/player/PlayerOverflow";
 import { PlayerShell } from "../presentation/player/PlayerShell";
 import type { PlayerPlaybackLabels } from "../presentation/player/PlayerShell";
+import { installPrimaryControlAlignment } from "../presentation/player/PrimaryControlAlignment";
 import { SpikeTrigger } from "../presentation/spike/SpikeTrigger";
 import type { Logger } from "../shared/Logger";
 
@@ -173,6 +174,7 @@ export class FloatPlayController {
     );
 
     playerShell.mount();
+    installPrimaryControlAlignment(session.pipWindow.document, session.signal);
     playerOverflow.mount();
     originSurface.mount();
 
