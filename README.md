@@ -10,6 +10,7 @@ FloatPlay is currently in early development. The first milestone validates the c
 
 - [Product requirements](docs/PRD.md)
 - [Architecture](docs/ARCHITECTURE.md)
+- [Testing](docs/TESTING.md)
 - [Contributing](CONTRIBUTING.md)
 - [Agent instructions](AGENTS.md)
 
