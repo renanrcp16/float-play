@@ -2,7 +2,7 @@
 
 ## Status
 
-This document defines the initial architecture boundaries for FloatPlay. The architecture may be refined after Spike 0, but changes should preserve the principles described here unless an explicit architectural decision replaces them.
+Spike 0 is complete and the core Document Picture-in-Picture feasibility assumptions have been validated against real Chrome and YouTube behavior. This document defines the current architecture boundaries for FloatPlay. Future structural changes should preserve these principles unless an explicit architectural decision replaces them.
 
 ## Goals
 
@@ -17,7 +17,7 @@ The architecture should make FloatPlay:
 
 ## Runtime model
 
-The initial runtime path is:
+The current runtime path is:
 
 ```text
 YouTube watch page
@@ -26,26 +26,34 @@ YouTube watch page
 Content bootstrap
         │
         ▼
-Application controller
+FloatPlayController
         │
         ├── YouTubeAdapter ──> active HTMLVideoElement
         │
-        └── DocumentPipManager ──> Document Picture-in-Picture
+        └── DocumentPipManager ──> active PiP session
+                                      │
+                    ┌─────────────────┴─────────────────┐
+                    ▼                                   ▼
+             PlayerShell                     OriginPlaybackSurface
+          (PiP presentation)                 (YouTube origin surface)
 ```
 
-The production player will later add presentation and settings layers around this core.
+The active `HTMLVideoElement` remains shared across these layers and is the playback source of truth.
 
 ## Architectural boundaries
 
 ### Application
 
-Application code coordinates use cases and lifecycle. It may depend on contracts exposed by infrastructure components but should not contain YouTube selector knowledge.
+Application code coordinates use cases and lifecycle. It may depend on contracts exposed by infrastructure and presentation components but should not contain YouTube selector knowledge.
 
 Examples:
 
 - Reconciling whether a supported media source exists.
 - Opening or ending a FloatPlay session.
+- Mounting presentation components for an active PiP session.
 - Rebinding future player state to a newly active media source.
+
+Playback rules that do not require DOM knowledge, such as toggling Play/Pause against a media contract, belong in application-level helpers so they can be tested independently.
 
 ### Infrastructure — YouTube
 
@@ -53,7 +61,7 @@ YouTube integration owns knowledge required to find and observe the active media
 
 This layer should prefer platform-neutral media characteristics over private YouTube implementation details.
 
-The initial spike intentionally selects the largest visible connected `<video>` element on a supported watch page instead of depending on YouTube-specific video classes.
+The current adapter selects the largest visible connected `<video>` element on a supported watch page instead of depending on YouTube-specific video classes.
 
 ### Infrastructure — Picture-in-Picture
 
@@ -62,21 +70,34 @@ The Picture-in-Picture layer owns:
 - Document Picture-in-Picture capability detection.
 - Window creation.
 - Media movement into the PiP document.
+- Initial window geometry hints.
 - PiP document styling required by the integration.
 - Safe restoration of the media node.
 - PiP lifecycle cleanup.
+- A minimal session context for presentation components.
 
-It must not own YouTube navigation logic.
+It must not own YouTube navigation logic or presentation behavior.
+
+### Infrastructure — Chrome
+
+Chrome-specific adapters should remain narrow. The current Chrome i18n adapter exposes localized extension messages without coupling presentation components directly to global Chrome APIs.
 
 ### Presentation
 
-Presentation owns visual controls, focus behavior, menus, and responsive layout.
+Presentation owns visual controls, focus behavior, menus, responsive layout, and interaction surfaces.
 
-The technical spike contains only a temporary isolated trigger required to provide a valid user gesture. It is not the v1 visual design.
+The first production presentation slice consists of:
+
+- `PlayerShell`, rendered inside the Document PiP window.
+- `OriginPlaybackSurface`, which preserves a predictable Play/Pause interaction on the non-interactive central area of the original YouTube player while the media element is inside PiP.
+
+The PiP video image itself is passive. Clicking the video image does not toggle playback; Play/Pause inside the PiP window is performed through the explicit semantic control.
+
+The origin interaction layer must not intentionally intercept native YouTube buttons, sliders, links, form controls, or other semantically interactive elements. This keeps FloatPlay behavior predictable without depending on private YouTube player classes.
 
 ### Settings
 
-Settings will be introduced after the feasibility spike and will use a versioned schema with Chrome extension storage.
+Settings will use a versioned schema with Chrome extension storage when the Options Page is introduced.
 
 ## Source-of-truth rules
 
@@ -126,7 +147,7 @@ The project should avoid depending exclusively on private YouTube navigation eve
 
 Any component that creates a listener, observer, animation frame, timer, subscription, or separate window must own an explicit cleanup path.
 
-Cleanup must be idempotent where practical.
+Cleanup must be idempotent where practical. Presentation components created for a PiP session are tied to that session's abort signal so their listeners are removed when the session ends.
 
 ## PiP restoration strategy
 
@@ -139,15 +160,17 @@ When the PiP window closes:
 3. Do not insert the media node into an arbitrary fallback container merely to keep it connected.
 4. Surface a structured failure for investigation if no safe restoration target remains.
 
-Spike 0 exists specifically to determine whether this strategy remains reliable against YouTube's real player lifecycle.
+Spike 0 validated this strategy against repeated open/close cycles, SPA video navigation, playlist progression, live playback, advertising transitions, unsupported-route cleanup, and full opener reload behavior. These scenarios remain regression requirements.
 
-## Shadow DOM isolation
+## Styling isolation
 
-Temporary and production FloatPlay controls injected into YouTube should use an isolated styling boundary where appropriate so that YouTube CSS does not accidentally style FloatPlay controls and FloatPlay CSS does not leak into YouTube.
+FloatPlay UI injected into the YouTube document should use an isolated styling boundary when it owns visible markup so YouTube CSS does not accidentally style FloatPlay controls and FloatPlay CSS does not leak into YouTube.
+
+The PiP player shell lives in its own Document PiP document and therefore has a separate document styling scope. Interaction behavior attached to existing YouTube elements should avoid unnecessary style mutation.
 
 ## Privilege model
 
-The initial spike requires no extension service worker and no privileged background operations.
+The current implementation requires no extension service worker and no privileged background operations.
 
 A service worker should be introduced only when a concrete feature requires background extension APIs or coordination that cannot live safely in the existing contexts.
 
@@ -155,20 +178,20 @@ A service worker should be introduced only when a concrete feature requires back
 
 Dependencies are added only when they solve a meaningful problem more clearly or safely than available platform APIs.
 
-The initial toolchain uses Vite for extension bundling, TypeScript for static type safety, and ESLint with typescript-eslint for linting.
+The toolchain uses Vite for extension bundling, TypeScript for static type safety, ESLint with typescript-eslint for linting, and Vitest for automated tests.
 
-React is intentionally undecided until the technical spike establishes the real presentation complexity.
+The first production player shell is implemented with native DOM APIs. React remains intentionally deferred and should be introduced only if future presentation complexity creates a concrete maintainability benefit that outweighs the additional runtime and architectural cost.
 
 ## Testing strategy
 
-Testing will grow in layers:
+Testing grows in layers:
 
 - Unit tests for deterministic rules and calculations.
 - Integration tests for media-control behavior.
 - Browser-level tests for extension lifecycle and critical flows.
 - Manual smoke tests against the real YouTube application.
 
-Tests should assert user-visible or behavioral outcomes rather than implementation details when possible.
+Tests should assert user-visible or behavioral outcomes rather than implementation details when possible. Real YouTube smoke tests remain mandatory for integration behavior that cannot be represented faithfully with isolated mocks.
 
 ## Future architectural decisions
 

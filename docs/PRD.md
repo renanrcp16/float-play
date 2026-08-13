@@ -4,7 +4,7 @@
 
 - Product: FloatPlay
 - Target release: v1.0.0
-- Status: Approved product scope; core technical feasibility pending Spike 0
+- Status: Approved product scope; core technical feasibility validated by Spike 0
 - Primary platform: Google Chrome Desktop
 - Primary website: YouTube
 
@@ -69,7 +69,11 @@ FloatPlay must use Document Picture-in-Picture as the primary v1 window technolo
 
 ### FR-005 — Initial size
 
-The initial target size is approximately 480 × 320 pixels. The final value may be adjusted after usability testing.
+FloatPlay must calculate the initial Picture-in-Picture geometry from the active media's intrinsic aspect ratio when reliable dimensions are available.
+
+The initial target uses approximately 480 pixels on the media's longer dimension. A 16:9 fallback may be used when reliable media dimensions are unavailable.
+
+When a new PiP session is opened, FloatPlay should ask Chrome to prefer the freshly calculated initial geometry instead of reusing a previous manual resize. Browser and operating-system window-management constraints remain authoritative.
 
 ### FR-006 — Resizing
 
@@ -99,7 +103,11 @@ When the window becomes too small to show all controls safely, secondary actions
 
 ### FR-012 — Play and pause
 
-The mini player must support Play and Pause.
+The mini player must expose an explicit Play/Pause control.
+
+Pointer clicks on the PiP video image itself must not toggle playback. The video image is a passive media surface; pointer-driven Play/Pause inside the PiP window is performed through the explicit control.
+
+While PiP is active, FloatPlay must preserve predictable Play/Pause interaction on the non-interactive central area left at the original YouTube player location for both standard videos and live streams. That origin interaction must not intentionally intercept YouTube's native buttons, sliders, links, form controls, or other semantically interactive elements.
 
 The `HTMLVideoElement` is the source of truth for playback state. FloatPlay must reflect media events instead of maintaining an independent competing playback state.
 
@@ -136,6 +144,8 @@ The selected display mode should be persisted as a user preference.
 ### FR-019 — Live media
 
 Timeline behavior for live streams must use the media's actual seekable ranges rather than assuming a fixed `0..duration` range.
+
+FloatPlay must treat the exact end of a live seekable range conservatively and must not assume that `seekable.end()` is always semantically equivalent to YouTube's stable live edge.
 
 ## 7. Volume
 
@@ -530,11 +540,11 @@ The following capabilities are not part of the v1 scope:
 - Casting.
 - Remote control features.
 
-## 24. Spike 0 — technical feasibility gate
+## 24. Spike 0 — completed technical feasibility gate
 
-Before final player UI development, FloatPlay must validate its core integration assumptions.
+Spike 0 validated the core integration assumptions required before production player UI development.
 
-The spike must investigate:
+The spike covered:
 
 1. Detecting the active YouTube `HTMLVideoElement` without relying on fragile internal player classes.
 2. Opening Document Picture-in-Picture from a valid user gesture.
@@ -547,7 +557,11 @@ The spike must investigate:
 9. Advertising transitions.
 10. Safe cleanup when the originating page changes unexpectedly.
 
-If the spike demonstrates that moving YouTube's media element is structurally unreliable, production UI development must stop until the architecture is revised. The project must not compensate for a flawed foundation with increasingly fragile DOM patches.
+The gate completed successfully on real Chrome and YouTube on Windows on 2026-08-13. The validated architecture keeps the YouTube-owned media element as the shared source of truth, safely restores it on session end, and remains stable across the tested navigation, playlist, live, advertising, unsupported-route, and reload scenarios.
+
+The live-stream investigation also established that the exact reported end of a seekable range may briefly expose YouTube end-of-media presentation before the player returns to the live edge. Future live controls must preserve the conservative behavior defined by FR-019.
+
+If future regressions demonstrate that moving YouTube's media element has become structurally unreliable, production UI development must stop until the architecture is revised. The project must not compensate for a flawed foundation with increasingly fragile DOM patches.
 
 ## 25. v1 Definition of Done
 

@@ -1,18 +1,24 @@
-import type { DocumentPipManager } from "../infrastructure/pip/DocumentPipManager";
+import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
 import type { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
+import { OriginPlaybackSurface } from "../presentation/player/OriginPlaybackSurface";
+import { PlayerShell } from "../presentation/player/PlayerShell";
+import type { PlayerPlaybackLabels } from "../presentation/player/PlayerShell";
 import { SpikeTrigger } from "../presentation/spike/SpikeTrigger";
 import type { Logger } from "../shared/Logger";
 
-export class SpikeController {
+export class FloatPlayController {
   private readonly lifecycle = new AbortController();
   private readonly observer: MutationObserver;
   private readonly trigger: SpikeTrigger;
   private reconcileFrame: number | null = null;
+  private playerShell: PlayerShell | null = null;
+  private originSurface: OriginPlaybackSurface | null = null;
   private busy = false;
 
   public constructor(
     private readonly youtube: YouTubeAdapter,
     private readonly pip: DocumentPipManager,
+    private readonly labels: PlayerPlaybackLabels,
     private readonly logger: Logger
   ) {
     this.trigger = new SpikeTrigger({
@@ -54,6 +60,10 @@ export class SpikeController {
   }
 
   public dispose(): void {
+    if (this.lifecycle.signal.aborted) {
+      return;
+    }
+
     this.lifecycle.abort();
     this.observer.disconnect();
 
@@ -63,11 +73,12 @@ export class SpikeController {
     }
 
     this.trigger.dispose();
+    this.disposePresentation();
     this.pip.dispose();
   }
 
   private scheduleReconcile(): void {
-    if (this.reconcileFrame !== null) {
+    if (this.lifecycle.signal.aborted || this.reconcileFrame !== null) {
       return;
     }
 
@@ -112,14 +123,68 @@ export class SpikeController {
     this.trigger.setBusy(true);
 
     try {
-      await this.pip.open(media);
-      this.logger.debug("Document Picture-in-Picture spike opened successfully.");
+      const session = await this.pip.open(media);
+      this.mountPresentation(session);
+      this.logger.debug("FloatPlay player session opened successfully.");
     } catch (error) {
-      this.logger.error("Unable to open Document Picture-in-Picture.", error);
+      this.disposePresentation();
+      this.pip.dispose();
+      this.logger.error("Unable to open the FloatPlay player session.", error);
     } finally {
       this.busy = false;
       this.trigger.setBusy(false);
       this.scheduleReconcile();
     }
+  }
+
+  private mountPresentation(session: DocumentPipSession): void {
+    if (session.signal.aborted) {
+      return;
+    }
+
+    this.disposePresentation();
+
+    const playerShell = new PlayerShell(
+      session.media,
+      session.pipWindow,
+      session.signal,
+      this.labels,
+      this.logger
+    );
+    const originSurface = new OriginPlaybackSurface(
+      session.media,
+      session.originElement,
+      session.signal,
+      this.logger
+    );
+
+    playerShell.mount();
+    originSurface.mount();
+
+    this.playerShell = playerShell;
+    this.originSurface = originSurface;
+
+    session.signal.addEventListener(
+      "abort",
+      () => {
+        if (this.playerShell === playerShell) {
+          this.playerShell = null;
+        }
+
+        if (this.originSurface === originSurface) {
+          this.originSurface = null;
+        }
+
+        this.scheduleReconcile();
+      },
+      { once: true }
+    );
+  }
+
+  private disposePresentation(): void {
+    this.playerShell?.dispose();
+    this.originSurface?.dispose();
+    this.playerShell = null;
+    this.originSurface = null;
   }
 }
