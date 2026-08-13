@@ -48,6 +48,10 @@ Run these tests for changes that affect the first production player shell or Pla
 - **PS-06 — Session lifecycle regression:** verify video A → B navigation, automatic playlist progression, PiP close/restoration, and leaving `/watch` still behave as validated by Spike 0.
 - **PS-07 — Localization and accessibility:** verify the Play/Pause control exposes English labels in English/fallback locales and Brazilian Portuguese labels in `pt-BR` through its accessible name. The label is not required to be visually rendered; keyboard focus on the control must remain visibly identifiable.
 
+### Player shell validation result
+
+PS-01 through PS-07 completed successfully on real Chrome/YouTube on Windows on 2026-08-13 after the PiP video surface was finalized as passive. Standard-video and live-stream origin clicks behaved consistently, native YouTube controls remained usable, lifecycle regressions did not reproduce, and keyboard focus remained visibly identifiable.
+
 ## Result recording
 
 For each browser run, record Chrome version, operating system, tested commit, date, other YouTube-modifying extensions, FloatPlay console errors, and a result or observation for every relevant scenario.
