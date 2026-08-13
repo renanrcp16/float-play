@@ -4,5 +4,11 @@
   },
   "extensionDescription": {
     "message": "Melhore o Picture-in-Picture do YouTube com controles de reprodução mais completos."
+  },
+  "playAction": {
+    "message": "Reproduzir"
+  },
+  "pauseAction": {
+    "message": "Pausar"
   }
 }
