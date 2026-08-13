@@ -122,30 +122,32 @@ export class PlayerShell {
     return button;
   }
 
-  private createNavigationIcon(
-    document: Document,
-    direction: NavigationDirection
-  ): SVGSVGElement {
+  private createNavigationIcon(document: Document, direction: NavigationDirection): SVGSVGElement {
     const svgNamespace = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNamespace, "svg");
+    svg.classList.add("floatplay-navigation-icon");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("width", "20");
     svg.setAttribute("height", "20");
     svg.setAttribute("aria-hidden", "true");
-    svg.classList.add("floatplay-navigation-icon");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2.25");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
 
-    const first = document.createElementNS(svgNamespace, "path");
-    const second = document.createElementNS(svgNamespace, "path");
+    const arrow = document.createElementNS(svgNamespace, "path");
+    const curve = document.createElementNS(svgNamespace, "path");
 
     if (direction === "backward") {
-      first.setAttribute("d", "m13 7-5 5 5 5");
-      second.setAttribute("d", "m19 7-5 5 5 5");
+      arrow.setAttribute("d", "M9 14 4 9l5-5");
+      curve.setAttribute("d", "M4 9h10a6 6 0 0 1 0 12h-1");
     } else {
-      first.setAttribute("d", "m11 7 5 5-5 5");
-      second.setAttribute("d", "m5 7 5 5-5 5");
+      arrow.setAttribute("d", "m15 14 5-5-5-5");
+      curve.setAttribute("d", "M20 9H10a6 6 0 0 0 0 12h1");
     }
 
-    svg.append(first, second);
+    svg.append(arrow, curve);
     return svg;
   }
 
@@ -183,6 +185,7 @@ export class PlayerShell {
   private createPlaybackIcon(document: Document, showPlayIcon: boolean): SVGSVGElement {
     const svgNamespace = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNamespace, "svg");
+    svg.classList.add("floatplay-playback-icon");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("width", "20");
     svg.setAttribute("height", "20");
@@ -236,11 +239,12 @@ export class PlayerShell {
       }
 
       .floatplay-playback-button {
-        display: inline-grid;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         width: 40px;
         height: 40px;
         padding: 0;
-        place-items: center;
         border: 0;
         border-radius: 999px;
         color: #fff;
@@ -258,17 +262,16 @@ export class PlayerShell {
         outline-offset: 2px;
       }
 
-      .floatplay-playback-button svg {
+      .floatplay-playback-icon {
+        display: block;
         fill: currentColor;
         pointer-events: none;
       }
 
-      .floatplay-navigation-button .floatplay-navigation-icon {
-        fill: none;
-        stroke: currentColor;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
+      .floatplay-navigation-icon {
+        display: block;
+        flex: none;
+        pointer-events: none;
       }
     `;
 
