@@ -1,4 +1,5 @@
-import { adjustVolume, setMediaVolume, toggleMuted } from "../../application/MediaVolume";
+import type { VolumeMirror } from "../../application/VolumeController";
+import { adjustVolume, setMediaVolume } from "../../application/MediaVolume";
 import type { Logger } from "../../shared/Logger";
 
 export interface VolumeControlLabels {
@@ -13,6 +14,7 @@ export class VolumeControl {
     private readonly playerWindow: Window,
     private readonly signal: AbortSignal,
     private readonly labels: VolumeControlLabels,
+    private readonly volumeMirror: VolumeMirror,
     private readonly logger: Logger
   ) {}
 
@@ -48,7 +50,7 @@ export class VolumeControl {
     root.append(button, sliderWrap);
     playerRoot.append(root);
 
-    button.addEventListener("click", () => toggleMuted(this.media), { signal: this.signal });
+    button.addEventListener("click", () => this.setMuted(!this.media.muted), { signal: this.signal });
     button.addEventListener(
       "wheel",
       (event) => {
@@ -58,7 +60,7 @@ export class VolumeControl {
 
         event.preventDefault();
         const direction = event.deltaY < 0 ? 1 : -1;
-        setMediaVolume(this.media, adjustVolume(this.media.volume, direction));
+        this.setVolume(adjustVolume(this.media.volume, direction));
       },
       { passive: false, signal: this.signal }
     );
@@ -66,7 +68,7 @@ export class VolumeControl {
     slider.addEventListener(
       "input",
       () => {
-        setMediaVolume(this.media, slider.valueAsNumber);
+        this.setVolume(slider.valueAsNumber);
       },
       { signal: this.signal }
     );
@@ -82,6 +84,17 @@ export class VolumeControl {
     this.media.addEventListener("volumechange", sync, { signal: this.signal });
     this.signal.addEventListener("abort", () => root.remove(), { once: true });
     sync();
+  }
+
+  private setVolume(value: number): void {
+    setMediaVolume(this.media, value);
+    this.volumeMirror.setVolume(this.media.volume);
+    this.volumeMirror.setMuted(this.media.muted);
+  }
+
+  private setMuted(muted: boolean): void {
+    this.media.muted = muted;
+    this.volumeMirror.setMuted(muted);
   }
 
   private syncUi(document: Document, button: HTMLButtonElement, slider: HTMLInputElement): void {
