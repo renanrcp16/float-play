@@ -4,18 +4,11 @@ export interface PipWindowSize {
 }
 
 const TARGET_LONG_SIDE = 480;
-const FALLBACK_SIZE: PipWindowSize = {
-  width: 480,
-  height: 270
-};
+const LANDSCAPE_TARGET_WIDTH = 512;
+const FALLBACK_SIZE: PipWindowSize = { width: 512, height: 288 };
 
 export function calculateInitialPipSize(mediaWidth: number, mediaHeight: number): PipWindowSize {
-  if (
-    !Number.isFinite(mediaWidth) ||
-    !Number.isFinite(mediaHeight) ||
-    mediaWidth <= 0 ||
-    mediaHeight <= 0
-  ) {
+  if (!Number.isFinite(mediaWidth) || !Number.isFinite(mediaHeight) || mediaWidth <= 0 || mediaHeight <= 0) {
     return FALLBACK_SIZE;
   }
 
@@ -23,8 +16,8 @@ export function calculateInitialPipSize(mediaWidth: number, mediaHeight: number)
 
   if (aspectRatio >= 1) {
     return {
-      width: TARGET_LONG_SIDE,
-      height: Math.max(1, Math.round(TARGET_LONG_SIDE / aspectRatio))
+      width: LANDSCAPE_TARGET_WIDTH,
+      height: Math.max(1, Math.round(LANDSCAPE_TARGET_WIDTH / aspectRatio))
     };
   }
 
