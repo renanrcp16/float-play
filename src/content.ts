@@ -13,7 +13,9 @@ const controller = new FloatPlayController(
   pip,
   {
     play: i18n.getMessage("playAction", "Play"),
-    pause: i18n.getMessage("pauseAction", "Pause")
+    pause: i18n.getMessage("pauseAction", "Pause"),
+    backward: i18n.getMessage("backwardAction", "Skip backward 10 seconds"),
+    forward: i18n.getMessage("forwardAction", "Skip forward 10 seconds")
   },
   logger
 );

@@ -1,10 +1,15 @@
+import { DEFAULT_SEEK_SECONDS, seekBy } from "../../application/MediaSeek";
 import { togglePlayback } from "../../application/MediaPlayback";
 import type { Logger } from "../../shared/Logger";
 
 export interface PlayerPlaybackLabels {
   readonly play: string;
   readonly pause: string;
+  readonly backward: string;
+  readonly forward: string;
 }
+
+type NavigationDirection = "backward" | "forward";
 
 export class PlayerShell {
   private readonly lifecycle = new AbortController();
@@ -43,18 +48,36 @@ export class PlayerShell {
     const controls = document.createElement("div");
     controls.className = "floatplay-controls";
 
+    const backwardButton = this.createNavigationButton(document, this.labels.backward, "backward");
     const playbackButton = document.createElement("button");
     playbackButton.type = "button";
     playbackButton.className = "floatplay-playback-button";
-    controls.append(playbackButton);
+    const forwardButton = this.createNavigationButton(document, this.labels.forward, "forward");
 
+    controls.append(backwardButton, playbackButton, forwardButton);
     root.append(this.media, controls);
     document.body.replaceChildren(root);
+
+    backwardButton.addEventListener(
+      "click",
+      () => {
+        this.navigate(-DEFAULT_SEEK_SECONDS);
+      },
+      { signal: this.lifecycle.signal }
+    );
 
     playbackButton.addEventListener(
       "click",
       () => {
         this.togglePlayback();
+      },
+      { signal: this.lifecycle.signal }
+    );
+
+    forwardButton.addEventListener(
+      "click",
+      () => {
+        this.navigate(DEFAULT_SEEK_SECONDS);
       },
       { signal: this.lifecycle.signal }
     );
@@ -85,6 +108,59 @@ export class PlayerShell {
     this.mounted = false;
   }
 
+  private createNavigationButton(
+    document: Document,
+    label: string,
+    direction: NavigationDirection
+  ): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "floatplay-playback-button floatplay-navigation-button";
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    button.append(this.createNavigationIcon(document, direction));
+    return button;
+  }
+
+  private createNavigationIcon(document: Document, direction: NavigationDirection): SVGSVGElement {
+    const svgNamespace = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNamespace, "svg");
+    svg.classList.add("floatplay-navigation-icon");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("width", "15");
+    svg.setAttribute("height", "15");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+
+    const arrow = document.createElementNS(svgNamespace, "path");
+    const curve = document.createElementNS(svgNamespace, "path");
+
+    if (direction === "backward") {
+      arrow.setAttribute("d", "M9 14 4 9l5-5");
+      curve.setAttribute("d", "M4 9h10a6 6 0 0 1 0 12h-1");
+    } else {
+      arrow.setAttribute("d", "m15 14 5-5-5-5");
+      curve.setAttribute("d", "M20 9H10a6 6 0 0 0 0 12h1");
+    }
+
+    svg.append(arrow, curve);
+    return svg;
+  }
+
+  private navigate(deltaSeconds: number): void {
+    try {
+      if (!seekBy(this.media, deltaSeconds)) {
+        this.logger.debug("No safe media navigation target is currently available.");
+      }
+    } catch (error) {
+      this.logger.error("Unable to navigate media from the player window.", error);
+    }
+  }
+
   private togglePlayback(): void {
     void togglePlayback(this.media).catch((error: unknown) => {
       this.logger.error("Unable to toggle media playback from the player window.", error);
@@ -109,6 +185,7 @@ export class PlayerShell {
   private createPlaybackIcon(document: Document, showPlayIcon: boolean): SVGSVGElement {
     const svgNamespace = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNamespace, "svg");
+    svg.classList.add("floatplay-playback-icon");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("width", "20");
     svg.setAttribute("height", "20");
@@ -156,26 +233,33 @@ export class PlayerShell {
         inset: 0;
         display: flex;
         align-items: flex-end;
+        gap: 8px;
         padding: 12px;
         pointer-events: none;
       }
 
       .floatplay-playback-button {
-        display: inline-grid;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         width: 40px;
         height: 40px;
         padding: 0;
-        place-items: center;
         border: 0;
         border-radius: 999px;
         color: #fff;
         background: rgb(0 0 0 / 68%);
         cursor: pointer;
         pointer-events: auto;
+        transition: background-color 100ms ease;
       }
 
       .floatplay-playback-button:hover {
-        background: rgb(0 0 0 / 82%);
+        background: rgb(0 0 0 / 58%);
+      }
+
+      .floatplay-playback-button:active {
+        background: rgb(0 0 0 / 48%);
       }
 
       .floatplay-playback-button:focus-visible {
@@ -183,9 +267,22 @@ export class PlayerShell {
         outline-offset: 2px;
       }
 
-      .floatplay-playback-button svg {
+      .floatplay-playback-icon {
+        display: block;
         fill: currentColor;
         pointer-events: none;
+      }
+
+      .floatplay-navigation-icon {
+        display: block;
+        flex: none;
+        pointer-events: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .floatplay-playback-button {
+          transition: none;
+        }
       }
     `;
 
