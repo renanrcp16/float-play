@@ -1,5 +1,5 @@
-import { DocumentPipManager } from "../infrastructure/pip/DocumentPipManager";
-import { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
+import type { DocumentPipManager } from "../infrastructure/pip/DocumentPipManager";
+import type { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
 import { SpikeTrigger } from "../presentation/spike/SpikeTrigger";
 import type { Logger } from "../shared/Logger";
 
