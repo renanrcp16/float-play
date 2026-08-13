@@ -22,5 +22,8 @@
   },
   "fitAction": {
     "message": "Fit to video"
+  },
+  "moreOptionsAction": {
+    "message": "More options"
   }
 }
