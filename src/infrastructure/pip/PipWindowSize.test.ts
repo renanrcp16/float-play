@@ -2,7 +2,7 @@ import { expect as assert, test as check } from "vitest";
 import { calculateInitialPipSize } from "./PipWindowSize";
 
 check("landscape sizing", () => {
-  assert(calculateInitialPipSize(1920, 1080)).toEqual({ width: 480, height: 270 });
+  assert(calculateInitialPipSize(1920, 1080)).toEqual({ width: 512, height: 288 });
 });
 
 check("vertical sizing", () => {
@@ -10,5 +10,5 @@ check("vertical sizing", () => {
 });
 
 check("fallback sizing", () => {
-  assert(calculateInitialPipSize(0, 0)).toEqual({ width: 480, height: 270 });
+  assert(calculateInitialPipSize(0, 0)).toEqual({ width: 512, height: 288 });
 });
