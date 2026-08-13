@@ -51,27 +51,9 @@ export class PlayerShell {
     root.append(this.media, controls);
     document.body.replaceChildren(root);
 
-    root.addEventListener(
-      "click",
-      (event) => {
-        if (event.composedPath().includes(controls)) {
-          return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-        this.togglePlayback();
-      },
-      {
-        capture: true,
-        signal: this.lifecycle.signal
-      }
-    );
-
     playbackButton.addEventListener(
       "click",
-      (event) => {
-        event.stopPropagation();
+      () => {
         this.togglePlayback();
       },
       { signal: this.lifecycle.signal }
@@ -167,7 +149,6 @@ export class PlayerShell {
         max-width: none !important;
         max-height: none !important;
         object-fit: contain !important;
-        cursor: pointer;
       }
 
       .floatplay-controls {
