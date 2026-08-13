@@ -78,9 +78,20 @@ export class SpikeController {
   }
 
   private reconcile(): void {
+    const supportedPage = this.youtube.isSupportedPage();
+
+    if (!supportedPage) {
+      this.trigger.setVisible(false);
+
+      if (this.pip.isOpen()) {
+        this.pip.dispose();
+      }
+
+      return;
+    }
+
     const hasMedia = this.youtube.findActiveMedia() !== null;
-    const shouldShow =
-      this.pip.isSupported() && this.youtube.isSupportedPage() && hasMedia && !this.pip.isOpen();
+    const shouldShow = this.pip.isSupported() && hasMedia && !this.pip.isOpen();
 
     this.trigger.setVisible(shouldShow);
   }
