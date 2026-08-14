@@ -21,7 +21,8 @@
     "test": "vitest run --passWithNoTests",
     "test:e2e": "pnpm build && pnpm --dir e2e test",
     "typecheck": "tsc --noEmit",
-    "validate": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "validate": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "verify:release": "pnpm build && node scripts/verify-release.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
