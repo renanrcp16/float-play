@@ -12,10 +12,20 @@
     "message": "Pause"
   },
   "backwardAction": {
-    "message": "Skip backward 10 seconds"
+    "message": "Skip backward $SECONDS$ seconds",
+    "placeholders": {
+      "seconds": {
+        "content": "$1"
+      }
+    }
   },
   "forwardAction": {
-    "message": "Skip forward 10 seconds"
+    "message": "Skip forward $SECONDS$ seconds",
+    "placeholders": {
+      "seconds": {
+        "content": "$1"
+      }
+    }
   },
   "timelineAction": {
     "message": "Playback timeline"
