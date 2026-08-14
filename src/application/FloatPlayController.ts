@@ -4,10 +4,12 @@ import { OriginPlaybackSurface } from "../presentation/player/OriginPlaybackSurf
 import { PlayerOverflow } from "../presentation/player/PlayerOverflow";
 import { PlayerShell } from "../presentation/player/PlayerShell";
 import type { PlayerPlaybackLabels } from "../presentation/player/PlayerShell";
+import { VolumeControl } from "../presentation/player/VolumeControl";
+import type { VolumeControlLabels } from "../presentation/player/VolumeControl";
 import { SpikeTrigger } from "../presentation/spike/SpikeTrigger";
 import type { Logger } from "../shared/Logger";
 
-interface FloatPlayLabels extends PlayerPlaybackLabels {
+interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
   readonly fit: string;
   readonly moreOptions: string;
 }
@@ -165,6 +167,14 @@ export class FloatPlayController {
       this.labels.moreOptions,
       this.logger
     );
+    const volumeControl = new VolumeControl(
+      session.media,
+      session.pipWindow,
+      session.signal,
+      this.labels,
+      this.youtube,
+      this.logger
+    );
     const originSurface = new OriginPlaybackSurface(
       session.media,
       session.originElement,
@@ -173,6 +183,7 @@ export class FloatPlayController {
     );
 
     playerShell.mount();
+    volumeControl.mount();
     playerOverflow.mount();
     originSurface.mount();
 

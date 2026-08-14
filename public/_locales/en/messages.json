@@ -25,5 +25,14 @@
   },
   "moreOptionsAction": {
     "message": "More options"
+  },
+  "volumeAction": {
+    "message": "Volume"
+  },
+  "muteAction": {
+    "message": "Mute"
+  },
+  "unmuteAction": {
+    "message": "Unmute"
   }
 }

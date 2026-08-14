@@ -11,6 +11,15 @@
         "https://www.youtube.com/*",
         "https://youtube.com/*"
       ],
+      "js": ["youtube-volume-main.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://youtube.com/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle",
       "world": "ISOLATED"

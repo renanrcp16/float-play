@@ -3,6 +3,13 @@ interface PageLocation {
   readonly pathname: string;
 }
 
+interface YouTubeVolumeMessage {
+  readonly channel: "floatplay:youtube-volume";
+  readonly type: "set-volume" | "set-muted";
+  readonly volume?: number;
+  readonly muted?: boolean;
+}
+
 export class YouTubeAdapter {
   public isSupportedPage(location: PageLocation = window.location): boolean {
     const isYouTubeHost = location.hostname === "www.youtube.com" || location.hostname === "youtube.com";
@@ -22,6 +29,30 @@ export class YouTubeAdapter {
       .sort((left, right) => right.area - left.area);
 
     return candidates[0]?.video ?? null;
+  }
+
+  public setVolume(volume: number): void {
+    if (!Number.isFinite(volume)) {
+      return;
+    }
+
+    this.postVolumeMessage({
+      channel: "floatplay:youtube-volume",
+      type: "set-volume",
+      volume: Math.min(1, Math.max(0, volume))
+    });
+  }
+
+  public setMuted(muted: boolean): void {
+    this.postVolumeMessage({
+      channel: "floatplay:youtube-volume",
+      type: "set-muted",
+      muted
+    });
+  }
+
+  private postVolumeMessage(message: YouTubeVolumeMessage): void {
+    window.postMessage(message, window.location.origin);
   }
 
   private getVisibleArea(video: HTMLVideoElement): number {

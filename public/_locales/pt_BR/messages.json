@@ -25,5 +25,14 @@
   },
   "moreOptionsAction": {
     "message": "Mais opções"
+  },
+  "volumeAction": {
+    "message": "Volume"
+  },
+  "muteAction": {
+    "message": "Silenciar"
+  },
+  "unmuteAction": {
+    "message": "Ativar som"
   }
 }
