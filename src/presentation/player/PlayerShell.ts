@@ -10,12 +10,14 @@ export interface PlayerPlaybackLabels {
   readonly backward: string;
   readonly forward: string;
   readonly timeline: string;
+  readonly timeDisplayToggle: string;
 }
 
 export interface PlayerPlaybackConfig {
   readonly backwardSeconds: number;
   readonly forwardSeconds: number;
   readonly timeDisplayMode: TimeDisplayMode;
+  readonly onTimeDisplayModeChange: (mode: TimeDisplayMode) => void;
 }
 
 type NavigationDirection = "backward" | "forward";
@@ -73,7 +75,9 @@ export class PlayerShell {
       document,
       this.lifecycle.signal,
       this.labels.timeline,
+      this.labels.timeDisplayToggle,
       this.config.timeDisplayMode,
+      this.config.onTimeDisplayModeChange,
       this.logger
     );
 
@@ -306,7 +310,8 @@ export class PlayerShell {
       }
 
       .floatplay-playback-button:focus-visible,
-      .floatplay-timeline:focus-visible {
+      .floatplay-timeline:focus-visible,
+      .floatplay-time-display:focus-visible {
         outline: 2px solid #fff;
         outline-offset: 2px;
       }
@@ -373,15 +378,32 @@ export class PlayerShell {
 
       .floatplay-time-display {
         flex: none;
+        margin: 0;
+        padding: 3px 4px;
+        border: 0;
+        border-radius: 5px;
         color: #fff;
+        background: transparent;
+        cursor: pointer;
+        pointer-events: auto;
         font: 500 12px/1.2 system-ui, sans-serif;
         font-variant-numeric: tabular-nums;
         text-shadow: 0 1px 2px rgb(0 0 0 / 75%);
         user-select: none;
+        transition: background-color 100ms ease;
+      }
+
+      .floatplay-time-display:hover {
+        background: rgb(0 0 0 / 28%);
+      }
+
+      .floatplay-time-display:active {
+        background: rgb(0 0 0 / 38%);
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .floatplay-playback-button {
+        .floatplay-playback-button,
+        .floatplay-time-display {
           transition: none;
         }
       }

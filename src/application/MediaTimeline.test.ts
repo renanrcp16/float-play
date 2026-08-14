@@ -4,6 +4,7 @@ import {
   formatMediaTime,
   formatTimelineTimeDisplay,
   getMediaTimelineState,
+  getNextTimeDisplayMode,
   seekTimelineTo,
   type TimelineRanges
 } from "./MediaTimeline";
@@ -75,5 +76,12 @@ describe("formatTimelineTimeDisplay", () => {
 
   it("shows remaining time without changing total duration", () => {
     expect(formatTimelineTimeDisplay(65, 300, "remaining")).toBe("-3:55 / 5:00");
+  });
+});
+
+describe("getNextTimeDisplayMode", () => {
+  it("toggles between elapsed and remaining time", () => {
+    expect(getNextTimeDisplayMode("elapsed")).toBe("remaining");
+    expect(getNextTimeDisplayMode("remaining")).toBe("elapsed");
   });
 });

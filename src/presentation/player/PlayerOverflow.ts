@@ -1,7 +1,9 @@
+import type { OptionsPageLauncher } from "../../application/OptionsPage";
 import type { PlaybackRateMirror } from "../../application/PlaybackSpeed";
 import type { Logger } from "../../shared/Logger";
 import { createFitMenuItem } from "./FitMenuItem";
 import { PlayerMenu } from "./PlayerMenu";
+import { createSettingsMenuItem } from "./SettingsMenuItem";
 import { createSpeedMenuItem } from "./SpeedMenuItem";
 
 export class PlayerOverflow {
@@ -10,8 +12,10 @@ export class PlayerOverflow {
     private readonly playerWindow: Window,
     private readonly signal: AbortSignal,
     private readonly playbackRateMirror: PlaybackRateMirror,
+    private readonly optionsPageLauncher: OptionsPageLauncher,
     private readonly fitLabel: string,
     private readonly speedLabel: string,
+    private readonly settingsLabel: string,
     private readonly moreOptionsLabel: string,
     private readonly logger: Logger
   ) {}
@@ -38,11 +42,18 @@ export class PlayerOverflow {
       this.signal,
       this.logger
     );
+    const settingsItem = createSettingsMenuItem(
+      this.playerWindow.document,
+      this.optionsPageLauncher,
+      this.settingsLabel,
+      this.signal,
+      this.logger
+    );
     const menu = new PlayerMenu(
       this.playerWindow.document,
       this.signal,
       this.moreOptionsLabel,
-      [speedItem, fitItem]
+      [speedItem, fitItem, settingsItem]
     ).create();
 
     row.append(menu);

@@ -1,5 +1,6 @@
 interface ChromeI18nApi {
   getMessage(messageName: string, substitutions?: string | string[]): string;
+  getUILanguage?(): string;
 }
 
 type GlobalWithChromeI18n = typeof globalThis & {
@@ -18,5 +19,12 @@ export class ChromeI18n {
     const message = api?.getMessage(messageName, substitutions) ?? "";
 
     return message.length > 0 ? message : fallback;
+  }
+
+  public getUiLanguage(fallback: string): string {
+    const api = (globalThis as GlobalWithChromeI18n).chrome?.i18n;
+    const language = api?.getUILanguage?.() ?? "";
+
+    return language.length > 0 ? language : fallback;
   }
 }

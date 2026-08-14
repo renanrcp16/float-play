@@ -1,4 +1,5 @@
-import type { FloatPlaySettings } from "./Settings";
+import type { OptionsPageLauncher } from "./OptionsPage";
+import type { FloatPlaySettings, TimeDisplayMode } from "./Settings";
 import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
 import type { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
 import { OriginPlaybackSurface } from "../presentation/player/OriginPlaybackSurface";
@@ -15,6 +16,7 @@ import type { Logger } from "../shared/Logger";
 interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
   readonly fit: string;
   readonly speed: string;
+  readonly settings: string;
   readonly moreOptions: string;
 }
 
@@ -30,8 +32,10 @@ export class FloatPlayController {
   public constructor(
     private readonly youtube: YouTubeAdapter,
     private readonly pip: DocumentPipManager,
+    private readonly optionsPage: OptionsPageLauncher,
     private readonly labels: FloatPlayLabels,
-    private readonly settings: FloatPlaySettings,
+    private settings: FloatPlaySettings,
+    private readonly persistTimeDisplayMode: (mode: TimeDisplayMode) => void,
     private readonly logger: Logger
   ) {
     this.trigger = new SpikeTrigger({
@@ -165,7 +169,8 @@ export class FloatPlayController {
       {
         backwardSeconds: this.settings.seekBackwardSeconds,
         forwardSeconds: this.settings.seekForwardSeconds,
-        timeDisplayMode: this.settings.timeDisplayMode
+        timeDisplayMode: this.settings.timeDisplayMode,
+        onTimeDisplayModeChange: (mode) => this.updateTimeDisplayMode(mode)
       },
       this.logger
     );
@@ -174,8 +179,10 @@ export class FloatPlayController {
       session.pipWindow,
       session.signal,
       this.youtube,
+      this.optionsPage,
       this.labels.fit,
       this.labels.speed,
+      this.labels.settings,
       this.labels.moreOptions,
       this.logger
     );
@@ -242,6 +249,18 @@ export class FloatPlayController {
       },
       { once: true }
     );
+  }
+
+  private updateTimeDisplayMode(mode: TimeDisplayMode): void {
+    if (this.settings.timeDisplayMode === mode) {
+      return;
+    }
+
+    this.settings = {
+      ...this.settings,
+      timeDisplayMode: mode
+    };
+    this.persistTimeDisplayMode(mode);
   }
 
   private disposePresentation(): void {
