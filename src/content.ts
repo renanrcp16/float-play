@@ -50,7 +50,12 @@ async function bootstrap(): Promise<void> {
       moreOptions: i18n.getMessage("moreOptionsAction", "More options"),
       volume: i18n.getMessage("volumeAction", "Volume"),
       mute: i18n.getMessage("muteAction", "Mute"),
-      unmute: i18n.getMessage("unmuteAction", "Unmute")
+      unmute: i18n.getMessage("unmuteAction", "Unmute"),
+      triggerOpen: i18n.getMessage("triggerOpenAction", "Open FloatPlay"),
+      triggerDismiss: i18n.getMessage(
+        "triggerDismissAction",
+        "Hide FloatPlay for this video"
+      )
     },
     settings,
     (mode) => {
