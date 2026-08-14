@@ -26,22 +26,26 @@ type GlobalWithChromeRuntime = typeof globalThis & {
 
 const runtime = (globalThis as GlobalWithChromeRuntime).chrome?.runtime;
 
-runtime?.onMessage.addListener((message, _sender, sendResponse) => {
-  if (!isOpenOptionsPageRequest(message)) {
-    return false;
-  }
+if (runtime !== undefined) {
+  runtime.onMessage.addListener((message, sender, sendResponse) => {
+    void sender;
 
-  void runtime.openOptionsPage().then(
-    () => {
-      sendResponse({ ok: true });
-    },
-    (error: unknown) => {
-      sendResponse({
-        ok: false,
-        error: error instanceof Error ? error.message : "Unable to open the FloatPlay options page."
-      });
+    if (!isOpenOptionsPageRequest(message)) {
+      return false;
     }
-  );
 
-  return true;
-});
+    void runtime.openOptionsPage().then(
+      () => {
+        sendResponse({ ok: true });
+      },
+      (error: unknown) => {
+        sendResponse({
+          ok: false,
+          error: error instanceof Error ? error.message : "Unable to open the FloatPlay options page."
+        });
+      }
+    );
+
+    return true;
+  });
+}
