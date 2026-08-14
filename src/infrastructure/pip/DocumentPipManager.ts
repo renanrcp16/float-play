@@ -23,10 +23,18 @@ interface MediaOrigin {
   readonly nextSibling: Node | null;
 }
 
+export interface MediaBounds {
+  readonly left: number;
+  readonly top: number;
+  readonly right: number;
+  readonly bottom: number;
+}
+
 interface PipSession {
   readonly media: HTMLVideoElement;
   readonly pipWindow: Window;
   readonly origin: MediaOrigin;
+  readonly originBounds: MediaBounds;
   readonly lifecycle: AbortController;
 }
 
@@ -34,6 +42,7 @@ export interface DocumentPipSession {
   readonly media: HTMLVideoElement;
   readonly pipWindow: Window;
   readonly originElement: HTMLElement;
+  readonly originBounds: MediaBounds;
   readonly signal: AbortSignal;
 }
 
@@ -82,6 +91,13 @@ export class DocumentPipManager {
     }
 
     const nextSibling = media.nextSibling;
+    const originRect = media.getBoundingClientRect();
+    const originBounds: MediaBounds = {
+      left: originRect.left,
+      top: originRect.top,
+      right: originRect.right,
+      bottom: originRect.bottom
+    };
     const mediaWidth = media.videoWidth > 0 ? media.videoWidth : media.clientWidth;
     const mediaHeight = media.videoHeight > 0 ? media.videoHeight : media.clientHeight;
     const initialSize = calculateInitialPipSize(mediaWidth, mediaHeight);
@@ -109,6 +125,7 @@ export class DocumentPipManager {
         parent,
         nextSibling
       },
+      originBounds,
       lifecycle
     };
 
@@ -235,6 +252,7 @@ export class DocumentPipManager {
       media: session.media,
       pipWindow: session.pipWindow,
       originElement: session.origin.parent,
+      originBounds: session.originBounds,
       signal: session.lifecycle.signal
     };
   }

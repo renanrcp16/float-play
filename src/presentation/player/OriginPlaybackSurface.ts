@@ -18,13 +18,29 @@ const INTERACTIVE_SELECTOR = [
   "[role='switch']"
 ].join(",");
 
+interface OriginSurfaceBounds {
+  readonly left: number;
+  readonly top: number;
+  readonly right: number;
+  readonly bottom: number;
+}
+
+interface OriginSurfaceClickState {
+  readonly button: number;
+  readonly x: number;
+  readonly y: number;
+  readonly bounds: OriginSurfaceBounds;
+  readonly interactiveTarget: boolean;
+}
+
 export class OriginPlaybackSurface {
   private readonly lifecycle = new AbortController();
   private mounted = false;
 
   public constructor(
     private readonly media: HTMLVideoElement,
-    private readonly originElement: HTMLElement,
+    private readonly originDocument: Document,
+    private readonly originBounds: OriginSurfaceBounds,
     sessionSignal: AbortSignal,
     private readonly logger: Logger
   ) {
@@ -42,7 +58,7 @@ export class OriginPlaybackSurface {
       return;
     }
 
-    this.originElement.addEventListener(
+    this.originDocument.addEventListener(
       "click",
       (event) => {
         this.handleClick(event);
@@ -66,7 +82,15 @@ export class OriginPlaybackSurface {
   }
 
   private handleClick(event: MouseEvent): void {
-    if (event.button !== 0 || this.isInteractiveTarget(event)) {
+    if (
+      !shouldToggleFromOriginSurface({
+        button: event.button,
+        x: event.clientX,
+        y: event.clientY,
+        bounds: this.originBounds,
+        interactiveTarget: this.isInteractiveTarget(event)
+      })
+    ) {
       return;
     }
 
@@ -80,10 +104,6 @@ export class OriginPlaybackSurface {
 
   private isInteractiveTarget(event: MouseEvent): boolean {
     for (const target of event.composedPath()) {
-      if (target === this.originElement) {
-        return false;
-      }
-
       if (target instanceof Element && target.matches(INTERACTIVE_SELECTOR)) {
         return true;
       }
@@ -91,4 +111,20 @@ export class OriginPlaybackSurface {
 
     return false;
   }
+}
+
+export function shouldToggleFromOriginSurface(state: OriginSurfaceClickState): boolean {
+  return (
+    state.button === 0 &&
+    !state.interactiveTarget &&
+    isPointWithinBounds(state.x, state.y, state.bounds)
+  );
+}
+
+export function isPointWithinBounds(x: number, y: number, bounds: OriginSurfaceBounds): boolean {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return false;
+  }
+
+  return x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom;
 }
