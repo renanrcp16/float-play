@@ -1,3 +1,5 @@
+import type { TimeDisplayMode } from "./Settings";
+
 export interface TimelineRanges {
   readonly length: number;
   start(index: number): number;
@@ -57,6 +59,21 @@ export function formatMediaTime(seconds: number): string {
   const minutes = Math.floor((value % 3600) / 60);
   const remainder = value % 60;
   return hours > 0 ? `${hours}:${pad(minutes)}:${pad(remainder)}` : `${minutes}:${pad(remainder)}`;
+}
+
+export function formatTimelineTimeDisplay(
+  elapsedSeconds: number,
+  totalSeconds: number,
+  mode: TimeDisplayMode
+): string {
+  const elapsed = Number.isFinite(elapsedSeconds) ? Math.max(elapsedSeconds, 0) : 0;
+  const total = Number.isFinite(totalSeconds) ? Math.max(totalSeconds, 0) : 0;
+  const primary =
+    mode === "remaining"
+      ? `-${formatMediaTime(Math.max(total - elapsed, 0))}`
+      : formatMediaTime(elapsed);
+
+  return `${primary} / ${formatMediaTime(total)}`;
 }
 
 function readRanges(ranges: TimelineRanges): Array<readonly [number, number]> {

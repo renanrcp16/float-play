@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { formatMediaTime, getMediaTimelineState, seekTimelineTo, type TimelineRanges } from "./MediaTimeline";
+import {
+  formatMediaTime,
+  formatTimelineTimeDisplay,
+  getMediaTimelineState,
+  seekTimelineTo,
+  type TimelineRanges
+} from "./MediaTimeline";
 
 function ranges(entries: ReadonlyArray<readonly [number, number]>): TimelineRanges {
   return {
@@ -59,5 +65,15 @@ describe("formatMediaTime", () => {
 
   it("formats hour-based media time", () => {
     expect(formatMediaTime(3661)).toBe("1:01:01");
+  });
+});
+
+describe("formatTimelineTimeDisplay", () => {
+  it("shows elapsed time by default", () => {
+    expect(formatTimelineTimeDisplay(65, 300, "elapsed")).toBe("1:05 / 5:00");
+  });
+
+  it("shows remaining time without changing total duration", () => {
+    expect(formatTimelineTimeDisplay(65, 300, "remaining")).toBe("-3:55 / 5:00");
   });
 });

@@ -1,5 +1,6 @@
-import { DEFAULT_SEEK_SECONDS, seekBy } from "../../application/MediaSeek";
+import { seekBy } from "../../application/MediaSeek";
 import { togglePlayback } from "../../application/MediaPlayback";
+import type { TimeDisplayMode } from "../../application/Settings";
 import type { Logger } from "../../shared/Logger";
 import { TimelineControl } from "./TimelineControl";
 
@@ -9,6 +10,12 @@ export interface PlayerPlaybackLabels {
   readonly backward: string;
   readonly forward: string;
   readonly timeline: string;
+}
+
+export interface PlayerPlaybackConfig {
+  readonly backwardSeconds: number;
+  readonly forwardSeconds: number;
+  readonly timeDisplayMode: TimeDisplayMode;
 }
 
 type NavigationDirection = "backward" | "forward";
@@ -24,6 +31,7 @@ export class PlayerShell {
     private readonly playerWindow: Window,
     sessionSignal: AbortSignal,
     private readonly labels: PlayerPlaybackLabels,
+    private readonly config: PlayerPlaybackConfig,
     private readonly logger: Logger
   ) {
     sessionSignal.addEventListener(
@@ -65,6 +73,7 @@ export class PlayerShell {
       document,
       this.lifecycle.signal,
       this.labels.timeline,
+      this.config.timeDisplayMode,
       this.logger
     );
 
@@ -76,7 +85,7 @@ export class PlayerShell {
     backwardButton.addEventListener(
       "click",
       () => {
-        this.navigate(-DEFAULT_SEEK_SECONDS);
+        this.navigate(-this.config.backwardSeconds);
       },
       { signal: this.lifecycle.signal }
     );
@@ -92,7 +101,7 @@ export class PlayerShell {
     forwardButton.addEventListener(
       "click",
       () => {
-        this.navigate(DEFAULT_SEEK_SECONDS);
+        this.navigate(this.config.forwardSeconds);
       },
       { signal: this.lifecycle.signal }
     );
