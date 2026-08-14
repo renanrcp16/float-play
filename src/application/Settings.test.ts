@@ -2,7 +2,12 @@ import { describe, expect, test } from "vitest";
 import { DEFAULT_SETTINGS, SETTINGS_SCHEMA_VERSION, normalizeSettings } from "./Settings";
 
 describe("settings normalization", () => {
-  test("uses the v1 defaults when no compatible settings are stored", () => {
+  test("uses the approved v1 defaults when no compatible settings are stored", () => {
+    expect(DEFAULT_SETTINGS).toMatchObject({
+      seekBackwardSeconds: 5,
+      seekForwardSeconds: 5,
+      autoHideDelayMs: 1000
+    });
     expect(normalizeSettings(undefined)).toEqual(DEFAULT_SETTINGS);
     expect(normalizeSettings({ schemaVersion: 2, seekBackwardSeconds: 30 })).toEqual(DEFAULT_SETTINGS);
   });
@@ -12,15 +17,19 @@ describe("settings normalization", () => {
       normalizeSettings({
         schemaVersion: SETTINGS_SCHEMA_VERSION,
         seekBackwardSeconds: 7,
+        seekForwardSeconds: 11,
         volumeStep: 0.1,
         autoHideEnabled: false,
+        autoHideDelayMs: 3200,
         timeDisplayMode: "remaining"
       })
     ).toEqual({
       ...DEFAULT_SETTINGS,
       seekBackwardSeconds: 7,
+      seekForwardSeconds: 11,
       volumeStep: 0.1,
       autoHideEnabled: false,
+      autoHideDelayMs: 3200,
       timeDisplayMode: "remaining"
     });
   });

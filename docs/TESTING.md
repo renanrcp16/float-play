@@ -57,8 +57,8 @@ PS-01 through PS-07 completed successfully on real Chrome/YouTube on Windows on 
 
 Run these tests for changes that affect backward or forward media navigation.
 
-- **MN-01 — Standard backward:** on a standard video away from boundaries, activate the backward control and confirm playback moves approximately 10 seconds backward.
-- **MN-02 — Standard forward:** on a standard video away from boundaries, activate the forward control and confirm playback moves approximately 10 seconds forward.
+- **MN-01 — Standard backward:** on a standard video away from boundaries, activate the backward control and confirm playback moves approximately 5 seconds backward.
+- **MN-02 — Standard forward:** on a standard video away from boundaries, activate the forward control and confirm playback moves approximately 5 seconds forward.
 - **MN-03 — Standard boundaries:** near the beginning and end of a standard video, repeatedly activate the relevant navigation control and confirm FloatPlay never produces an invalid time or breaks playback.
 - **MN-04 — Live navigation:** on a live stream with a seekable history window, move away from the live edge and confirm the backward and forward controls navigate inside the currently reported seekable range.
 - **MN-05 — Live-edge guard:** repeatedly activate the forward control near the live edge and confirm FloatPlay does not intentionally seek to the exact reported range end or expose a persistent end-of-media state.
@@ -87,7 +87,7 @@ Run these tests for changes that affect persisted settings, the full-page Option
 - **OP-02 — Open from player:** open FloatPlay on a supported YouTube video, choose `Settings` from the overflow menu, and confirm the same Options Page opens without closing or breaking the active PiP session.
 - **OP-03 — Load persisted settings:** change backward seek, forward seek, volume step, auto-hide enabled state, and auto-hide delay; save; close the Options Page; reopen it; and confirm the saved values are restored.
 - **OP-04 — Apply settings to player:** after saving settings, reload an already-open YouTube tab as instructed by the page, reopen FloatPlay, and confirm seek, volume-step, and auto-hide behavior use the saved values.
-- **OP-05 — Reset defaults:** save non-default values, activate `Restore defaults`, and confirm the form returns to supported defaults without corrupting unrelated persisted preferences.
+- **OP-05 — Reset defaults:** save non-default values, activate `Restore defaults`, and confirm backward/forward seek return to 5 seconds and auto-hide delay returns to 1 second without corrupting unrelated persisted preferences.
 - **OP-06 — Validation and feedback:** enter unsupported numeric values and confirm invalid settings are not persisted; save valid values and confirm success feedback is exposed without requiring a page reload.
 - **OP-07 — Time display preference:** click the timeline time display in the PiP player, confirm it toggles between elapsed/duration and remaining-time presentation, reopen FloatPlay, and confirm the selected mode persists. The Options Page must not expose a duplicate time-display setting.
 - **OP-08 — Localization:** verify English UI for English/fallback browser locales and Brazilian Portuguese UI for `pt-BR`, including labels, descriptions, status feedback, and shortcut reference text.
