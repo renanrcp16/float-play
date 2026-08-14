@@ -1,5 +1,6 @@
 import type { VolumeMirror } from "../../application/VolumeController";
 import { adjustVolume, setMediaVolume } from "../../application/MediaVolume";
+import { getDisplayedVolume, resolveVolumeInput } from "../../application/VolumeSemantics";
 import type { Logger } from "../../shared/Logger";
 
 export interface VolumeControlLabels {
@@ -9,6 +10,8 @@ export interface VolumeControlLabels {
 }
 
 export class VolumeControl {
+  private sliderInteractionStartVolume: number | null = null;
+
   public constructor(
     private readonly media: HTMLVideoElement,
     private readonly playerWindow: Window,
@@ -66,6 +69,21 @@ export class VolumeControl {
     );
 
     slider.addEventListener(
+      "pointerdown",
+      () => {
+        this.sliderInteractionStartVolume = this.media.volume;
+      },
+      { signal: this.signal }
+    );
+
+    const clearSliderInteraction = (): void => {
+      this.sliderInteractionStartVolume = null;
+    };
+
+    this.playerWindow.addEventListener("pointerup", clearSliderInteraction, { signal: this.signal });
+    this.playerWindow.addEventListener("pointercancel", clearSliderInteraction, { signal: this.signal });
+
+    slider.addEventListener(
       "input",
       () => {
         this.setVolume(slider.valueAsNumber);
@@ -87,7 +105,21 @@ export class VolumeControl {
   }
 
   private setVolume(value: number): void {
-    setMediaVolume(this.media, value);
+    const resolution = resolveVolumeInput(
+      this.media.volume,
+      value,
+      this.sliderInteractionStartVolume ?? undefined
+    );
+
+    if (resolution.muted) {
+      this.media.muted = true;
+      this.media.volume = resolution.volume;
+      this.volumeMirror.setVolume(resolution.volume);
+      this.volumeMirror.setMuted(true);
+      return;
+    }
+
+    setMediaVolume(this.media, resolution.volume);
     this.volumeMirror.setVolume(this.media.volume);
     this.volumeMirror.setMuted(this.media.muted);
   }
@@ -99,12 +131,13 @@ export class VolumeControl {
 
   private syncUi(document: Document, button: HTMLButtonElement, slider: HTMLInputElement): void {
     const buttonLabel = this.media.muted ? this.labels.unmute : this.labels.mute;
+    const displayedVolume = getDisplayedVolume(this.media.volume, this.media.muted);
 
-    slider.value = this.media.volume.toString();
-    slider.style.setProperty("--floatplay-volume-progress", `${Math.round(this.media.volume * 100)}%`);
+    slider.value = displayedVolume.toString();
+    slider.style.setProperty("--floatplay-volume-progress", `${Math.round(displayedVolume * 100)}%`);
     button.setAttribute("aria-label", buttonLabel);
     button.title = buttonLabel;
-    button.replaceChildren(this.createIcon(document, this.media.muted, this.media.volume));
+    button.replaceChildren(this.createIcon(document, this.media.muted, displayedVolume));
   }
 
   private createIcon(document: Document, muted: boolean, volume: number): SVGSVGElement {
