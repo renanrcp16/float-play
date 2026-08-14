@@ -115,10 +115,22 @@ O FloatPlay foi projetado para Google Chrome Desktop e páginas compatíveis de 
 - Branded extension icons at 16, 32, 48, and 128 pixels.
 - Localized extension name and short description in English and Brazilian Portuguese.
 
+### Screenshot workflow
+
+Generate a real 1280x800 English Options Page screenshot candidate from the built extension with:
+
+```bash
+pnpm capture:store-screenshot
+```
+
+The resulting file is written to `artifacts/web-store/options-page-en-1280x800.png`. The `artifacts/` directory is ignored by Git so the candidate can be reviewed before it is selected for upload. The capture uses the actual built Options Page in Playwright Chromium rather than a mock or generated product image.
+
+A real YouTube/FloatPlay PiP screenshot remains a separate manual asset because live YouTube and Document Picture-in-Picture are intentionally outside the deterministic browser automation boundary.
+
 ### Required before submission
 
 - Verify the 128x128 store icon against the current Chrome Web Store icon safe-area/padding guidance.
-- At least one current product screenshot; prepare at 1280x800 when practical (640x400 is also supported by current guidance).
+- Review the generated 1280x800 Options Page screenshot candidate and capture at least one current real PiP/YouTube screenshot if needed to represent the core experience more clearly.
 - A stable public privacy-policy URL based on `docs/PRIVACY.md`.
 - A support URL or support destination appropriate for the public listing.
 - Final category, language/listing localization, distribution visibility, and regions in the developer dashboard.
