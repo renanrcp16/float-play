@@ -1,6 +1,7 @@
 interface PageLocation {
   readonly hostname: string;
   readonly pathname: string;
+  readonly search?: string;
 }
 
 interface YouTubePlayerMessage {
@@ -16,6 +17,15 @@ export class YouTubeAdapter {
     const isYouTubeHost = location.hostname === "www.youtube.com" || location.hostname === "youtube.com";
 
     return isYouTubeHost && location.pathname === "/watch";
+  }
+
+  public getCurrentVideoId(location: PageLocation = window.location): string | null {
+    if (!this.isSupportedPage(location)) {
+      return null;
+    }
+
+    const videoId = new URLSearchParams(location.search ?? "").get("v")?.trim() ?? "";
+    return videoId.length > 0 ? videoId : null;
   }
 
   public findActiveMedia(root: ParentNode = document): HTMLVideoElement | null {
