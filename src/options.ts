@@ -201,7 +201,7 @@ function installNumericInputGuards(controls: OptionsControls): void {
 }
 
 function containsUnsupportedNumberNotation(value: string): boolean {
-  return /[eE+\-]/.test(value);
+  return /[-eE+]/.test(value);
 }
 
 function updateAutoHideState(controls: OptionsControls): void {
