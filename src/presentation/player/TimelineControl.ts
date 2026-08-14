@@ -1,6 +1,7 @@
 import {
   formatTimelineTimeDisplay,
   getMediaTimelineState,
+  getNextTimeDisplayMode,
   seekTimelineTo
 } from "../../application/MediaTimeline";
 import type { TimeDisplayMode } from "../../application/Settings";
@@ -85,7 +86,7 @@ export class TimelineControl {
   }
 
   private toggleDisplayMode(): void {
-    this.displayMode = this.displayMode === "elapsed" ? "remaining" : "elapsed";
+    this.displayMode = getNextTimeDisplayMode(this.displayMode);
     this.update();
     this.onDisplayModeChange(this.displayMode);
   }
