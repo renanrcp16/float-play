@@ -1,4 +1,8 @@
-import { formatMediaTime, getMediaTimelineState, seekTimelineTo } from "../../application/MediaTimeline";
+import {
+  formatTimelineTimeDisplay,
+  getMediaTimelineState,
+  seekTimelineTo
+} from "../../application/MediaTimeline";
 import type { TimeDisplayMode } from "../../application/Settings";
 import type { Logger } from "../../shared/Logger";
 
@@ -94,15 +98,10 @@ export class TimelineControl {
     const total = state.end - state.start;
     const elapsed = state.current - state.start;
     const progress = total > 0 ? (elapsed / total) * 100 : 0;
-    const elapsedText = formatMediaTime(elapsed);
-    const totalText = formatMediaTime(total);
-    const primaryText =
-      this.displayMode === "remaining"
-        ? `-${formatMediaTime(Math.max(total - elapsed, 0))}`
-        : elapsedText;
+    const displayText = formatTimelineTimeDisplay(elapsed, total, this.displayMode);
 
     input.style.setProperty("--floatplay-timeline-progress", `${Math.min(Math.max(progress, 0), 100)}%`);
-    input.setAttribute("aria-valuetext", `${primaryText} / ${totalText}`);
-    timeDisplay.textContent = `${primaryText} / ${totalText}`;
+    input.setAttribute("aria-valuetext", displayText);
+    timeDisplay.textContent = displayText;
   }
 }
