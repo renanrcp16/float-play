@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "default_locale": "en",
   "minimum_chrome_version": "116",
+  "permissions": ["storage"],
   "content_scripts": [
     {
       "matches": [
