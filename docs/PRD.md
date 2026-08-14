@@ -163,7 +163,7 @@ Opening FloatPlay must preserve the volume and muted state already active in You
 
 ### FR-023 — Mouse wheel volume
 
-Mouse wheel volume changes may be handled only while the pointer is over the volume button's interactive area.
+Mouse wheel volume changes may be handled only while the pointer is over the volume control's interactive area, including the speaker button and volume slider.
 
 FloatPlay must not capture wheel events over the rest of the player for this behavior.
 
