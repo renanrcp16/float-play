@@ -12,6 +12,7 @@ export function createFitMenuItem(
   const button = document.createElement("button");
   button.type = "button";
   button.className = "floatplay-overflow-menu-item";
+  button.dataset.floatplayCloseOverflow = "true";
 
   const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   icon.classList.add("floatplay-overflow-menu-item-icon");
