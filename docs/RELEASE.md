@@ -28,40 +28,35 @@ pnpm test:e2e
 6. Run the relevant real Chrome/YouTube smoke-test matrix from `docs/TESTING.md`. Record Chrome version, operating system, tested commit, other YouTube-modifying extensions, FloatPlay console errors, and results.
 7. Review the production manifest and confirm no new permissions, host access, remote code, analytics, telemetry, or backend dependencies were introduced unintentionally.
 8. Review `docs/WEB_STORE.md` and `docs/PRIVACY.md` against the current implementation and current Chrome Web Store policy before submission.
-9. Run the release verifier from the exact commit intended for upload:
+9. From the exact commit intended for upload, create the release package:
 
 ```bash
-pnpm verify:release
+pnpm package:release
 ```
 
-This command rebuilds `dist/`, verifies version synchronization, checks the approved v1 permission and YouTube content-script scope, and confirms that manifest-referenced extension files and required locales exist in the production output.
+This command runs `pnpm verify:release`, which rebuilds `dist/`, verifies version synchronization, checks the approved v1 permission and YouTube content-script scope, and confirms that manifest-referenced extension files and required locales exist. It then creates a deterministic `floatplay-<version>.zip` archive from the verified `dist/` contents.
 
-10. Inspect `dist/` once more and confirm `manifest.json` is directly inside `dist/`, not nested under another directory.
+10. Inspect the generated ZIP before upload.
 
 ## Create the Chrome Web Store ZIP
 
-The Chrome Web Store upload ZIP must contain the extension files with `manifest.json` at the ZIP root.
-
-### Windows PowerShell
-
-From the repository root, after `pnpm verify:release`:
-
-```powershell
-$version = (Get-Content public/manifest.json | ConvertFrom-Json).version
-$zip = "floatplay-$version.zip"
-Remove-Item $zip -ErrorAction SilentlyContinue
-Compress-Archive -Path dist\* -DestinationPath $zip
-```
-
-### macOS / Linux
-
-From the repository root, after `pnpm verify:release`:
+Use the cross-platform release packaging command from the repository root:
 
 ```bash
-version=$(node -p "JSON.parse(require('fs').readFileSync('public/manifest.json','utf8')).version")
-rm -f "floatplay-$version.zip"
-(cd dist && zip -r "../floatplay-$version.zip" .)
+pnpm package:release
 ```
+
+The generated archive is named from the manifest version, for example `floatplay-0.1.0.zip`. Re-running the command replaces the archive for that version.
+
+The packager:
+
+- includes only regular files from `dist/`;
+- places `manifest.json` directly at the archive root rather than nesting `dist/`;
+- writes entries in deterministic path order with fixed ZIP timestamps;
+- verifies the generated central directory and entry names before writing the archive;
+- adds no runtime dependency and does not change extension behavior.
+
+Generated `floatplay-*.zip` files are ignored by Git and must not be committed.
 
 ## Package inspection
 
@@ -86,7 +81,7 @@ Do not upload a release candidate until all of the following are true:
 
 - `pnpm validate` passes.
 - `pnpm test:e2e` passes.
-- `pnpm verify:release` passes.
+- `pnpm package:release` completes successfully, including the embedded release verification.
 - required real Chrome/YouTube smoke tests pass.
 - permission and privacy disclosures match the shipped manifest and runtime behavior.
 - listing copy matches implemented functionality.
