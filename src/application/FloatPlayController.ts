@@ -1,3 +1,4 @@
+import type { OptionsPageLauncher } from "./OptionsPage";
 import type { FloatPlaySettings } from "./Settings";
 import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
 import type { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
@@ -15,6 +16,7 @@ import type { Logger } from "../shared/Logger";
 interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
   readonly fit: string;
   readonly speed: string;
+  readonly settings: string;
   readonly moreOptions: string;
 }
 
@@ -30,6 +32,7 @@ export class FloatPlayController {
   public constructor(
     private readonly youtube: YouTubeAdapter,
     private readonly pip: DocumentPipManager,
+    private readonly optionsPage: OptionsPageLauncher,
     private readonly labels: FloatPlayLabels,
     private readonly settings: FloatPlaySettings,
     private readonly logger: Logger
@@ -174,8 +177,10 @@ export class FloatPlayController {
       session.pipWindow,
       session.signal,
       this.youtube,
+      this.optionsPage,
       this.labels.fit,
       this.labels.speed,
+      this.labels.settings,
       this.labels.moreOptions,
       this.logger
     );
