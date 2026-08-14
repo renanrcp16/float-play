@@ -12,10 +12,20 @@
     "message": "Pausar"
   },
   "backwardAction": {
-    "message": "Voltar 10 segundos"
+    "message": "Voltar $SECONDS$ segundos",
+    "placeholders": {
+      "seconds": {
+        "content": "$1"
+      }
+    }
   },
   "forwardAction": {
-    "message": "Avançar 10 segundos"
+    "message": "Avançar $SECONDS$ segundos",
+    "placeholders": {
+      "seconds": {
+        "content": "$1"
+      }
+    }
   },
   "timelineAction": {
     "message": "Linha do tempo da reprodução"
