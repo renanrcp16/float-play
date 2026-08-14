@@ -1,5 +1,4 @@
 import { togglePlayback } from "../../application/MediaPlayback";
-import type { MediaBounds } from "../../infrastructure/pip/DocumentPipManager";
 import type { Logger } from "../../shared/Logger";
 
 const INTERACTIVE_SELECTOR = [
@@ -19,11 +18,18 @@ const INTERACTIVE_SELECTOR = [
   "[role='switch']"
 ].join(",");
 
+interface OriginSurfaceBounds {
+  readonly left: number;
+  readonly top: number;
+  readonly right: number;
+  readonly bottom: number;
+}
+
 interface OriginSurfaceClickState {
   readonly button: number;
   readonly x: number;
   readonly y: number;
-  readonly bounds: MediaBounds;
+  readonly bounds: OriginSurfaceBounds;
   readonly interactiveTarget: boolean;
 }
 
@@ -34,7 +40,7 @@ export class OriginPlaybackSurface {
   public constructor(
     private readonly media: HTMLVideoElement,
     private readonly originDocument: Document,
-    private readonly originBounds: MediaBounds,
+    private readonly originBounds: OriginSurfaceBounds,
     sessionSignal: AbortSignal,
     private readonly logger: Logger
   ) {
@@ -115,7 +121,7 @@ export function shouldToggleFromOriginSurface(state: OriginSurfaceClickState): b
   );
 }
 
-export function isPointWithinBounds(x: number, y: number, bounds: MediaBounds): boolean {
+export function isPointWithinBounds(x: number, y: number, bounds: OriginSurfaceBounds): boolean {
   if (!Number.isFinite(x) || !Number.isFinite(y)) {
     return false;
   }
