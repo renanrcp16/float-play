@@ -186,6 +186,12 @@ export class PlayerControlsVisibility {
         pointer-events: none;
       }
 
+      .floatplay-player-shell[data-floatplay-controls-hidden="true"] .floatplay-controls *,
+      .floatplay-player-shell[data-floatplay-controls-hidden="true"] .floatplay-volume-control *,
+      .floatplay-player-shell[data-floatplay-controls-hidden="true"] .floatplay-overflow-menu * {
+        pointer-events: none !important;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .floatplay-controls,
         .floatplay-volume-control,
