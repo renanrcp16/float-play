@@ -1,51 +1,56 @@
 {
-  "extensionName": {
-    "message": "FloatPlay"
-  },
-  "extensionDescription": {
-    "message": "Enhance YouTube Picture-in-Picture with better playback controls."
-  },
-  "playAction": {
-    "message": "Play"
-  },
-  "pauseAction": {
-    "message": "Pause"
-  },
+  "extensionName": { "message": "FloatPlay" },
+  "extensionDescription": { "message": "Enhance YouTube Picture-in-Picture with better playback controls." },
+  "playAction": { "message": "Play" },
+  "pauseAction": { "message": "Pause" },
   "backwardAction": {
     "message": "Skip backward $SECONDS$ seconds",
-    "placeholders": {
-      "seconds": {
-        "content": "$1"
-      }
-    }
+    "placeholders": { "seconds": { "content": "$1" } }
   },
   "forwardAction": {
     "message": "Skip forward $SECONDS$ seconds",
-    "placeholders": {
-      "seconds": {
-        "content": "$1"
-      }
-    }
+    "placeholders": { "seconds": { "content": "$1" } }
   },
-  "timelineAction": {
-    "message": "Playback timeline"
-  },
-  "fitAction": {
-    "message": "Fit to video"
-  },
-  "speedAction": {
-    "message": "Playback speed"
-  },
-  "moreOptionsAction": {
-    "message": "More options"
-  },
-  "volumeAction": {
-    "message": "Volume"
-  },
-  "muteAction": {
-    "message": "Mute"
-  },
-  "unmuteAction": {
-    "message": "Unmute"
-  }
+  "timelineAction": { "message": "Playback timeline" },
+  "fitAction": { "message": "Fit to video" },
+  "speedAction": { "message": "Playback speed" },
+  "settingsAction": { "message": "Settings" },
+  "moreOptionsAction": { "message": "More options" },
+  "volumeAction": { "message": "Volume" },
+  "muteAction": { "message": "Mute" },
+  "unmuteAction": { "message": "Unmute" },
+  "optionsPageTitle": { "message": "FloatPlay Settings" },
+  "optionsPageDescription": { "message": "Customize playback controls for the FloatPlay mini player." },
+  "optionsPlaybackSection": { "message": "Playback" },
+  "optionsSeekBackwardLabel": { "message": "Backward seek" },
+  "optionsSeekBackwardDescription": { "message": "Amount used by the back button and Left Arrow shortcut." },
+  "optionsSeekForwardLabel": { "message": "Forward seek" },
+  "optionsSeekForwardDescription": { "message": "Amount used by the forward button and Right Arrow shortcut." },
+  "optionsSecondsUnit": { "message": "seconds" },
+  "optionsTimeDisplayLabel": { "message": "Time display" },
+  "optionsTimeDisplayDescription": { "message": "Choose what the first time value beside the timeline represents." },
+  "optionsTimeElapsed": { "message": "Elapsed time" },
+  "optionsTimeRemaining": { "message": "Remaining time" },
+  "optionsVolumeSection": { "message": "Volume" },
+  "optionsVolumeStepLabel": { "message": "Volume step" },
+  "optionsVolumeStepDescription": { "message": "Amount changed by the mouse wheel and Up/Down Arrow shortcuts." },
+  "optionsControlsSection": { "message": "Controls" },
+  "optionsAutoHideLabel": { "message": "Automatically hide controls" },
+  "optionsAutoHideDescription": { "message": "Hide controls during playback after a period of inactivity." },
+  "optionsAutoHideDelayLabel": { "message": "Auto-hide delay" },
+  "optionsAutoHideDelayDescription": { "message": "How long FloatPlay waits after the last interaction before hiding controls." },
+  "optionsShortcutsSection": { "message": "Keyboard shortcuts" },
+  "optionsShortcutsDescription": { "message": "Shortcut keys are fixed in v1 and apply while the mini player is focused." },
+  "optionsShortcutPlayPause": { "message": "Play / Pause" },
+  "optionsShortcutSeek": { "message": "Seek backward / forward" },
+  "optionsShortcutVolume": { "message": "Volume up / down" },
+  "optionsShortcutMute": { "message": "Mute / Unmute" },
+  "optionsShortcutSpeed": { "message": "Playback speed down / up" },
+  "optionsApplyNotice": { "message": "Reload open YouTube tabs after saving to apply the new settings." },
+  "optionsReset": { "message": "Reset to defaults" },
+  "optionsSave": { "message": "Save settings" },
+  "optionsInvalidForm": { "message": "Check the highlighted settings before saving." },
+  "optionsSaved": { "message": "Settings saved. Reload open YouTube tabs to apply them." },
+  "optionsResetDone": { "message": "Default settings restored. Reload open YouTube tabs to apply them." },
+  "optionsSaveError": { "message": "Unable to save settings. Try again." }
 }
