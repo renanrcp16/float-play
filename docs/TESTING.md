@@ -47,6 +47,7 @@ Run these tests for changes that affect the first production player shell or Pla
 - **PS-05 — Native YouTube controls:** while PiP is active, interact with visible native YouTube controls that remain on the page. FloatPlay must not intercept buttons, sliders, links, form controls, or other semantically interactive elements.
 - **PS-06 — Session lifecycle regression:** verify video A → B navigation, automatic playlist progression, PiP close/restoration, and leaving `/watch` still behave as validated by Spike 0.
 - **PS-07 — Localization and accessibility:** verify the Play/Pause control exposes English labels in English/fallback locales and Brazilian Portuguese labels in `pt-BR` through its accessible name. The label is not required to be visually rendered; keyboard focus on the control must remain visibly identifiable.
+- **PS-08 — Bright-content control contrast:** use bright and detailed video frames and confirm the lower control area remains readable without becoming a solid toolbar. The timeline progress/track/thumb, time display, and control icons must remain distinguishable, and the contrast backdrop must disappear together with auto-hidden controls.
 
 ### Player shell validation result
 
