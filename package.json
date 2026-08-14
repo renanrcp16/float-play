@@ -10,10 +10,12 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "build": "vite build && vite build --config vite.options.config.mjs",
+    "build": "vite build && vite build --config vite.options.config.mjs && vite build --config vite.service-worker.config.mjs",
     "build:options": "vite build --config vite.options.config.mjs",
+    "build:service-worker": "vite build --config vite.service-worker.config.mjs",
     "dev": "vite build --watch",
     "dev:options": "vite build --config vite.options.config.mjs --watch",
+    "dev:service-worker": "vite build --config vite.service-worker.config.mjs --watch",
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit",
