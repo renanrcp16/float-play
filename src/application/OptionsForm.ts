@@ -1,7 +1,6 @@
 import {
   SETTINGS_SCHEMA_VERSION,
-  type FloatPlaySettings,
-  type TimeDisplayMode
+  type FloatPlaySettings
 } from "./Settings";
 
 export interface OptionsFormValues {
@@ -10,7 +9,6 @@ export interface OptionsFormValues {
   readonly volumeStepPercent: number;
   readonly autoHideEnabled: boolean;
   readonly autoHideDelaySeconds: number;
-  readonly timeDisplayMode: string;
 }
 
 export function settingsToOptionsFormValues(settings: FloatPlaySettings): OptionsFormValues {
@@ -19,30 +17,31 @@ export function settingsToOptionsFormValues(settings: FloatPlaySettings): Option
     seekForwardSeconds: settings.seekForwardSeconds,
     volumeStepPercent: settings.volumeStep * 100,
     autoHideEnabled: settings.autoHideEnabled,
-    autoHideDelaySeconds: settings.autoHideDelayMs / 1000,
-    timeDisplayMode: settings.timeDisplayMode
+    autoHideDelaySeconds: settings.autoHideDelayMs / 1000
   };
 }
 
-export function optionsFormValuesToSettings(values: OptionsFormValues): FloatPlaySettings | null {
+export function optionsFormValuesToSettings(
+  values: OptionsFormValues,
+  currentSettings: FloatPlaySettings
+): FloatPlaySettings | null {
   if (
     !isPositiveFinite(values.seekBackwardSeconds) ||
     !isPositiveFinite(values.seekForwardSeconds) ||
     !isVolumePercent(values.volumeStepPercent) ||
-    !isNonNegativeFinite(values.autoHideDelaySeconds) ||
-    !isTimeDisplayMode(values.timeDisplayMode)
+    !isNonNegativeFinite(values.autoHideDelaySeconds)
   ) {
     return null;
   }
 
   return {
+    ...currentSettings,
     schemaVersion: SETTINGS_SCHEMA_VERSION,
     seekBackwardSeconds: values.seekBackwardSeconds,
     seekForwardSeconds: values.seekForwardSeconds,
     volumeStep: values.volumeStepPercent / 100,
     autoHideEnabled: values.autoHideEnabled,
-    autoHideDelayMs: values.autoHideDelaySeconds * 1000,
-    timeDisplayMode: values.timeDisplayMode
+    autoHideDelayMs: values.autoHideDelaySeconds * 1000
   };
 }
 
@@ -56,8 +55,4 @@ function isNonNegativeFinite(value: number): boolean {
 
 function isVolumePercent(value: number): boolean {
   return Number.isFinite(value) && value > 0 && value <= 100;
-}
-
-function isTimeDisplayMode(value: string): value is TimeDisplayMode {
-  return value === "elapsed" || value === "remaining";
 }
