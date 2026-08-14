@@ -31,8 +31,8 @@ export class PlayerMenu {
 
     trigger.addEventListener("click", () => this.toggle(), { signal: this.signal });
     panel.addEventListener("click", (event) => {
-      if (!(event.target instanceof Element)) return;
-      if (event.target.closest('[data-floatplay-close-overflow="true"]') !== null) this.close();
+      const target = event.target as { closest?: (selector: string) => Element | null } | null;
+      if (target?.closest?.('[data-floatplay-close-overflow="true"]') !== null) this.close();
     }, { signal: this.signal });
 
     this.document.addEventListener("pointerdown", (event) => {
