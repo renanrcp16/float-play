@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FloatPlay Settings</title>
+    <link rel="stylesheet" href="options.css" />
+    <script src="options.js" defer></script>
+  </head>
+  <body>
+    <main class="options-page">
+      <header class="page-header">
+        <div class="brand-mark" aria-hidden="true">FP</div>
+        <div>
+          <h1 data-i18n="optionsPageTitle">FloatPlay Settings</h1>
+          <p data-i18n="optionsPageDescription">Customize playback controls for the FloatPlay mini player.</p>
+        </div>
+      </header>
+
+      <form id="settings-form" novalidate>
+        <section class="settings-card" aria-labelledby="playback-heading">
+          <div class="section-heading">
+            <h2 id="playback-heading" data-i18n="optionsPlaybackSection">Playback</h2>
+          </div>
+          <div class="settings-grid">
+            <div class="field-group">
+              <label for="seek-backward" data-i18n="optionsSeekBackwardLabel">Backward seek</label>
+              <div class="number-field">
+                <input id="seek-backward" name="seekBackwardSeconds" type="number" min="0.1" step="0.1" required />
+                <span data-i18n="optionsSecondsUnit">seconds</span>
+              </div>
+              <p class="field-help" data-i18n="optionsSeekBackwardDescription">Amount used by the back button and Left Arrow shortcut.</p>
+            </div>
+
+            <div class="field-group">
+              <label for="seek-forward" data-i18n="optionsSeekForwardLabel">Forward seek</label>
+              <div class="number-field">
+                <input id="seek-forward" name="seekForwardSeconds" type="number" min="0.1" step="0.1" required />
+                <span data-i18n="optionsSecondsUnit">seconds</span>
+              </div>
+              <p class="field-help" data-i18n="optionsSeekForwardDescription">Amount used by the forward button and Right Arrow shortcut.</p>
+            </div>
+
+            <div class="field-group field-group-wide">
+              <label for="time-display" data-i18n="optionsTimeDisplayLabel">Time display</label>
+              <select id="time-display" name="timeDisplayMode">
+                <option value="elapsed" data-i18n="optionsTimeElapsed">Elapsed time</option>
+                <option value="remaining" data-i18n="optionsTimeRemaining">Remaining time</option>
+              </select>
+              <p class="field-help" data-i18n="optionsTimeDisplayDescription">Choose what the first time value beside the timeline represents.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-card" aria-labelledby="volume-heading">
+          <div class="section-heading">
+            <h2 id="volume-heading" data-i18n="optionsVolumeSection">Volume</h2>
+          </div>
+          <div class="settings-grid">
+            <div class="field-group field-group-wide">
+              <label for="volume-step" data-i18n="optionsVolumeStepLabel">Volume step</label>
+              <div class="number-field compact-number-field">
+                <input id="volume-step" name="volumeStepPercent" type="number" min="1" max="100" step="1" required />
+                <span>%</span>
+              </div>
+              <p class="field-help" data-i18n="optionsVolumeStepDescription">Amount changed by the mouse wheel and Up/Down Arrow shortcuts.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-card" aria-labelledby="controls-heading">
+          <div class="section-heading">
+            <h2 id="controls-heading" data-i18n="optionsControlsSection">Controls</h2>
+          </div>
+          <div class="settings-stack">
+            <label class="checkbox-row" for="auto-hide-enabled">
+              <input id="auto-hide-enabled" name="autoHideEnabled" type="checkbox" />
+              <span>
+                <strong data-i18n="optionsAutoHideLabel">Automatically hide controls</strong>
+                <small data-i18n="optionsAutoHideDescription">Hide controls during playback after a period of inactivity.</small>
+              </span>
+            </label>
+
+            <div class="field-group">
+              <label for="auto-hide-delay" data-i18n="optionsAutoHideDelayLabel">Auto-hide delay</label>
+              <div class="number-field">
+                <input id="auto-hide-delay" name="autoHideDelaySeconds" type="number" min="0" step="0.1" required />
+                <span data-i18n="optionsSecondsUnit">seconds</span>
+              </div>
+              <p class="field-help" data-i18n="optionsAutoHideDelayDescription">How long FloatPlay waits after the last interaction before hiding controls.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-card" aria-labelledby="shortcuts-heading">
+          <div class="section-heading">
+            <h2 id="shortcuts-heading" data-i18n="optionsShortcutsSection">Keyboard shortcuts</h2>
+            <p data-i18n="optionsShortcutsDescription">Shortcut keys are fixed in v1 and apply while the mini player is focused.</p>
+          </div>
+          <dl class="shortcut-list">
+            <div><dt><kbd>Space</kbd></dt><dd data-i18n="optionsShortcutPlayPause">Play / Pause</dd></div>
+            <div><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd data-i18n="optionsShortcutSeek">Seek backward / forward</dd></div>
+            <div><dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd data-i18n="optionsShortcutVolume">Volume up / down</dd></div>
+            <div><dt><kbd>M</kbd></dt><dd data-i18n="optionsShortcutMute">Mute / Unmute</dd></div>
+            <div><dt><kbd>[</kbd> <kbd>]</kbd></dt><dd data-i18n="optionsShortcutSpeed">Playback speed down / up</dd></div>
+          </dl>
+        </section>
+
+        <p class="apply-notice" data-i18n="optionsApplyNotice">Reload open YouTube tabs after saving to apply the new settings.</p>
+
+        <div class="form-actions">
+          <button id="reset-button" class="button button-secondary" type="button" data-i18n="optionsReset">Reset to defaults</button>
+          <button id="save-button" class="button button-primary" type="submit" data-i18n="optionsSave">Save settings</button>
+        </div>
+        <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </main>
+  </body>
+</html>
