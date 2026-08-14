@@ -2,6 +2,7 @@ import { FloatPlayController } from "./application/FloatPlayController";
 import type { TimeDisplayMode } from "./application/Settings";
 import { ChromeI18n } from "./infrastructure/chrome/ChromeI18n";
 import { ChromeOptionsPage } from "./infrastructure/chrome/ChromeOptionsPage";
+import { ChromeRuntime } from "./infrastructure/chrome/ChromeRuntime";
 import { ChromeSettingsStore } from "./infrastructure/chrome/ChromeSettingsStore";
 import { DocumentPipManager } from "./infrastructure/pip/DocumentPipManager";
 import { YouTubeAdapter } from "./infrastructure/youtube/YouTubeAdapter";
@@ -15,6 +16,7 @@ void bootstrap().catch((error: unknown) => {
 
 async function bootstrap(): Promise<void> {
   const i18n = new ChromeI18n();
+  const runtime = new ChromeRuntime();
   const settingsStore = new ChromeSettingsStore(logger);
   const settings = await settingsStore.load();
   const youtube = new YouTubeAdapter();
@@ -53,7 +55,7 @@ async function bootstrap(): Promise<void> {
       unmute: i18n.getMessage("unmuteAction", "Unmute"),
       triggerOpen: i18n.getMessage("triggerOpenAction", "Open FloatPlay")
     },
-    chrome.runtime.getURL("brand/icon.svg"),
+    runtime.getUrl("brand/icon.svg"),
     settings,
     (mode) => {
       void persistTimeDisplayMode(settingsStore, mode);
