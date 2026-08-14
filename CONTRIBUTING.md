@@ -2,7 +2,7 @@
 
 Thank you for helping improve FloatPlay. Contributions are welcome through issues and pull requests.
 
-This document is the canonical source for the repository's development workflow and contribution process. Product behavior belongs in `docs/PRD.md`, architectural constraints belong in `docs/ARCHITECTURE.md`, and test strategy and browser smoke procedures belong in `docs/TESTING.md`.
+This document is the canonical source for the repository's development workflow and contribution process. Product behavior belongs in `docs/PRD.md`, architectural constraints belong in `docs/ARCHITECTURE.md`, test strategy and browser smoke procedures belong in `docs/TESTING.md`, and release/store preparation belongs in `docs/RELEASE.md` and `docs/WEB_STORE.md`.
 
 ## Contribution license
 
@@ -88,7 +88,7 @@ A pull request should:
 - Stay within the approved issue scope.
 - Include validation results.
 - Describe relevant manual testing.
-- Update canonical documentation when behavior, architecture, workflow, testing strategy, or legal terms change.
+- Update canonical documentation when behavior, architecture, workflow, testing strategy, release process, or legal terms change.
 - Avoid unrelated cleanup unless it is required for the change.
 
 The repository uses squash merge for completed pull requests so `main` keeps a concise history. The feature branch should be deleted after merge.
@@ -111,6 +111,10 @@ Dependency and Chrome permission decisions are governed by `docs/ARCHITECTURE.md
 
 A new dependency or permission must solve a concrete requirement. Do not add either speculatively. Dependency version changes must be intentional and reviewed; do not rely on broad version ranges as a substitute for the lockfile.
 
+## Release preparation
+
+Use `docs/RELEASE.md` for the release candidate checklist and packaging procedure. Use `docs/WEB_STORE.md` for Chrome Web Store listing, permission/privacy justification, and asset preparation. Keep `docs/PRIVACY.md` synchronized with the shipped data-handling behavior before publishing its final public copy.
+
 ## Documentation ownership
 
 Keep project rules single-sourced:
@@ -119,6 +123,9 @@ Keep project rules single-sourced:
 - `docs/PRD.md` — product requirements.
 - `docs/ARCHITECTURE.md` — architecture.
 - `docs/TESTING.md` — testing strategy and smoke-test procedures.
+- `docs/RELEASE.md` — release candidate and packaging checklist.
+- `docs/WEB_STORE.md` — Chrome Web Store metadata, disclosure, and asset preparation.
+- `docs/PRIVACY.md` — source draft for the public privacy policy.
 - `CONTRIBUTING.md` — contribution and development workflow.
 - `AGENTS.md` — coding-agent entry point.
 - `LICENSE` — license terms.
