@@ -165,7 +165,7 @@ Opening FloatPlay must preserve the volume and muted state already active in You
 
 ### FR-023 — Mouse wheel volume
 
-Mouse wheel volume changes may be handled only while the pointer is over the volume button's interactive area.
+Mouse wheel volume changes may be handled only while the pointer is over the volume control's interactive area, including the speaker button and volume slider.
 
 FloatPlay must not capture wheel events over the rest of the player for this behavior.
 
@@ -552,7 +552,7 @@ The spike covered:
 2. Opening Document Picture-in-Picture from a valid user gesture.
 3. Moving the active media element into the Picture-in-Picture document.
 4. Preserving playback while the media element changes document ownership.
-5. Restoring the media element to its original logical DOM location when the PiP window closes.
+5. Restoring the media element to its original logical DOM position when the PiP window closes.
 6. Navigating from video A to video B with PiP open.
 7. Automatic playlist progression with PiP open.
 8. Live-stream behavior and seekable ranges.
