@@ -15,6 +15,15 @@ This document prepares Chrome Web Store metadata and reviewer-facing explanation
 
 Do not change the public release version to `1.0.0` until the v1 Definition of Done is complete.
 
+## Public release links
+
+Use these public URLs in the Chrome Web Store dashboard:
+
+- Privacy policy: `https://github.com/renanrcp16/float-play/blob/main/docs/PRIVACY.md`
+- Support: `https://github.com/renanrcp16/float-play/issues`
+
+The privacy-policy URL points to the policy version tracked with the `main` branch. Keep the document synchronized with every release that changes data handling.
+
 ## Single purpose
 
 FloatPlay enhances YouTube Picture-in-Picture with a compact mini player and richer playback controls while keeping operation local-first and limited to supported YouTube watch experiences.
@@ -40,7 +49,7 @@ FloatPlay injects content scripts only on YouTube origins needed by the product.
 
 FloatPlay does not request access to unrelated websites.
 
-## Data-handling draft
+## Data handling
 
 FloatPlay handles only data required to provide its disclosed single purpose.
 
@@ -58,7 +67,7 @@ User-selected FloatPlay settings are stored with Chrome extension storage. When 
 
 FloatPlay does not include a FloatPlay backend, authentication, third-party analytics, advertising SDKs, operational telemetry, or a FloatPlay watch-history service. The project does not sell user data or transmit YouTube viewing activity to FloatPlay infrastructure.
 
-Use `docs/PRIVACY.md` as the source text for the public privacy policy. Before store submission, publish that policy at a stable public URL and place that URL in the designated Chrome Web Store privacy field.
+`docs/PRIVACY.md` is the canonical public privacy-policy text and includes the Chrome Web Store Limited Use disclosure.
 
 ## Store listing — English
 
@@ -113,6 +122,7 @@ O FloatPlay foi projetado para Google Chrome Desktop e páginas compatíveis de 
 ### Already present in the extension package
 
 - Branded extension icons at 16, 32, 48, and 128 pixels.
+- The 128x128 store/installation icon uses the approved FloatPlay artwork with normalized transparent padding for Chrome Web Store visual weight.
 - Localized extension name and short description in English and Brazilian Portuguese.
 
 ### Screenshot workflow
@@ -127,13 +137,12 @@ The resulting file is written to `artifacts/web-store/options-page-en-1280x800.p
 
 A real YouTube/FloatPlay PiP screenshot remains a separate manual asset because live YouTube and Document Picture-in-Picture are intentionally outside the deterministic browser automation boundary.
 
-### Required before submission
+### Remaining before submission
 
-- Verify the 128x128 store icon against the current Chrome Web Store icon safe-area/padding guidance.
-- Review the generated 1280x800 Options Page screenshot candidate and capture at least one current real PiP/YouTube screenshot if needed to represent the core experience more clearly.
-- A stable public privacy-policy URL based on `docs/PRIVACY.md`.
-- A support URL or support destination appropriate for the public listing.
-- Final category, language/listing localization, distribution visibility, and regions in the developer dashboard.
+- Select the generated 1280x800 Options Page screenshot for upload, or capture an additional current real PiP/YouTube screenshot if it represents the core experience more clearly.
+- Set final category, language/listing localization, distribution visibility, and regions in the developer dashboard.
+- Complete the Privacy practices disclosure and Limited Use certification so they match `docs/PRIVACY.md` and the shipped behavior.
+- Run the final real Chrome/YouTube smoke-test matrix from `docs/TESTING.md` against the exact release candidate.
 
 ### Recommended / promotional assets
 
@@ -152,6 +161,7 @@ Immediately before submission, verify that:
 - permission and site-access justifications match `manifest.json`;
 - privacy disclosures describe all data handling, including local processing and Chrome storage sync;
 - the public privacy-policy URL works;
+- the support URL works;
 - listing text and screenshots match the submitted version;
 - no unsupported claims, rankings, badges, or comparative marketing have been added;
 - the ZIP contains `manifest.json` at its root.
