@@ -18,6 +18,8 @@ interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
   readonly speed: string;
   readonly settings: string;
   readonly moreOptions: string;
+  readonly triggerOpen: string;
+  readonly triggerDismiss: string;
 }
 
 export class FloatPlayController {
@@ -27,6 +29,7 @@ export class FloatPlayController {
   private reconcileFrame: number | null = null;
   private playerShell: PlayerShell | null = null;
   private originSurface: OriginPlaybackSurface | null = null;
+  private dismissedVideoId: string | null = null;
   private busy = false;
 
   public constructor(
@@ -39,8 +42,13 @@ export class FloatPlayController {
     private readonly logger: Logger
   ) {
     this.trigger = new SpikeTrigger({
+      openLabel: this.labels.triggerOpen,
+      dismissLabel: this.labels.triggerDismiss,
       onActivate: () => {
         void this.openPipFromUserGesture();
+      },
+      onDismiss: () => {
+        this.dismissTriggerForCurrentVideo();
       }
     });
 
@@ -57,8 +65,18 @@ export class FloatPlayController {
       subtree: true
     });
 
-    window.addEventListener(
-      "popstate",
+    for (const eventName of ["popstate", "resize", "scroll"] as const) {
+      window.addEventListener(
+        eventName,
+        () => {
+          this.scheduleReconcile();
+        },
+        { passive: eventName === "scroll", signal: this.lifecycle.signal }
+      );
+    }
+
+    document.addEventListener(
+      "fullscreenchange",
       () => {
         this.scheduleReconcile();
       },
@@ -107,6 +125,11 @@ export class FloatPlayController {
 
   private reconcile(): void {
     const supportedPage = this.youtube.isSupportedPage();
+    const videoId = this.youtube.getCurrentVideoId();
+
+    if (this.dismissedVideoId !== null && videoId !== this.dismissedVideoId) {
+      this.dismissedVideoId = null;
+    }
 
     if (!supportedPage) {
       this.trigger.setVisible(false);
@@ -118,10 +141,25 @@ export class FloatPlayController {
       return;
     }
 
-    const hasMedia = this.youtube.findActiveMedia() !== null;
-    const shouldShow = this.pip.isSupported() && hasMedia && !this.pip.isOpen();
+    const media = this.youtube.findActiveMedia();
+    const dismissed = videoId !== null && this.dismissedVideoId === videoId;
+    const shouldShow = this.pip.isSupported() && media !== null && !this.pip.isOpen() && !dismissed;
+
+    if (shouldShow && media !== null) {
+      this.trigger.setAnchorBounds(media.getBoundingClientRect());
+    }
 
     this.trigger.setVisible(shouldShow);
+  }
+
+  private dismissTriggerForCurrentVideo(): void {
+    const videoId = this.youtube.getCurrentVideoId();
+
+    if (videoId !== null) {
+      this.dismissedVideoId = videoId;
+    }
+
+    this.trigger.setVisible(false);
   }
 
   private async openPipFromUserGesture(): Promise<void> {
