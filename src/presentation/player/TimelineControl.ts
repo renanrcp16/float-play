@@ -1,4 +1,5 @@
 import { formatMediaTime, getMediaTimelineState, seekTimelineTo } from "../../application/MediaTimeline";
+import type { TimeDisplayMode } from "../../application/Settings";
 import type { Logger } from "../../shared/Logger";
 
 export class TimelineControl {
@@ -11,6 +12,7 @@ export class TimelineControl {
     private readonly document: Document,
     sessionSignal: AbortSignal,
     private readonly label: string,
+    private readonly displayMode: TimeDisplayMode,
     private readonly logger: Logger
   ) {
     sessionSignal.addEventListener("abort", () => this.dispose(), {
@@ -94,9 +96,13 @@ export class TimelineControl {
     const progress = total > 0 ? (elapsed / total) * 100 : 0;
     const elapsedText = formatMediaTime(elapsed);
     const totalText = formatMediaTime(total);
+    const primaryText =
+      this.displayMode === "remaining"
+        ? `-${formatMediaTime(Math.max(total - elapsed, 0))}`
+        : elapsedText;
 
     input.style.setProperty("--floatplay-timeline-progress", `${Math.min(Math.max(progress, 0), 100)}%`);
-    input.setAttribute("aria-valuetext", `${elapsedText} / ${totalText}`);
-    timeDisplay.textContent = `${elapsedText} / ${totalText}`;
+    input.setAttribute("aria-valuetext", `${primaryText} / ${totalText}`);
+    timeDisplay.textContent = `${primaryText} / ${totalText}`;
   }
 }
