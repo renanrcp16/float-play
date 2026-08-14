@@ -16,8 +16,10 @@
     "dev": "vite build --watch",
     "dev:options": "vite build --config vite.options.config.mjs --watch",
     "dev:service-worker": "vite build --config vite.service-worker.config.mjs --watch",
+    "e2e:install": "pnpm --dir e2e install --frozen-lockfile && pnpm --dir e2e exec playwright install chromium",
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests",
+    "test:e2e": "pnpm build && pnpm --dir e2e test",
     "typecheck": "tsc --noEmit",
     "validate": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
