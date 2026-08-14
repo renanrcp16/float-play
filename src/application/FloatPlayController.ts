@@ -11,6 +11,7 @@ import type { Logger } from "../shared/Logger";
 
 interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
   readonly fit: string;
+  readonly speed: string;
   readonly moreOptions: string;
 }
 
@@ -164,6 +165,7 @@ export class FloatPlayController {
       session.pipWindow,
       session.signal,
       this.labels.fit,
+      this.labels.speed,
       this.labels.moreOptions,
       this.logger
     );
