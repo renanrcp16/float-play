@@ -51,12 +51,9 @@ async function bootstrap(): Promise<void> {
       volume: i18n.getMessage("volumeAction", "Volume"),
       mute: i18n.getMessage("muteAction", "Mute"),
       unmute: i18n.getMessage("unmuteAction", "Unmute"),
-      triggerOpen: i18n.getMessage("triggerOpenAction", "Open FloatPlay"),
-      triggerDismiss: i18n.getMessage(
-        "triggerDismissAction",
-        "Hide FloatPlay for this video"
-      )
+      triggerOpen: i18n.getMessage("triggerOpenAction", "Open FloatPlay")
     },
+    chrome.runtime.getURL("brand/icon.svg"),
     settings,
     (mode) => {
       void persistTimeDisplayMode(settingsStore, mode);
