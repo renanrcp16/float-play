@@ -30,6 +30,22 @@ The initial suite verifies that:
 - supported settings persist through `chrome.storage.sync` when the Options Page is reopened;
 - `Restore defaults` persists the approved defaults again.
 
+## Chrome Web Store screenshot candidate
+
+A real Options Page screenshot can be captured from the built extension with:
+
+```bash
+pnpm capture:store-screenshot
+```
+
+The command launches the same Playwright Chromium harness with a deterministic 1280x800 viewport, English locale, light color scheme, and 1x device scale. It opens the actual built `options.html`, verifies that the page renders without page or console errors, and writes:
+
+```text
+artifacts/web-store/options-page-en-1280x800.png
+```
+
+The generated `artifacts/` directory is ignored by Git so the screenshot can be reviewed before it is selected for a store listing. This command does not create or simulate a YouTube/PiP screenshot; a real PiP capture remains a separate manual store asset.
+
 ## Validation boundary
 
 `pnpm validate` intentionally remains browser-independent and continues to run lint, typecheck, unit tests, and the production build only. Run `pnpm test:e2e` in addition to `pnpm validate` when changing extension-owned browser flows covered by this suite.

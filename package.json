@@ -13,6 +13,7 @@
     "build": "vite build && vite build --config vite.options.config.mjs && vite build --config vite.service-worker.config.mjs",
     "build:options": "vite build --config vite.options.config.mjs",
     "build:service-worker": "vite build --config vite.service-worker.config.mjs",
+    "capture:store-screenshot": "pnpm build && pnpm --dir e2e capture:store-screenshot",
     "dev": "vite build --watch",
     "dev:options": "vite build --config vite.options.config.mjs --watch",
     "dev:service-worker": "vite build --config vite.service-worker.config.mjs --watch",
