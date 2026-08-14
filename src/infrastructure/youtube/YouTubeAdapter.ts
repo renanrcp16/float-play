@@ -3,11 +3,12 @@ interface PageLocation {
   readonly pathname: string;
 }
 
-interface YouTubeVolumeMessage {
-  readonly channel: "floatplay:youtube-volume";
-  readonly type: "set-volume" | "set-muted";
+interface YouTubePlayerMessage {
+  readonly channel: "floatplay:youtube-player";
+  readonly type: "set-volume" | "set-muted" | "set-playback-rate";
   readonly volume?: number;
   readonly muted?: boolean;
+  readonly playbackRate?: number;
 }
 
 export class YouTubeAdapter {
@@ -36,22 +37,34 @@ export class YouTubeAdapter {
       return;
     }
 
-    this.postVolumeMessage({
-      channel: "floatplay:youtube-volume",
+    this.postPlayerMessage({
+      channel: "floatplay:youtube-player",
       type: "set-volume",
       volume: Math.min(1, Math.max(0, volume))
     });
   }
 
   public setMuted(muted: boolean): void {
-    this.postVolumeMessage({
-      channel: "floatplay:youtube-volume",
+    this.postPlayerMessage({
+      channel: "floatplay:youtube-player",
       type: "set-muted",
       muted
     });
   }
 
-  private postVolumeMessage(message: YouTubeVolumeMessage): void {
+  public setPlaybackRate(playbackRate: number): void {
+    if (!Number.isFinite(playbackRate) || playbackRate <= 0) {
+      return;
+    }
+
+    this.postPlayerMessage({
+      channel: "floatplay:youtube-player",
+      type: "set-playback-rate",
+      playbackRate
+    });
+  }
+
+  private postPlayerMessage(message: YouTubePlayerMessage): void {
     window.postMessage(message, window.location.origin);
   }
 
