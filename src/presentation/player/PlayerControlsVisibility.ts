@@ -72,7 +72,7 @@ export class PlayerControlsVisibility {
       "focusin",
       () => {
         this.showControls();
-        this.clearHideTimer();
+        this.scheduleHideIfNeeded();
       },
       { signal: this.signal }
     );
@@ -151,7 +151,7 @@ export class PlayerControlsVisibility {
     return shouldKeepControlsVisible(this.config, {
       paused: this.media.paused,
       pointerOverControls: this.pointerOverControls,
-      interactiveFocus: hasInteractiveFocus(this.playerWindow.document)
+      interactiveFocus: hasKeyboardInteractiveFocus(this.playerWindow.document)
     });
   }
 
@@ -213,10 +213,11 @@ function isWithinControlArea(target: EventTarget | null): boolean {
   return controlArea !== null && controlArea !== undefined;
 }
 
-function hasInteractiveFocus(document: Document): boolean {
+function hasKeyboardInteractiveFocus(document: Document): boolean {
   const candidate = document.activeElement as {
     closest?: (selector: string) => Element | null;
   } | null;
   const interactive = candidate?.closest?.(INTERACTIVE_SELECTOR);
-  return interactive !== null && interactive !== undefined;
+
+  return interactive?.matches(":focus-visible") ?? false;
 }
