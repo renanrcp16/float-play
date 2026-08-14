@@ -1,4 +1,5 @@
 import { togglePlayback } from "../../application/MediaPlayback";
+import type { MediaBounds } from "../../infrastructure/pip/DocumentPipManager";
 import type { Logger } from "../../shared/Logger";
 
 const INTERACTIVE_SELECTOR = [
@@ -24,7 +25,8 @@ export class OriginPlaybackSurface {
 
   public constructor(
     private readonly media: HTMLVideoElement,
-    private readonly originElement: HTMLElement,
+    private readonly originDocument: Document,
+    private readonly originBounds: MediaBounds,
     sessionSignal: AbortSignal,
     private readonly logger: Logger
   ) {
@@ -42,7 +44,7 @@ export class OriginPlaybackSurface {
       return;
     }
 
-    this.originElement.addEventListener(
+    this.originDocument.addEventListener(
       "click",
       (event) => {
         this.handleClick(event);
@@ -66,7 +68,11 @@ export class OriginPlaybackSurface {
   }
 
   private handleClick(event: MouseEvent): void {
-    if (event.button !== 0 || this.isInteractiveTarget(event)) {
+    if (
+      event.button !== 0 ||
+      !isPointWithinBounds(event.clientX, event.clientY, this.originBounds) ||
+      this.isInteractiveTarget(event)
+    ) {
       return;
     }
 
@@ -80,10 +86,6 @@ export class OriginPlaybackSurface {
 
   private isInteractiveTarget(event: MouseEvent): boolean {
     for (const target of event.composedPath()) {
-      if (target === this.originElement) {
-        return false;
-      }
-
       if (target instanceof Element && target.matches(INTERACTIVE_SELECTOR)) {
         return true;
       }
@@ -91,4 +93,12 @@ export class OriginPlaybackSurface {
 
     return false;
   }
+}
+
+export function isPointWithinBounds(x: number, y: number, bounds: MediaBounds): boolean {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return false;
+  }
+
+  return x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom;
 }
