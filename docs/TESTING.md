@@ -36,6 +36,18 @@ The validated behavior included media transfer and restoration, repeated open/cl
 
 The live test also showed that seeking directly to the reported end of the seekable range can briefly expose YouTube end-of-media presentation before returning to the live edge. Production live timeline behavior must therefore use the actual seekable range conservatively rather than treating its exact end as a semantic equivalent of YouTube's "Live" control.
 
+## YouTube trigger smoke tests
+
+Run these tests for changes that affect the FloatPlay entry point on the YouTube page.
+
+- **TR-01 — Placement and native controls:** on a standard `/watch` video, confirm the FloatPlay pill appears inside the active video near the lower-right, remains above the native YouTube control row/timeline, and follows the video when the page scrolls, resizes, or changes player layout.
+- **TR-02 — Localization and accessibility:** confirm the visible primary label is `Open FloatPlay` in English/fallback locales and `Abrir FloatPlay` in `pt-BR`. Keyboard-focus both the primary action and dismiss action and confirm focus remains visible and the dismiss control has a meaningful localized accessible name.
+- **TR-03 — Primary action:** activate the primary FloatPlay action and confirm Document Picture-in-Picture opens exactly once with the same media/session behavior as before. The YouTube trigger must not remain actionable while PiP is open.
+- **TR-04 — Dismiss current video:** close PiP if needed, activate the trigger's dismiss action on video A, and confirm the trigger disappears without changing playback or native YouTube controls.
+- **TR-05 — Reload restores trigger:** after TR-04, reload the page and confirm the trigger becomes available again on the same supported video.
+- **TR-06 — SPA navigation restores trigger:** dismiss the trigger on video A, navigate to video B without a full page reload, and confirm the trigger becomes available again for video B.
+- **TR-07 — Unsupported surfaces:** confirm Home, Shorts, and YouTube Music do not expose an actionable FloatPlay trigger and that leaving `/watch` cleans up the entry point.
+
 ## Player shell smoke tests
 
 Run these tests for changes that affect the first production player shell or Play/Pause interaction behavior.
