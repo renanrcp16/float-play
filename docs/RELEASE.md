@@ -28,13 +28,15 @@ pnpm test:e2e
 6. Run the relevant real Chrome/YouTube smoke-test matrix from `docs/TESTING.md`. Record Chrome version, operating system, tested commit, other YouTube-modifying extensions, FloatPlay console errors, and results.
 7. Review the production manifest and confirm no new permissions, host access, remote code, analytics, telemetry, or backend dependencies were introduced unintentionally.
 8. Review `docs/WEB_STORE.md` and `docs/PRIVACY.md` against the current implementation and current Chrome Web Store policy before submission.
-9. Build once more from the exact commit intended for upload:
+9. Run the release verifier from the exact commit intended for upload:
 
 ```bash
-pnpm build
+pnpm verify:release
 ```
 
-10. Inspect `dist/` and confirm `manifest.json` is directly inside `dist/`, not nested under another directory.
+This command rebuilds `dist/`, verifies version synchronization, checks the approved v1 permission and YouTube content-script scope, and confirms that manifest-referenced extension files and required locales exist in the production output.
+
+10. Inspect `dist/` once more and confirm `manifest.json` is directly inside `dist/`, not nested under another directory.
 
 ## Create the Chrome Web Store ZIP
 
@@ -42,7 +44,7 @@ The Chrome Web Store upload ZIP must contain the extension files with `manifest.
 
 ### Windows PowerShell
 
-From the repository root, after `pnpm build`:
+From the repository root, after `pnpm verify:release`:
 
 ```powershell
 $version = (Get-Content public/manifest.json | ConvertFrom-Json).version
@@ -53,7 +55,7 @@ Compress-Archive -Path dist\* -DestinationPath $zip
 
 ### macOS / Linux
 
-From the repository root, after `pnpm build`:
+From the repository root, after `pnpm verify:release`:
 
 ```bash
 version=$(node -p "JSON.parse(require('fs').readFileSync('public/manifest.json','utf8')).version")
@@ -84,6 +86,7 @@ Do not upload a release candidate until all of the following are true:
 
 - `pnpm validate` passes.
 - `pnpm test:e2e` passes.
+- `pnpm verify:release` passes.
 - required real Chrome/YouTube smoke tests pass.
 - permission and privacy disclosures match the shipped manifest and runtime behavior.
 - listing copy matches implemented functionality.
