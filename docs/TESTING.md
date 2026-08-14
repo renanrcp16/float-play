@@ -69,6 +69,21 @@ Run these tests for changes that affect backward or forward media navigation.
 
 MN-01 through MN-08 completed successfully on real Chrome/YouTube on Windows on 2026-08-13. Standard-video and live-stream seeking remained inside valid media ranges, the live-edge guard avoided the previously observed end-of-media presentation, existing playback interactions did not regress, and the final navigation controls were approved with compact curved icons and background-only interaction feedback.
 
+## Options Page smoke tests
+
+Run these tests for changes that affect persisted settings, the full-page Options Page, Settings menu access, or the in-player time display preference.
+
+- **OP-01 — Open from Chrome:** open FloatPlay's extension details and confirm the Options Page opens as a normal browser tab with the FloatPlay title, branding, favicon, and no console errors.
+- **OP-02 — Open from player:** open FloatPlay on a supported YouTube video, choose `Settings` from the overflow menu, and confirm the same Options Page opens without closing or breaking the active PiP session.
+- **OP-03 — Load persisted settings:** change backward seek, forward seek, volume step, auto-hide enabled state, and auto-hide delay; save; close the Options Page; reopen it; and confirm the saved values are restored.
+- **OP-04 — Apply settings to player:** after saving settings, reload an already-open YouTube tab as instructed by the page, reopen FloatPlay, and confirm seek, volume-step, and auto-hide behavior use the saved values.
+- **OP-05 — Reset defaults:** save non-default values, activate `Restore defaults`, and confirm the form returns to supported defaults without corrupting unrelated persisted preferences.
+- **OP-06 — Validation and feedback:** enter unsupported numeric values and confirm invalid settings are not persisted; save valid values and confirm success feedback is exposed without requiring a page reload.
+- **OP-07 — Time display preference:** click the timeline time display in the PiP player, confirm it toggles between elapsed/duration and remaining-time presentation, reopen FloatPlay, and confirm the selected mode persists. The Options Page must not expose a duplicate time-display setting.
+- **OP-08 — Localization:** verify English UI for English/fallback browser locales and Brazilian Portuguese UI for `pt-BR`, including labels, descriptions, status feedback, and shortcut reference text.
+- **OP-09 — Theme and responsiveness:** verify the Options Page follows light/dark system preference, remains usable at narrow browser widths, and preserves visible keyboard focus and readable contrast.
+- **OP-10 — Keyboard accessibility:** navigate through every form control, action, and relevant in-player control using the keyboard; confirm semantic controls, visible focus, and meaningful accessible names remain intact.
+
 ## Result recording
 
 For each browser run, record Chrome version, operating system, tested commit, date, other YouTube-modifying extensions, FloatPlay console errors, and a result or observation for every relevant scenario.
