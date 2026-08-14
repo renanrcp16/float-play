@@ -271,6 +271,12 @@ export class PlayerShell {
         flex-direction: column;
         gap: 8px;
         padding: 12px;
+        background: linear-gradient(
+          to bottom,
+          rgb(0 0 0 / 0%) 0%,
+          rgb(0 0 0 / 18%) 28%,
+          rgb(0 0 0 / 58%) 100%
+        );
         pointer-events: none;
       }
 
@@ -355,6 +361,7 @@ export class PlayerShell {
         height: 4px;
         border-radius: 999px;
         background: linear-gradient(to right, #fff 0 var(--floatplay-timeline-progress), rgb(255 255 255 / 35%) var(--floatplay-timeline-progress) 100%);
+        box-shadow: 0 1px 2px rgb(0 0 0 / 55%);
       }
 
       .floatplay-timeline::-webkit-slider-thumb {
@@ -362,9 +369,11 @@ export class PlayerShell {
         height: 12px;
         margin-top: -4px;
         appearance: none;
-        border: 0;
+        border: 1px solid rgb(0 0 0 / 35%);
         border-radius: 999px;
+        box-sizing: border-box;
         background: #fff;
+        box-shadow: 0 1px 3px rgb(0 0 0 / 65%);
       }
 
       .floatplay-timeline:hover::-webkit-slider-runnable-track {
@@ -388,7 +397,7 @@ export class PlayerShell {
         pointer-events: auto;
         font: 500 12px/1.2 system-ui, sans-serif;
         font-variant-numeric: tabular-nums;
-        text-shadow: 0 1px 2px rgb(0 0 0 / 75%);
+        text-shadow: 0 1px 3px rgb(0 0 0 / 90%);
         user-select: none;
         transition: background-color 100ms ease;
       }
