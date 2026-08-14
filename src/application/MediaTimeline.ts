@@ -76,6 +76,10 @@ export function formatTimelineTimeDisplay(
   return `${primary} / ${formatMediaTime(total)}`;
 }
 
+export function getNextTimeDisplayMode(mode: TimeDisplayMode): TimeDisplayMode {
+  return mode === "elapsed" ? "remaining" : "elapsed";
+}
+
 function readRanges(ranges: TimelineRanges): Array<readonly [number, number]> {
   const result: Array<readonly [number, number]> = [];
 
