@@ -6,7 +6,7 @@ interface SpikeTriggerOptions {
 
 export interface TriggerInlineAnchor {
   readonly parent: HTMLElement;
-  readonly before: ChildNode;
+  readonly before: ChildNode | null;
 }
 
 type TriggerPlacement = "inline" | "fallback";
@@ -111,7 +111,7 @@ export class SpikeTrigger {
     if (
       anchor !== null &&
       anchor.parent.isConnected &&
-      anchor.before.parentNode === anchor.parent
+      (anchor.before === null || anchor.before.parentNode === anchor.parent)
     ) {
       this.mountInline(anchor);
       return;
