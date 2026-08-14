@@ -49,9 +49,13 @@ The v1 release does not officially support:
 
 ### FR-001 — YouTube trigger
 
-FloatPlay must expose a discreet control on supported YouTube watch pages when a compatible video element is available.
+FloatPlay must expose a discreet icon control on supported YouTube watch pages when a compatible video element is available.
 
-The control must not visually pollute the page or require modification of YouTube's native control bar.
+When YouTube exposes the expected watch metadata structure safely, the trigger should appear immediately after the channel subscription/notification control area so it is visually associated with the video actions without modifying the native player control bar.
+
+The trigger must use the approved FloatPlay icon without visible text. Its localized `title` and accessible name must identify the action as `Open FloatPlay` in English and `Abrir FloatPlay` in Brazilian Portuguese.
+
+If the preferred metadata anchor cannot be identified safely, FloatPlay must fall back to an icon-only fixed trigger in the original lower-right viewport position rather than guessing another YouTube DOM location.
 
 ### FR-002 — Explicit user activation
 
