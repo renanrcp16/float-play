@@ -23,6 +23,9 @@
   "fitAction": {
     "message": "Fit to video"
   },
+  "speedAction": {
+    "message": "Playback speed"
+  },
   "moreOptionsAction": {
     "message": "More options"
   },
