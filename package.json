@@ -18,6 +18,7 @@
     "dev:service-worker": "vite build --config vite.service-worker.config.mjs --watch",
     "e2e:install": "pnpm --dir e2e install --frozen-lockfile && pnpm --dir e2e exec playwright install chromium",
     "lint": "eslint .",
+    "package:release": "pnpm verify:release && node scripts/package-release.mjs",
     "test": "vitest run --passWithNoTests",
     "test:e2e": "pnpm build && pnpm --dir e2e test",
     "typecheck": "tsc --noEmit",
