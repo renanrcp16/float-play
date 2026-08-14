@@ -30,27 +30,42 @@ export class PlayerMenu {
     panel.append(...this.items);
 
     trigger.addEventListener("click", () => this.toggle(), { signal: this.signal });
-    panel.addEventListener("click", (event) => {
-      const target = event.target as { closest?: (selector: string) => Element | null } | null;
-      if (target?.closest?.('[data-floatplay-close-overflow="true"]') !== null) this.close();
-    }, { signal: this.signal });
+    panel.addEventListener(
+      "click",
+      (event) => {
+        const target = event.target as { closest?: (selector: string) => Element | null } | null;
+        const closeTarget = target?.closest?.('[data-floatplay-close-overflow="true"]');
 
-    this.document.addEventListener("pointerdown", (event) => {
-      if (event.target === null || !root.contains(event.target as Node)) this.close();
-    }, { signal: this.signal });
+        if (closeTarget !== null && closeTarget !== undefined) {
+          this.close();
+        }
+      },
+      { signal: this.signal }
+    );
 
-    this.document.addEventListener("keydown", (event) => {
-      if (event.key !== "Escape" || panel.hidden) return;
-      event.preventDefault();
-      this.close();
-      trigger.focus();
-    }, { signal: this.signal });
+    this.document.addEventListener(
+      "pointerdown",
+      (event) => {
+        if (event.target === null || !root.contains(event.target as Node)) {
+          this.close();
+        }
+      },
+      { signal: this.signal }
+    );
 
-    root.addEventListener("focusout", () => {
-      queueMicrotask(() => {
-        if (!root.contains(this.document.activeElement)) this.close();
-      });
-    }, { signal: this.signal });
+    this.document.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key !== "Escape" || panel.hidden) {
+          return;
+        }
+
+        event.preventDefault();
+        this.close();
+        trigger.focus();
+      },
+      { signal: this.signal }
+    );
 
     root.append(trigger, panel);
     this.trigger = trigger;
@@ -59,20 +74,32 @@ export class PlayerMenu {
   }
 
   private toggle(): void {
-    if (this.panel === null || this.trigger === null) return;
-    if (this.panel.hidden) this.open();
-    else this.close();
+    if (this.panel === null || this.trigger === null) {
+      return;
+    }
+
+    if (this.panel.hidden) {
+      this.open();
+    } else {
+      this.close();
+    }
   }
 
   private open(): void {
-    if (this.panel === null || this.trigger === null) return;
+    if (this.panel === null || this.trigger === null) {
+      return;
+    }
+
     this.panel.hidden = false;
     this.trigger.setAttribute("aria-expanded", "true");
     this.panel.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
   }
 
   private close(): void {
-    if (this.panel === null || this.trigger === null) return;
+    if (this.panel === null || this.trigger === null) {
+      return;
+    }
+
     this.panel.hidden = true;
     this.trigger.setAttribute("aria-expanded", "false");
   }
@@ -85,6 +112,7 @@ export class PlayerMenu {
     svg.setAttribute("height", "15");
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("fill", "currentColor");
+
     for (const cx of [6, 12, 18]) {
       const circle = this.document.createElementNS("http://www.w3.org/2000/svg", "circle");
       circle.setAttribute("cx", cx.toString());
@@ -92,11 +120,15 @@ export class PlayerMenu {
       circle.setAttribute("r", "1.7");
       svg.append(circle);
     }
+
     return svg;
   }
 
   private installStyles(): void {
-    if (this.document.querySelector('style[data-floatplay="overflow-menu-styles"]') !== null) return;
+    if (this.document.querySelector('style[data-floatplay="overflow-menu-styles"]') !== null) {
+      return;
+    }
+
     const style = this.document.createElement("style");
     style.dataset.floatplay = "overflow-menu-styles";
     style.textContent = `
