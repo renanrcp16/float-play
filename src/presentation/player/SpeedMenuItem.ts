@@ -4,6 +4,8 @@ import {
   PLAYBACK_SPEED_PRESETS
 } from "../../application/PlaybackSpeed";
 
+const PLAYBACK_RATE_EPSILON = 0.001;
+
 export function createSpeedMenuItem(
   document: Document,
   media: HTMLVideoElement,
@@ -41,6 +43,15 @@ export function createSpeedMenuItem(
   presets.className = "floatplay-speed-presets";
   presets.hidden = true;
 
+  let pendingPlaybackRate: number | null = null;
+
+  const closePresets = (): void => {
+    pendingPlaybackRate = null;
+    presets.hidden = true;
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.focus();
+  };
+
   const presetButtons = PLAYBACK_SPEED_PRESETS.map((preset) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -51,6 +62,12 @@ export function createSpeedMenuItem(
     button.addEventListener(
       "click",
       () => {
+        if (Math.abs(media.playbackRate - preset) < PLAYBACK_RATE_EPSILON) {
+          closePresets();
+          return;
+        }
+
+        pendingPlaybackRate = preset;
         playbackRateMirror.setPlaybackRate(preset);
       },
       { signal }
@@ -66,9 +83,16 @@ export function createSpeedMenuItem(
     trigger.setAttribute("aria-label", `${label}: ${formattedRate}`);
 
     for (const { button, preset } of presetButtons) {
-      const selected = Math.abs(media.playbackRate - preset) < 0.001;
+      const selected = Math.abs(media.playbackRate - preset) < PLAYBACK_RATE_EPSILON;
       button.setAttribute("aria-pressed", selected ? "true" : "false");
       button.classList.toggle("is-selected", selected);
+    }
+
+    if (
+      pendingPlaybackRate !== null &&
+      Math.abs(media.playbackRate - pendingPlaybackRate) < PLAYBACK_RATE_EPSILON
+    ) {
+      closePresets();
     }
   };
 
@@ -80,7 +104,9 @@ export function createSpeedMenuItem(
       trigger.setAttribute("aria-expanded", nextOpen ? "true" : "false");
 
       if (nextOpen) {
-        const selected = presets.querySelector<HTMLButtonElement>('.floatplay-speed-preset[aria-pressed="true"]');
+        const selected = presets.querySelector<HTMLButtonElement>(
+          '.floatplay-speed-preset[aria-pressed="true"]'
+        );
         (selected ?? presetButtons[0]?.button)?.focus();
       }
     },
