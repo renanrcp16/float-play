@@ -1,3 +1,7 @@
+import { DEFAULT_CONTROL_VISIBILITY_CONFIG } from "./ControlVisibility";
+import { DEFAULT_SEEK_SECONDS } from "./MediaSeek";
+import { DEFAULT_VOLUME_STEP } from "./MediaVolume";
+
 export const SETTINGS_SCHEMA_VERSION = 1 as const;
 
 export type TimeDisplayMode = "elapsed" | "remaining";
@@ -14,11 +18,11 @@ export interface FloatPlaySettings {
 
 export const DEFAULT_SETTINGS: FloatPlaySettings = {
   schemaVersion: SETTINGS_SCHEMA_VERSION,
-  seekBackwardSeconds: 10,
-  seekForwardSeconds: 10,
-  volumeStep: 0.05,
-  autoHideEnabled: true,
-  autoHideDelayMs: 2500,
+  seekBackwardSeconds: DEFAULT_SEEK_SECONDS,
+  seekForwardSeconds: DEFAULT_SEEK_SECONDS,
+  volumeStep: DEFAULT_VOLUME_STEP,
+  autoHideEnabled: DEFAULT_CONTROL_VISIBILITY_CONFIG.enabled,
+  autoHideDelayMs: DEFAULT_CONTROL_VISIBILITY_CONFIG.delayMs,
   timeDisplayMode: "elapsed"
 };
 
