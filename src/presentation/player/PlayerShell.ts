@@ -246,6 +246,7 @@ export class PlayerShell {
         max-width: none !important;
         max-height: none !important;
         object-fit: contain !important;
+        outline: none;
       }
 
       .floatplay-controls {
