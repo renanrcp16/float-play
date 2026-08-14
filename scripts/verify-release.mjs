@@ -61,6 +61,29 @@ for (const contentScript of contentScripts) {
   }
 }
 
+const webAccessibleResources = Array.isArray(distManifest.web_accessible_resources)
+  ? distManifest.web_accessible_resources
+  : [];
+
+for (const resourceGroup of webAccessibleResources) {
+  assertStringArrayEqual(
+    resourceGroup.matches,
+    expectedMatches,
+    "release manifest web-accessible resource scope changed from the approved YouTube origins"
+  );
+
+  if (
+    !Array.isArray(resourceGroup.resources) ||
+    resourceGroup.resources.some((value) => typeof value !== "string")
+  ) {
+    fail("release manifest web_accessible_resources.resources must be a string array");
+  }
+
+  for (const resourcePath of resourceGroup.resources) {
+    addRequiredFile(requiredFiles, resourcePath, "web_accessible_resources.resources");
+  }
+}
+
 const optionsPage = distManifest.options_page;
 if (typeof optionsPage === "string") {
   const optionsHtml = await readFile(path.join(distDir, optionsPage), "utf8");
