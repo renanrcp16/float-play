@@ -164,6 +164,7 @@ export class FloatPlayController {
       session.media,
       session.pipWindow,
       session.signal,
+      this.youtube,
       this.labels.fit,
       this.labels.speed,
       this.labels.moreOptions,
