@@ -5,7 +5,7 @@ interface PageLocation {
 
 export interface YouTubeTriggerAnchor {
   readonly parent: HTMLElement;
-  readonly before: HTMLElement;
+  readonly before: ChildNode | null;
 }
 
 interface YouTubePlayerMessage {
@@ -25,23 +25,19 @@ export class YouTubeAdapter {
 
   public findTriggerAnchor(root: ParentNode = document): YouTubeTriggerAnchor | null {
     const metadata = root.querySelector("ytd-watch-metadata");
-    const topRow = metadata?.querySelector("#top-row");
-    const owner = topRow?.querySelector(":scope > #owner");
-    const actions = topRow?.querySelector(":scope > #actions");
+    const owner = metadata?.querySelector("#owner");
+    const subscriptionArea = owner?.querySelector(
+      "#subscribe-button, ytd-subscribe-button-renderer, yt-subscribe-button-view-model"
+    );
+    const parent = subscriptionArea?.parentElement ?? null;
 
-    if (
-      !(topRow instanceof HTMLElement) ||
-      !(owner instanceof HTMLElement) ||
-      !(actions instanceof HTMLElement) ||
-      owner.parentElement !== topRow ||
-      actions.parentElement !== topRow
-    ) {
+    if (!(owner instanceof HTMLElement) || !(subscriptionArea instanceof HTMLElement) || parent === null) {
       return null;
     }
 
     return {
-      parent: topRow,
-      before: actions
+      parent,
+      before: subscriptionArea.nextSibling
     };
   }
 
