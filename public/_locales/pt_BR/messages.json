@@ -1,51 +1,56 @@
 {
-  "extensionName": {
-    "message": "FloatPlay"
-  },
-  "extensionDescription": {
-    "message": "Melhore o Picture-in-Picture do YouTube com controles de reprodução mais completos."
-  },
-  "playAction": {
-    "message": "Reproduzir"
-  },
-  "pauseAction": {
-    "message": "Pausar"
-  },
+  "extensionName": { "message": "FloatPlay" },
+  "extensionDescription": { "message": "Melhore o Picture-in-Picture do YouTube com controles de reprodução mais completos." },
+  "playAction": { "message": "Reproduzir" },
+  "pauseAction": { "message": "Pausar" },
   "backwardAction": {
     "message": "Voltar $SECONDS$ segundos",
-    "placeholders": {
-      "seconds": {
-        "content": "$1"
-      }
-    }
+    "placeholders": { "seconds": { "content": "$1" } }
   },
   "forwardAction": {
     "message": "Avançar $SECONDS$ segundos",
-    "placeholders": {
-      "seconds": {
-        "content": "$1"
-      }
-    }
+    "placeholders": { "seconds": { "content": "$1" } }
   },
-  "timelineAction": {
-    "message": "Linha do tempo da reprodução"
-  },
-  "fitAction": {
-    "message": "Ajustar ao vídeo"
-  },
-  "speedAction": {
-    "message": "Velocidade de reprodução"
-  },
-  "moreOptionsAction": {
-    "message": "Mais opções"
-  },
-  "volumeAction": {
-    "message": "Volume"
-  },
-  "muteAction": {
-    "message": "Silenciar"
-  },
-  "unmuteAction": {
-    "message": "Ativar som"
-  }
+  "timelineAction": { "message": "Linha do tempo da reprodução" },
+  "fitAction": { "message": "Ajustar ao vídeo" },
+  "speedAction": { "message": "Velocidade de reprodução" },
+  "settingsAction": { "message": "Configurações" },
+  "moreOptionsAction": { "message": "Mais opções" },
+  "volumeAction": { "message": "Volume" },
+  "muteAction": { "message": "Silenciar" },
+  "unmuteAction": { "message": "Ativar som" },
+  "optionsPageTitle": { "message": "Configurações do FloatPlay" },
+  "optionsPageDescription": { "message": "Personalize os controles de reprodução do mini player do FloatPlay." },
+  "optionsPlaybackSection": { "message": "Reprodução" },
+  "optionsSeekBackwardLabel": { "message": "Intervalo para voltar" },
+  "optionsSeekBackwardDescription": { "message": "Valor usado pelo botão de voltar e pelo atalho Seta para a esquerda." },
+  "optionsSeekForwardLabel": { "message": "Intervalo para avançar" },
+  "optionsSeekForwardDescription": { "message": "Valor usado pelo botão de avançar e pelo atalho Seta para a direita." },
+  "optionsSecondsUnit": { "message": "segundos" },
+  "optionsTimeDisplayLabel": { "message": "Exibição do tempo" },
+  "optionsTimeDisplayDescription": { "message": "Escolha o que o primeiro valor de tempo ao lado da linha do tempo representa." },
+  "optionsTimeElapsed": { "message": "Tempo decorrido" },
+  "optionsTimeRemaining": { "message": "Tempo restante" },
+  "optionsVolumeSection": { "message": "Volume" },
+  "optionsVolumeStepLabel": { "message": "Passo do volume" },
+  "optionsVolumeStepDescription": { "message": "Valor alterado pela roda do mouse e pelos atalhos Seta para cima/baixo." },
+  "optionsControlsSection": { "message": "Controles" },
+  "optionsAutoHideLabel": { "message": "Ocultar controles automaticamente" },
+  "optionsAutoHideDescription": { "message": "Oculte os controles durante a reprodução após um período sem interação." },
+  "optionsAutoHideDelayLabel": { "message": "Tempo para ocultar" },
+  "optionsAutoHideDelayDescription": { "message": "Quanto tempo o FloatPlay aguarda após a última interação antes de ocultar os controles." },
+  "optionsShortcutsSection": { "message": "Atalhos de teclado" },
+  "optionsShortcutsDescription": { "message": "Os atalhos são fixos na v1 e funcionam enquanto o mini player está em foco." },
+  "optionsShortcutPlayPause": { "message": "Reproduzir / Pausar" },
+  "optionsShortcutSeek": { "message": "Voltar / Avançar" },
+  "optionsShortcutVolume": { "message": "Aumentar / Diminuir volume" },
+  "optionsShortcutMute": { "message": "Silenciar / Ativar som" },
+  "optionsShortcutSpeed": { "message": "Diminuir / Aumentar velocidade" },
+  "optionsApplyNotice": { "message": "Recarregue as abas abertas do YouTube após salvar para aplicar as novas configurações." },
+  "optionsReset": { "message": "Restaurar padrões" },
+  "optionsSave": { "message": "Salvar configurações" },
+  "optionsInvalidForm": { "message": "Revise as configurações destacadas antes de salvar." },
+  "optionsSaved": { "message": "Configurações salvas. Recarregue as abas abertas do YouTube para aplicá-las." },
+  "optionsResetDone": { "message": "Configurações padrão restauradas. Recarregue as abas abertas do YouTube para aplicá-las." },
+  "optionsSaveError": { "message": "Não foi possível salvar as configurações. Tente novamente." }
 }
