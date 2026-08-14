@@ -18,6 +18,7 @@ export class VolumeControl {
     private readonly signal: AbortSignal,
     private readonly labels: VolumeControlLabels,
     private readonly volumeMirror: VolumeMirror,
+    private readonly volumeStep: number,
     private readonly logger: Logger
   ) {}
 
@@ -63,7 +64,7 @@ export class VolumeControl {
 
         event.preventDefault();
         const direction = event.deltaY < 0 ? 1 : -1;
-        this.setVolume(adjustVolume(this.media.volume, direction));
+        this.setVolume(adjustVolume(this.media.volume, direction, this.volumeStep));
       },
       { passive: false, signal: this.signal }
     );
