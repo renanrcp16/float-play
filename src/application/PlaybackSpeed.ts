@@ -11,7 +11,3 @@ export function formatPlaybackRate(rate: number): string {
 
   return `${Number(rate.toFixed(2))}×`;
 }
-
-export function isPlaybackSpeedPreset(rate: number): boolean {
-  return PLAYBACK_SPEED_PRESETS.some((preset) => Math.abs(preset - rate) < 0.001);
-}
