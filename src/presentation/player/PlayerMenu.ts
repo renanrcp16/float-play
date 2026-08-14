@@ -1,4 +1,4 @@
-export class OverflowMenu {
+export class PlayerMenu {
   private panel: HTMLDivElement | null = null;
   private trigger: HTMLButtonElement | null = null;
 
@@ -6,11 +6,12 @@ export class OverflowMenu {
     private readonly document: Document,
     private readonly signal: AbortSignal,
     private readonly label: string,
-    private readonly items: readonly HTMLButtonElement[]
+    private readonly items: readonly HTMLElement[]
   ) {}
 
   public create(): HTMLDivElement {
     this.installStyles();
+
     const root = this.document.createElement("div");
     root.className = "floatplay-overflow-menu";
 
@@ -29,24 +30,42 @@ export class OverflowMenu {
     panel.append(...this.items);
 
     trigger.addEventListener("click", () => this.toggle(), { signal: this.signal });
-    for (const item of this.items) item.addEventListener("click", () => this.close(), { signal: this.signal });
+    panel.addEventListener(
+      "click",
+      (event) => {
+        const target = event.target as { closest?: (selector: string) => Element | null } | null;
+        const closeTarget = target?.closest?.('[data-floatplay-close-overflow="true"]');
 
-    this.document.addEventListener("pointerdown", (event) => {
-      if (event.target === null || !root.contains(event.target as Node)) this.close();
-    }, { signal: this.signal });
+        if (closeTarget !== null && closeTarget !== undefined) {
+          this.close();
+        }
+      },
+      { signal: this.signal }
+    );
 
-    this.document.addEventListener("keydown", (event) => {
-      if (event.key !== "Escape" || panel.hidden) return;
-      event.preventDefault();
-      this.close();
-      trigger.focus();
-    }, { signal: this.signal });
+    this.document.addEventListener(
+      "pointerdown",
+      (event) => {
+        if (event.target === null || !root.contains(event.target as Node)) {
+          this.close();
+        }
+      },
+      { signal: this.signal }
+    );
 
-    root.addEventListener("focusout", () => {
-      queueMicrotask(() => {
-        if (!root.contains(this.document.activeElement)) this.close();
-      });
-    }, { signal: this.signal });
+    this.document.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key !== "Escape" || panel.hidden) {
+          return;
+        }
+
+        event.preventDefault();
+        this.close();
+        trigger.focus();
+      },
+      { signal: this.signal }
+    );
 
     root.append(trigger, panel);
     this.trigger = trigger;
@@ -55,45 +74,61 @@ export class OverflowMenu {
   }
 
   private toggle(): void {
-    if (this.panel === null || this.trigger === null) return;
-    if (this.panel.hidden) this.open();
-    else this.close();
+    if (this.panel === null || this.trigger === null) {
+      return;
+    }
+
+    if (this.panel.hidden) {
+      this.open();
+    } else {
+      this.close();
+    }
   }
 
   private open(): void {
-    if (this.panel === null || this.trigger === null) return;
+    if (this.panel === null || this.trigger === null) {
+      return;
+    }
+
     this.panel.hidden = false;
     this.trigger.setAttribute("aria-expanded", "true");
-    this.items[0]?.focus();
+    this.panel.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
   }
 
   private close(): void {
-    if (this.panel === null || this.trigger === null) return;
+    if (this.panel === null || this.trigger === null) {
+      return;
+    }
+
     this.panel.hidden = true;
     this.trigger.setAttribute("aria-expanded", "false");
   }
 
   private createTriggerIcon(): SVGSVGElement {
-    const namespace = "http://www.w3.org/2000/svg";
-    const svg = this.document.createElementNS(namespace, "svg");
+    const svg = this.document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.classList.add("floatplay-navigation-icon");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("width", "15");
     svg.setAttribute("height", "15");
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("fill", "currentColor");
+
     for (const cx of [6, 12, 18]) {
-      const circle = this.document.createElementNS(namespace, "circle");
+      const circle = this.document.createElementNS("http://www.w3.org/2000/svg", "circle");
       circle.setAttribute("cx", cx.toString());
       circle.setAttribute("cy", "12");
       circle.setAttribute("r", "1.7");
       svg.append(circle);
     }
+
     return svg;
   }
 
   private installStyles(): void {
-    if (this.document.querySelector('style[data-floatplay="overflow-menu-styles"]') !== null) return;
+    if (this.document.querySelector('style[data-floatplay="overflow-menu-styles"]') !== null) {
+      return;
+    }
+
     const style = this.document.createElement("style");
     style.dataset.floatplay = "overflow-menu-styles";
     style.textContent = `

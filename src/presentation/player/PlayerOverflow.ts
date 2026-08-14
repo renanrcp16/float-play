@@ -1,21 +1,35 @@
+import type { PlaybackRateMirror } from "../../application/PlaybackSpeed";
 import type { Logger } from "../../shared/Logger";
 import { createFitMenuItem } from "./FitMenuItem";
-import { OverflowMenu } from "./OverflowMenu";
+import { PlayerMenu } from "./PlayerMenu";
+import { createSpeedMenuItem } from "./SpeedMenuItem";
 
 export class PlayerOverflow {
   public constructor(
     private readonly media: HTMLVideoElement,
     private readonly playerWindow: Window,
     private readonly signal: AbortSignal,
+    private readonly playbackRateMirror: PlaybackRateMirror,
     private readonly fitLabel: string,
+    private readonly speedLabel: string,
     private readonly moreOptionsLabel: string,
     private readonly logger: Logger
   ) {}
 
   public mount(): void {
     const row = this.playerWindow.document.querySelector<HTMLElement>(".floatplay-button-row");
-    if (row === null) return;
 
+    if (row === null) {
+      return;
+    }
+
+    const speedItem = createSpeedMenuItem(
+      this.playerWindow.document,
+      this.media,
+      this.playbackRateMirror,
+      this.speedLabel,
+      this.signal
+    );
     const fitItem = createFitMenuItem(
       this.playerWindow.document,
       this.media,
@@ -24,11 +38,11 @@ export class PlayerOverflow {
       this.signal,
       this.logger
     );
-    const menu = new OverflowMenu(
+    const menu = new PlayerMenu(
       this.playerWindow.document,
       this.signal,
       this.moreOptionsLabel,
-      [fitItem]
+      [speedItem, fitItem]
     ).create();
 
     row.append(menu);

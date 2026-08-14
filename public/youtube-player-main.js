@@ -1,7 +1,7 @@
 /* global window, document */
 
 (() => {
-  const channel = "floatplay:youtube-volume";
+  const channel = "floatplay:youtube-player";
 
   window.addEventListener("message", (event) => {
     if (event.source !== window || event.origin !== window.location.origin) {
@@ -36,17 +36,27 @@
       return;
     }
 
-    if (message.type !== "set-muted" || typeof message.muted !== "boolean") {
+    if (message.type === "set-muted" && typeof message.muted === "boolean") {
+      if (message.muted && typeof player.mute === "function") {
+        player.mute();
+        return;
+      }
+
+      if (!message.muted && typeof player.unMute === "function") {
+        player.unMute();
+      }
+
       return;
     }
 
-    if (message.muted && typeof player.mute === "function") {
-      player.mute();
-      return;
-    }
-
-    if (!message.muted && typeof player.unMute === "function") {
-      player.unMute();
+    if (
+      message.type === "set-playback-rate" &&
+      typeof message.playbackRate === "number" &&
+      Number.isFinite(message.playbackRate) &&
+      message.playbackRate > 0 &&
+      typeof player.setPlaybackRate === "function"
+    ) {
+      player.setPlaybackRate(message.playbackRate);
     }
   });
 })();

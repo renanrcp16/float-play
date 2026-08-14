@@ -11,7 +11,7 @@
         "https://www.youtube.com/*",
         "https://youtube.com/*"
       ],
-      "js": ["youtube-volume-main.js"],
+      "js": ["youtube-player-main.js"],
       "run_at": "document_start",
       "world": "MAIN"
     },
