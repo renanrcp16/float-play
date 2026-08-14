@@ -15,19 +15,20 @@ describe("options form conversions", () => {
       seekForwardSeconds: 10,
       volumeStepPercent: 10,
       autoHideEnabled: true,
-      autoHideDelaySeconds: 1.25,
-      timeDisplayMode: "remaining"
+      autoHideDelaySeconds: 1.25
     });
   });
 
-  it("converts valid form values back into persisted units", () => {
+  it("converts valid form values while preserving the timeline preference", () => {
     expect(optionsFormValuesToSettings({
       seekBackwardSeconds: 7,
       seekForwardSeconds: 13,
       volumeStepPercent: 10,
       autoHideEnabled: false,
-      autoHideDelaySeconds: 1.5,
-      timeDisplayMode: "elapsed"
+      autoHideDelaySeconds: 1.5
+    }, {
+      ...DEFAULT_SETTINGS,
+      timeDisplayMode: "remaining"
     })).toEqual({
       schemaVersion: 1,
       seekBackwardSeconds: 7,
@@ -35,7 +36,7 @@ describe("options form conversions", () => {
       volumeStep: 0.1,
       autoHideEnabled: false,
       autoHideDelayMs: 1500,
-      timeDisplayMode: "elapsed"
+      timeDisplayMode: "remaining"
     });
   });
 
@@ -45,8 +46,7 @@ describe("options form conversions", () => {
       seekForwardSeconds: 10,
       volumeStepPercent: 101,
       autoHideEnabled: true,
-      autoHideDelaySeconds: -1,
-      timeDisplayMode: "unknown"
-    })).toBeNull();
+      autoHideDelaySeconds: -1
+    }, DEFAULT_SETTINGS)).toBeNull();
   });
 });
