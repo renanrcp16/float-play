@@ -4,6 +4,14 @@ import path from "node:path";
 import { stdout } from "node:process";
 import { fileURLToPath } from "node:url";
 
+const CRC32_TABLE = Array.from({ length: 256 }, (_, value) => {
+  let crc = value;
+  for (let bit = 0; bit < 8; bit += 1) {
+    crc = (crc & 1) === 1 ? 0xedb88320 ^ (crc >>> 1) : crc >>> 1;
+  }
+  return crc >>> 0;
+});
+
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distDir = path.join(rootDir, "dist");
 const packageJson = await readJson(path.join(rootDir, "package.json"));
@@ -219,14 +227,6 @@ function inspectZip(archive) {
 
   return entries;
 }
-
-const CRC32_TABLE = Array.from({ length: 256 }, (_, value) => {
-  let crc = value;
-  for (let bit = 0; bit < 8; bit += 1) {
-    crc = (crc & 1) === 1 ? 0xedb88320 ^ (crc >>> 1) : crc >>> 1;
-  }
-  return crc >>> 0;
-});
 
 function crc32(data) {
   let crc = 0xffffffff;
