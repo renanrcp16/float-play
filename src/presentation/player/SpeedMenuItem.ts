@@ -100,8 +100,8 @@ function createSpeedIcon(document: Document): SVGSVGElement {
   svg.classList.add("floatplay-overflow-menu-item-icon");
   svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("width", "16");
-  svg.attribute("height", "16");
-  svg.attribute("aria-hidden", "true");
+  svg.setAttribute("height", "16");
+  svg.setAttribute("aria-hidden", "true");
   svg.setAttribute("fill", "none");
   svg.setAttribute("stroke", "currentColor");
   svg.setAttribute("stroke-width", "2");
