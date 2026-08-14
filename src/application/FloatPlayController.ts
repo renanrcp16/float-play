@@ -1,3 +1,4 @@
+import { CurrentVideoDismissal } from "./CurrentVideoDismissal";
 import type { OptionsPageLauncher } from "./OptionsPage";
 import type { FloatPlaySettings, TimeDisplayMode } from "./Settings";
 import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
@@ -26,10 +27,10 @@ export class FloatPlayController {
   private readonly lifecycle = new AbortController();
   private readonly observer: MutationObserver;
   private readonly trigger: SpikeTrigger;
+  private readonly triggerDismissal = new CurrentVideoDismissal();
   private reconcileFrame: number | null = null;
   private playerShell: PlayerShell | null = null;
   private originSurface: OriginPlaybackSurface | null = null;
-  private dismissedVideoId: string | null = null;
   private busy = false;
 
   public constructor(
@@ -126,10 +127,7 @@ export class FloatPlayController {
   private reconcile(): void {
     const supportedPage = this.youtube.isSupportedPage();
     const videoId = this.youtube.getCurrentVideoId();
-
-    if (this.dismissedVideoId !== null && videoId !== this.dismissedVideoId) {
-      this.dismissedVideoId = null;
-    }
+    this.triggerDismissal.reconcile(videoId);
 
     if (!supportedPage) {
       this.trigger.setVisible(false);
@@ -142,8 +140,11 @@ export class FloatPlayController {
     }
 
     const media = this.youtube.findActiveMedia();
-    const dismissed = videoId !== null && this.dismissedVideoId === videoId;
-    const shouldShow = this.pip.isSupported() && media !== null && !this.pip.isOpen() && !dismissed;
+    const shouldShow =
+      this.pip.isSupported() &&
+      media !== null &&
+      !this.pip.isOpen() &&
+      !this.triggerDismissal.isDismissed(videoId);
 
     if (shouldShow && media !== null) {
       this.trigger.setAnchorBounds(media.getBoundingClientRect());
@@ -153,12 +154,7 @@ export class FloatPlayController {
   }
 
   private dismissTriggerForCurrentVideo(): void {
-    const videoId = this.youtube.getCurrentVideoId();
-
-    if (videoId !== null) {
-      this.dismissedVideoId = videoId;
-    }
-
+    this.triggerDismissal.dismiss(this.youtube.getCurrentVideoId());
     this.trigger.setVisible(false);
   }
 
