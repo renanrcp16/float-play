@@ -1,4 +1,3 @@
-import { CurrentVideoDismissal } from "./CurrentVideoDismissal";
 import type { OptionsPageLauncher } from "./OptionsPage";
 import type { FloatPlaySettings, TimeDisplayMode } from "./Settings";
 import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
@@ -20,14 +19,12 @@ interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
   readonly settings: string;
   readonly moreOptions: string;
   readonly triggerOpen: string;
-  readonly triggerDismiss: string;
 }
 
 export class FloatPlayController {
   private readonly lifecycle = new AbortController();
   private readonly observer: MutationObserver;
   private readonly trigger: SpikeTrigger;
-  private readonly triggerDismissal = new CurrentVideoDismissal();
   private reconcileFrame: number | null = null;
   private playerShell: PlayerShell | null = null;
   private originSurface: OriginPlaybackSurface | null = null;
@@ -38,18 +35,16 @@ export class FloatPlayController {
     private readonly pip: DocumentPipManager,
     private readonly optionsPage: OptionsPageLauncher,
     private readonly labels: FloatPlayLabels,
+    triggerIconUrl: string,
     private settings: FloatPlaySettings,
     private readonly persistTimeDisplayMode: (mode: TimeDisplayMode) => void,
     private readonly logger: Logger
   ) {
     this.trigger = new SpikeTrigger({
-      openLabel: this.labels.triggerOpen,
-      dismissLabel: this.labels.triggerDismiss,
+      label: this.labels.triggerOpen,
+      iconUrl: triggerIconUrl,
       onActivate: () => {
         void this.openPipFromUserGesture();
-      },
-      onDismiss: () => {
-        this.dismissTriggerForCurrentVideo();
       }
     });
 
@@ -59,25 +54,15 @@ export class FloatPlayController {
   }
 
   public start(): void {
-    this.trigger.mount();
+    this.trigger.mount(this.youtube.findTriggerAnchor());
 
     this.observer.observe(document.documentElement, {
       childList: true,
       subtree: true
     });
 
-    for (const eventName of ["popstate", "resize", "scroll"] as const) {
-      window.addEventListener(
-        eventName,
-        () => {
-          this.scheduleReconcile();
-        },
-        { passive: eventName === "scroll", signal: this.lifecycle.signal }
-      );
-    }
-
-    document.addEventListener(
-      "fullscreenchange",
+    window.addEventListener(
+      "popstate",
       () => {
         this.scheduleReconcile();
       },
@@ -126,8 +111,6 @@ export class FloatPlayController {
 
   private reconcile(): void {
     const supportedPage = this.youtube.isSupportedPage();
-    const videoId = this.youtube.getCurrentVideoId();
-    this.triggerDismissal.reconcile(videoId);
 
     if (!supportedPage) {
       this.trigger.setVisible(false);
@@ -139,23 +122,12 @@ export class FloatPlayController {
       return;
     }
 
-    const media = this.youtube.findActiveMedia();
-    const shouldShow =
-      this.pip.isSupported() &&
-      media !== null &&
-      !this.pip.isOpen() &&
-      !this.triggerDismissal.isDismissed(videoId);
+    this.trigger.refreshPlacement(this.youtube.findTriggerAnchor());
 
-    if (shouldShow && media !== null) {
-      this.trigger.setAnchorBounds(media.getBoundingClientRect());
-    }
+    const hasMedia = this.youtube.findActiveMedia() !== null;
+    const shouldShow = this.pip.isSupported() && hasMedia && !this.pip.isOpen();
 
     this.trigger.setVisible(shouldShow);
-  }
-
-  private dismissTriggerForCurrentVideo(): void {
-    this.triggerDismissal.dismiss(this.youtube.getCurrentVideoId());
-    this.trigger.setVisible(false);
   }
 
   private async openPipFromUserGesture(): Promise<void> {
