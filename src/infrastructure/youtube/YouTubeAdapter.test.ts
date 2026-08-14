@@ -49,3 +49,37 @@ describe("YouTubeAdapter.isSupportedPage", () => {
     ).toBe(false);
   });
 });
+
+describe("YouTubeAdapter.getCurrentVideoId", () => {
+  const adapter = new YouTubeAdapter();
+
+  it("returns the watch video id", () => {
+    expect(
+      adapter.getCurrentVideoId({
+        hostname: "www.youtube.com",
+        pathname: "/watch",
+        search: "?v=abc123&list=playlist"
+      })
+    ).toBe("abc123");
+  });
+
+  it("returns null when the watch page has no video id", () => {
+    expect(
+      adapter.getCurrentVideoId({
+        hostname: "www.youtube.com",
+        pathname: "/watch",
+        search: "?list=playlist"
+      })
+    ).toBeNull();
+  });
+
+  it("returns null on unsupported YouTube surfaces", () => {
+    expect(
+      adapter.getCurrentVideoId({
+        hostname: "www.youtube.com",
+        pathname: "/shorts/abc123",
+        search: "?v=abc123"
+      })
+    ).toBeNull();
+  });
+});
