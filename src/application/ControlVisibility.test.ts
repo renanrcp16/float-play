@@ -45,7 +45,7 @@ describe("control visibility rules", () => {
   test("keeps controls visible when auto-hide is disabled", () => {
     expect(
       shouldKeepControlsVisible(
-        { enabled: false, delayMs: 2500 },
+        { enabled: false, delayMs: 1000 },
         { paused: false, pointerOverControls: false, interactiveFocus: false }
       )
     ).toBe(true);

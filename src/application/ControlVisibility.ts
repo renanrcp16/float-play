@@ -11,7 +11,7 @@ export interface ControlVisibilityState {
 
 export const DEFAULT_CONTROL_VISIBILITY_CONFIG: ControlVisibilityConfig = {
   enabled: true,
-  delayMs: 2500
+  delayMs: 1000
 };
 
 export function normalizeControlVisibilityConfig(

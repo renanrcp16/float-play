@@ -11,8 +11,8 @@ describe("options form conversions", () => {
       autoHideDelayMs: 1250,
       timeDisplayMode: "remaining"
     })).toEqual({
-      seekBackwardSeconds: 10,
-      seekForwardSeconds: 10,
+      seekBackwardSeconds: 5,
+      seekForwardSeconds: 5,
       volumeStepPercent: 10,
       autoHideEnabled: true,
       autoHideDelaySeconds: 1.25
