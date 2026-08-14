@@ -91,6 +91,8 @@ Player controls should be presented as an overlay over the video rather than per
 
 Controls must automatically hide during playback after a configurable period of inactivity.
 
+The default inactivity delay is 1 second.
+
 ### FR-010 — Paused visibility
 
 Controls must remain visible while the video is paused.
@@ -115,13 +117,13 @@ The `HTMLVideoElement` is the source of truth for playback state. FloatPlay must
 
 The mini player must expose a backward seek action.
 
-The default seek interval is 10 seconds.
+The default seek interval is 5 seconds.
 
 ### FR-014 — Seek forward
 
 The mini player must expose a forward seek action.
 
-The default seek interval is 10 seconds.
+The default seek interval is 5 seconds.
 
 ### FR-015 — Configurable seek values
 
