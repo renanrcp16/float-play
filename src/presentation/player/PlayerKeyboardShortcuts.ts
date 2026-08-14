@@ -10,7 +10,7 @@ import type { PlaybackRateMirror } from "../../application/PlaybackSpeed";
 import type { VolumeMirror } from "../../application/VolumeController";
 import type { Logger } from "../../shared/Logger";
 
-interface PlayerShortcutMirror extends VolumeMirror, PlaybackRateMirror {}
+type PlayerShortcutMirror = VolumeMirror & PlaybackRateMirror;
 
 export class PlayerKeyboardShortcuts {
   public constructor(
