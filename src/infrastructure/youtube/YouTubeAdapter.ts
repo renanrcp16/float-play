@@ -5,7 +5,7 @@ interface PageLocation {
 
 export interface YouTubeTriggerAnchor {
   readonly parent: HTMLElement;
-  readonly before: ChildNode | null;
+  readonly after: ChildNode;
 }
 
 interface YouTubePlayerMessage {
@@ -37,7 +37,7 @@ export class YouTubeAdapter {
 
     return {
       parent,
-      before: subscriptionArea.nextSibling
+      after: subscriptionArea
     };
   }
 
