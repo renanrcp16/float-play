@@ -38,8 +38,11 @@ export class PlayerControlsVisibility {
     this.playerWindow.addEventListener(
       "pointermove",
       (event) => {
-        this.pointerOverControls = isWithinControlArea(event.target);
-        this.revealAndSchedule();
+        this.showControls();
+        this.pointerOverControls = isWithinControlArea(
+          document.elementFromPoint(event.clientX, event.clientY)
+        );
+        this.scheduleHideIfNeeded();
       },
       { signal: this.signal }
     );
