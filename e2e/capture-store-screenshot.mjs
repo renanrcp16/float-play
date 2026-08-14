@@ -64,7 +64,7 @@ try {
   }
 
   await page.evaluate(async () => {
-    await document.fonts.ready;
+    await globalThis.document.fonts.ready;
   });
 
   if (pageErrors.length > 0) {
