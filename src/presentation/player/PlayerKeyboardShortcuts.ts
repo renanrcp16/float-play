@@ -3,7 +3,7 @@ import {
   resolveKeyboardShortcut
 } from "../../application/KeyboardShortcuts";
 import { togglePlayback } from "../../application/MediaPlayback";
-import { DEFAULT_SEEK_SECONDS, seekBy } from "../../application/MediaSeek";
+import { seekBy } from "../../application/MediaSeek";
 import { adjustVolume, setMediaVolume } from "../../application/MediaVolume";
 import { getDisplayedVolume, resolveVolumeInput } from "../../application/VolumeSemantics";
 import type { PlaybackRateMirror } from "../../application/PlaybackSpeed";
@@ -12,12 +12,19 @@ import type { Logger } from "../../shared/Logger";
 
 type PlayerShortcutMirror = VolumeMirror & PlaybackRateMirror;
 
+export interface PlayerKeyboardConfig {
+  readonly backwardSeconds: number;
+  readonly forwardSeconds: number;
+  readonly volumeStep: number;
+}
+
 export class PlayerKeyboardShortcuts {
   public constructor(
     private readonly media: HTMLVideoElement,
     private readonly playerWindow: Window,
     private readonly signal: AbortSignal,
     private readonly mirror: PlayerShortcutMirror,
+    private readonly config: PlayerKeyboardConfig,
     private readonly logger: Logger
   ) {}
 
@@ -44,10 +51,10 @@ export class PlayerKeyboardShortcuts {
             });
             return;
           case "seek-backward":
-            seekBy(this.media, -DEFAULT_SEEK_SECONDS);
+            seekBy(this.media, -this.config.backwardSeconds);
             return;
           case "seek-forward":
-            seekBy(this.media, DEFAULT_SEEK_SECONDS);
+            seekBy(this.media, this.config.forwardSeconds);
             return;
           case "volume-down":
             this.adjustVolume(-1);
@@ -71,7 +78,7 @@ export class PlayerKeyboardShortcuts {
 
   private adjustVolume(direction: -1 | 1): void {
     const displayedVolume = getDisplayedVolume(this.media.volume, this.media.muted);
-    const requestedVolume = adjustVolume(displayedVolume, direction);
+    const requestedVolume = adjustVolume(displayedVolume, direction, this.config.volumeStep);
     const resolution = resolveVolumeInput(this.media.volume, requestedVolume, this.media.volume);
 
     if (resolution.muted) {
