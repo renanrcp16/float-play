@@ -1,6 +1,8 @@
+import { DEFAULT_CONTROL_VISIBILITY_CONFIG } from "./ControlVisibility";
 import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
 import type { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
 import { OriginPlaybackSurface } from "../presentation/player/OriginPlaybackSurface";
+import { PlayerControlsVisibility } from "../presentation/player/PlayerControlsVisibility";
 import { PlayerKeyboardShortcuts } from "../presentation/player/PlayerKeyboardShortcuts";
 import { PlayerOverflow } from "../presentation/player/PlayerOverflow";
 import { PlayerShell } from "../presentation/player/PlayerShell";
@@ -186,6 +188,12 @@ export class FloatPlayController {
       this.youtube,
       this.logger
     );
+    const controlsVisibility = new PlayerControlsVisibility(
+      session.media,
+      session.pipWindow,
+      session.signal,
+      DEFAULT_CONTROL_VISIBILITY_CONFIG
+    );
     const originSurface = new OriginPlaybackSurface(
       session.media,
       session.originElement,
@@ -197,6 +205,7 @@ export class FloatPlayController {
     volumeControl.mount();
     playerOverflow.mount();
     keyboardShortcuts.mount();
+    controlsVisibility.mount();
     originSurface.mount();
 
     this.playerShell = playerShell;
