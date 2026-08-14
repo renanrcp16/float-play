@@ -19,6 +19,14 @@ const INTERACTIVE_SELECTOR = [
   "[role='switch']"
 ].join(",");
 
+interface OriginSurfaceClickState {
+  readonly button: number;
+  readonly x: number;
+  readonly y: number;
+  readonly bounds: MediaBounds;
+  readonly interactiveTarget: boolean;
+}
+
 export class OriginPlaybackSurface {
   private readonly lifecycle = new AbortController();
   private mounted = false;
@@ -69,9 +77,13 @@ export class OriginPlaybackSurface {
 
   private handleClick(event: MouseEvent): void {
     if (
-      event.button !== 0 ||
-      !isPointWithinBounds(event.clientX, event.clientY, this.originBounds) ||
-      this.isInteractiveTarget(event)
+      !shouldToggleFromOriginSurface({
+        button: event.button,
+        x: event.clientX,
+        y: event.clientY,
+        bounds: this.originBounds,
+        interactiveTarget: this.isInteractiveTarget(event)
+      })
     ) {
       return;
     }
@@ -93,6 +105,14 @@ export class OriginPlaybackSurface {
 
     return false;
   }
+}
+
+export function shouldToggleFromOriginSurface(state: OriginSurfaceClickState): boolean {
+  return (
+    state.button === 0 &&
+    !state.interactiveTarget &&
+    isPointWithinBounds(state.x, state.y, state.bounds)
+  );
 }
 
 export function isPointWithinBounds(x: number, y: number, bounds: MediaBounds): boolean {
