@@ -14,7 +14,6 @@ interface OptionsControls {
   readonly volumeStep: HTMLInputElement;
   readonly autoHideEnabled: HTMLInputElement;
   readonly autoHideDelay: HTMLInputElement;
-  readonly timeDisplay: HTMLSelectElement;
   readonly saveButton: HTMLButtonElement;
   readonly resetButton: HTMLButtonElement;
   readonly status: HTMLParagraphElement;
@@ -31,10 +30,11 @@ void initialize().catch((error: unknown) => {
 async function initialize(): Promise<void> {
   localizeDocument();
   const controls = readControls();
-  const settings = await store.load();
+  let currentSettings = await store.load();
 
-  applySettings(controls, settings);
+  applySettings(controls, currentSettings);
   updateAutoHideState(controls);
+  installNumericInputGuards(controls);
 
   controls.autoHideEnabled.addEventListener("change", () => {
     updateAutoHideState(controls);
@@ -44,10 +44,18 @@ async function initialize(): Promise<void> {
   controls.form.addEventListener("input", () => clearStatus(controls));
   controls.form.addEventListener("submit", (event) => {
     event.preventDefault();
-    void saveSettings(controls);
+    void saveSettings(controls, currentSettings).then((savedSettings) => {
+      if (savedSettings !== null) {
+        currentSettings = savedSettings;
+      }
+    });
   });
   controls.resetButton.addEventListener("click", () => {
-    void resetSettings(controls);
+    void resetSettings(controls, currentSettings).then((savedSettings) => {
+      if (savedSettings !== null) {
+        currentSettings = savedSettings;
+      }
+    });
   });
 }
 
@@ -74,7 +82,6 @@ function readControls(): OptionsControls {
     volumeStep: requireElement<HTMLInputElement>("volume-step"),
     autoHideEnabled: requireElement<HTMLInputElement>("auto-hide-enabled"),
     autoHideDelay: requireElement<HTMLInputElement>("auto-hide-delay"),
-    timeDisplay: requireElement<HTMLSelectElement>("time-display"),
     saveButton: requireElement<HTMLButtonElement>("save-button"),
     resetButton: requireElement<HTMLButtonElement>("reset-button"),
     status: requireElement<HTMLParagraphElement>("form-status")
@@ -88,10 +95,12 @@ function applySettings(controls: OptionsControls, settings: FloatPlaySettings): 
   controls.volumeStep.value = formatNumber(values.volumeStepPercent);
   controls.autoHideEnabled.checked = values.autoHideEnabled;
   controls.autoHideDelay.value = formatNumber(values.autoHideDelaySeconds);
-  controls.timeDisplay.value = values.timeDisplayMode;
 }
 
-function readSettings(controls: OptionsControls): FloatPlaySettings | null {
+function readSettings(
+  controls: OptionsControls,
+  currentSettings: FloatPlaySettings
+): FloatPlaySettings | null {
   if (!controls.form.reportValidity()) {
     return null;
   }
@@ -101,13 +110,15 @@ function readSettings(controls: OptionsControls): FloatPlaySettings | null {
     seekForwardSeconds: controls.seekForward.valueAsNumber,
     volumeStepPercent: controls.volumeStep.valueAsNumber,
     autoHideEnabled: controls.autoHideEnabled.checked,
-    autoHideDelaySeconds: controls.autoHideDelay.valueAsNumber,
-    timeDisplayMode: controls.timeDisplay.value
-  });
+    autoHideDelaySeconds: controls.autoHideDelay.valueAsNumber
+  }, currentSettings);
 }
 
-async function saveSettings(controls: OptionsControls): Promise<void> {
-  const settings = readSettings(controls);
+async function saveSettings(
+  controls: OptionsControls,
+  currentSettings: FloatPlaySettings
+): Promise<FloatPlaySettings | null> {
+  const settings = readSettings(controls, currentSettings);
 
   if (settings === null) {
     setStatus(
@@ -115,7 +126,7 @@ async function saveSettings(controls: OptionsControls): Promise<void> {
       i18n.getMessage("optionsInvalidForm", "Check the highlighted settings before saving."),
       "error"
     );
-    return;
+    return null;
   }
 
   setBusy(controls, true);
@@ -127,6 +138,7 @@ async function saveSettings(controls: OptionsControls): Promise<void> {
       i18n.getMessage("optionsSaved", "Settings saved. Reload open YouTube tabs to apply them."),
       "success"
     );
+    return settings;
   } catch (error) {
     logger.error("Unable to save FloatPlay settings from the options page.", error);
     setStatus(
@@ -134,23 +146,33 @@ async function saveSettings(controls: OptionsControls): Promise<void> {
       i18n.getMessage("optionsSaveError", "Unable to save settings. Try again."),
       "error"
     );
+    return null;
   } finally {
     setBusy(controls, false);
   }
 }
 
-async function resetSettings(controls: OptionsControls): Promise<void> {
+async function resetSettings(
+  controls: OptionsControls,
+  currentSettings: FloatPlaySettings
+): Promise<FloatPlaySettings | null> {
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    timeDisplayMode: currentSettings.timeDisplayMode
+  };
+
   setBusy(controls, true);
 
   try {
-    await store.save(DEFAULT_SETTINGS);
-    applySettings(controls, DEFAULT_SETTINGS);
+    await store.save(settings);
+    applySettings(controls, settings);
     updateAutoHideState(controls);
     setStatus(
       controls,
       i18n.getMessage("optionsResetDone", "Default settings restored. Reload open YouTube tabs to apply them."),
       "success"
     );
+    return settings;
   } catch (error) {
     logger.error("Unable to reset FloatPlay settings from the options page.", error);
     setStatus(
@@ -158,8 +180,24 @@ async function resetSettings(controls: OptionsControls): Promise<void> {
       i18n.getMessage("optionsSaveError", "Unable to save settings. Try again."),
       "error"
     );
+    return null;
   } finally {
     setBusy(controls, false);
+  }
+}
+
+function installNumericInputGuards(controls: OptionsControls): void {
+  for (const input of [
+    controls.seekBackward,
+    controls.seekForward,
+    controls.volumeStep,
+    controls.autoHideDelay
+  ]) {
+    input.addEventListener("keydown", (event) => {
+      if (["e", "E", "+", "-"].includes(event.key)) {
+        event.preventDefault();
+      }
+    });
   }
 }
 
