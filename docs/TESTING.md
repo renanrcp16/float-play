@@ -36,6 +36,18 @@ The validated behavior included media transfer and restoration, repeated open/cl
 
 The live test also showed that seeking directly to the reported end of the seekable range can briefly expose YouTube end-of-media presentation before returning to the live edge. Production live timeline behavior must therefore use the actual seekable range conservatively rather than treating its exact end as a semantic equivalent of YouTube's "Live" control.
 
+## YouTube trigger smoke tests
+
+Run these tests for changes that affect the FloatPlay entry point on the YouTube watch page.
+
+- **TR-01 — Preferred placement:** on a standard `/watch` video, confirm the FloatPlay icon appears immediately after the channel subscription/notification control area, visually beside the bell, and does not overlay the video or modify the native player control bar.
+- **TR-02 — Icon-only presentation:** confirm the trigger renders the approved FloatPlay `icon.svg` with no visible FloatPlay text in normal and theater layouts.
+- **TR-03 — Localization and accessibility:** hover and keyboard-focus the trigger. Confirm the native title/accessible name is `Open FloatPlay` in English/fallback locales and `Abrir FloatPlay` in `pt-BR`, with a visible keyboard focus indicator.
+- **TR-04 — Activation:** activate the icon and confirm Document Picture-in-Picture opens exactly once with the same media/session behavior as before. The YouTube trigger must not remain actionable while PiP is open.
+- **TR-05 — SPA reconciliation:** navigate from video A to video B without a full reload and confirm the trigger is reattached once, remains beside the subscription/notification area when that anchor exists, and does not duplicate.
+- **TR-06 — Fallback:** if the expected subscription/notification anchor is absent in an alternate YouTube layout, confirm FloatPlay uses the icon-only fixed lower-right viewport fallback instead of inserting into another guessed DOM location.
+- **TR-07 — Unsupported surfaces:** confirm Home, Shorts, and YouTube Music do not expose an actionable FloatPlay trigger and that leaving `/watch` cleans up the entry point.
+
 ## Player shell smoke tests
 
 Run these tests for changes that affect the first production player shell or Play/Pause interaction behavior.
