@@ -1,7 +1,11 @@
 interface PageLocation {
   readonly hostname: string;
   readonly pathname: string;
-  readonly search?: string;
+}
+
+export interface YouTubeTriggerAnchor {
+  readonly parent: HTMLElement;
+  readonly before: HTMLElement;
 }
 
 interface YouTubePlayerMessage {
@@ -19,13 +23,26 @@ export class YouTubeAdapter {
     return isYouTubeHost && location.pathname === "/watch";
   }
 
-  public getCurrentVideoId(location: PageLocation = window.location): string | null {
-    if (!this.isSupportedPage(location)) {
+  public findTriggerAnchor(root: ParentNode = document): YouTubeTriggerAnchor | null {
+    const metadata = root.querySelector("ytd-watch-metadata");
+    const topRow = metadata?.querySelector("#top-row");
+    const owner = topRow?.querySelector(":scope > #owner");
+    const actions = topRow?.querySelector(":scope > #actions");
+
+    if (
+      !(topRow instanceof HTMLElement) ||
+      !(owner instanceof HTMLElement) ||
+      !(actions instanceof HTMLElement) ||
+      owner.parentElement !== topRow ||
+      actions.parentElement !== topRow
+    ) {
       return null;
     }
 
-    const videoId = new URLSearchParams(location.search ?? "").get("v")?.trim() ?? "";
-    return videoId.length > 0 ? videoId : null;
+    return {
+      parent: topRow,
+      before: actions
+    };
   }
 
   public findActiveMedia(root: ParentNode = document): HTMLVideoElement | null {
