@@ -9,16 +9,20 @@ import type { Logger } from "../../shared/Logger";
 export class TimelineControl {
   private readonly lifecycle = new AbortController();
   private input: HTMLInputElement | null = null;
-  private timeDisplay: HTMLSpanElement | null = null;
+  private timeDisplay: HTMLButtonElement | null = null;
+  private displayMode: TimeDisplayMode;
 
   public constructor(
     private readonly media: HTMLVideoElement,
     private readonly document: Document,
     sessionSignal: AbortSignal,
     private readonly label: string,
-    private readonly displayMode: TimeDisplayMode,
+    private readonly timeDisplayToggleLabel: string,
+    initialDisplayMode: TimeDisplayMode,
+    private readonly onDisplayModeChange: (mode: TimeDisplayMode) => void,
     private readonly logger: Logger
   ) {
+    this.displayMode = initialDisplayMode;
     sessionSignal.addEventListener("abort", () => this.dispose(), {
       once: true,
       signal: this.lifecycle.signal
@@ -39,10 +43,14 @@ export class TimelineControl {
     input.setAttribute("aria-label", this.label);
     input.title = this.label;
 
-    const timeDisplay = this.document.createElement("span");
+    const timeDisplay = this.document.createElement("button");
+    timeDisplay.type = "button";
     timeDisplay.className = "floatplay-time-display";
+    timeDisplay.setAttribute("aria-label", this.timeDisplayToggleLabel);
+    timeDisplay.title = this.timeDisplayToggleLabel;
 
     input.addEventListener("input", () => this.seekFromInput(), { signal: this.lifecycle.signal });
+    timeDisplay.addEventListener("click", () => this.toggleDisplayMode(), { signal: this.lifecycle.signal });
 
     for (const eventName of ["timeupdate", "durationchange", "progress", "loadedmetadata", "seeked"] as const) {
       this.media.addEventListener(eventName, () => this.update(), { signal: this.lifecycle.signal });
@@ -74,6 +82,12 @@ export class TimelineControl {
     }
 
     this.update();
+  }
+
+  private toggleDisplayMode(): void {
+    this.displayMode = this.displayMode === "elapsed" ? "remaining" : "elapsed";
+    this.update();
+    this.onDisplayModeChange(this.displayMode);
   }
 
   private update(): void {
