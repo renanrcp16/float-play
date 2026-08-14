@@ -1,4 +1,4 @@
-import { DEFAULT_CONTROL_VISIBILITY_CONFIG } from "./ControlVisibility";
+import type { FloatPlaySettings } from "./Settings";
 import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
 import type { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
 import { OriginPlaybackSurface } from "../presentation/player/OriginPlaybackSurface";
@@ -31,6 +31,7 @@ export class FloatPlayController {
     private readonly youtube: YouTubeAdapter,
     private readonly pip: DocumentPipManager,
     private readonly labels: FloatPlayLabels,
+    private readonly settings: FloatPlaySettings,
     private readonly logger: Logger
   ) {
     this.trigger = new SpikeTrigger({
@@ -161,6 +162,11 @@ export class FloatPlayController {
       session.pipWindow,
       session.signal,
       this.labels,
+      {
+        backwardSeconds: this.settings.seekBackwardSeconds,
+        forwardSeconds: this.settings.seekForwardSeconds,
+        timeDisplayMode: this.settings.timeDisplayMode
+      },
       this.logger
     );
     const playerOverflow = new PlayerOverflow(
@@ -179,6 +185,7 @@ export class FloatPlayController {
       session.signal,
       this.labels,
       this.youtube,
+      this.settings.volumeStep,
       this.logger
     );
     const keyboardShortcuts = new PlayerKeyboardShortcuts(
@@ -186,13 +193,21 @@ export class FloatPlayController {
       session.pipWindow,
       session.signal,
       this.youtube,
+      {
+        backwardSeconds: this.settings.seekBackwardSeconds,
+        forwardSeconds: this.settings.seekForwardSeconds,
+        volumeStep: this.settings.volumeStep
+      },
       this.logger
     );
     const controlsVisibility = new PlayerControlsVisibility(
       session.media,
       session.pipWindow,
       session.signal,
-      DEFAULT_CONTROL_VISIBILITY_CONFIG
+      {
+        enabled: this.settings.autoHideEnabled,
+        delayMs: this.settings.autoHideDelayMs
+      }
     );
     const originSurface = new OriginPlaybackSurface(
       session.media,
