@@ -49,9 +49,13 @@ The v1 release does not officially support:
 
 ### FR-001 — YouTube trigger
 
-FloatPlay must expose a discreet control on supported YouTube watch pages when a compatible video element is available.
+FloatPlay must expose a discreet but discoverable control on supported YouTube watch pages when a compatible video element is available.
 
-The control must not visually pollute the page or require modification of YouTube's native control bar.
+The trigger should be visually anchored to the active video and must not require modification of YouTube's native control bar or intentionally overlap its primary playback controls.
+
+The primary trigger label must follow the extension locale. The v1 labels are `Open FloatPlay` in English and `Abrir FloatPlay` in Brazilian Portuguese.
+
+The trigger may expose a secondary dismiss action. Dismissal applies only to the current YouTube video identity in transient in-memory state: it must not be stored as a user preference, and the trigger must become available again after a page reload or navigation to another video.
 
 ### FR-002 — Explicit user activation
 
