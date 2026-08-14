@@ -6,7 +6,11 @@ const e2eDirectory = path.dirname(fileURLToPath(import.meta.url));
 const extensionPath = path.resolve(e2eDirectory, "..", "dist");
 
 export const test = base.extend({
-  context: async ({}, use) => {
+  context: async ({ browserName }, use) => {
+    if (browserName !== "chromium") {
+      throw new Error("FloatPlay extension E2E tests require Chromium.");
+    }
+
     const context = await chromium.launchPersistentContext("", {
       channel: "chromium",
       args: [
