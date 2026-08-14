@@ -1,4 +1,4 @@
-export const DEFAULT_SEEK_SECONDS = 10;
+export const DEFAULT_SEEK_SECONDS = 5;
 const LIVE_EDGE_GUARD_SECONDS = 0.5;
 
 export interface SeekableRanges {
