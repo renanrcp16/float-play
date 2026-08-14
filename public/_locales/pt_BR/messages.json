@@ -23,6 +23,9 @@
   "fitAction": {
     "message": "Ajustar ao vídeo"
   },
+  "speedAction": {
+    "message": "Velocidade de reprodução"
+  },
   "moreOptionsAction": {
     "message": "Mais opções"
   },
