@@ -6,7 +6,7 @@ interface SpikeTriggerOptions {
 
 export interface TriggerInlineAnchor {
   readonly parent: HTMLElement;
-  readonly before: ChildNode | null;
+  readonly after: ChildNode;
 }
 
 type TriggerPlacement = "inline" | "fallback";
@@ -111,7 +111,7 @@ export class SpikeTrigger {
     if (
       anchor !== null &&
       anchor.parent.isConnected &&
-      (anchor.before === null || anchor.before.parentNode === anchor.parent)
+      anchor.after.parentNode === anchor.parent
     ) {
       this.mountInline(anchor);
       return;
@@ -138,8 +138,8 @@ export class SpikeTrigger {
     this.placement = "inline";
     this.host.dataset.placement = this.placement;
 
-    if (this.host.parentNode !== anchor.parent || this.host.nextSibling !== anchor.before) {
-      anchor.parent.insertBefore(this.host, anchor.before);
+    if (this.host.parentNode !== anchor.parent || this.host.previousSibling !== anchor.after) {
+      anchor.after.after(this.host);
     }
 
     Object.assign(this.host.style, {
