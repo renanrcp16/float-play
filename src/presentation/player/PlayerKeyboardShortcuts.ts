@@ -103,13 +103,9 @@ export class PlayerKeyboardShortcuts {
 
 function isInteractiveTarget(target: EventTarget | null): boolean {
   const candidate = target as { closest?: (selector: string) => Element | null } | null;
-
-  return (
-    candidate?.closest?.(
-      "button, input, select, textarea, a[href], [contenteditable='true'], [role='button'], [role='slider']"
-    ) !== null &&
-    candidate?.closest?.(
-      "button, input, select, textarea, a[href], [contenteditable='true'], [role='button'], [role='slider']"
-    ) !== undefined
+  const interactive = candidate?.closest?.(
+    "button, input, select, textarea, a[href], [contenteditable='true'], [role='button'], [role='slider']"
   );
+
+  return interactive !== null && interactive !== undefined;
 }
