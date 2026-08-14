@@ -55,7 +55,7 @@ export class VolumeControl {
     playerRoot.append(root);
 
     button.addEventListener("click", () => this.setMuted(!this.media.muted), { signal: this.signal });
-    button.addEventListener(
+    root.addEventListener(
       "wheel",
       (event) => {
         if (event.deltaY === 0) {

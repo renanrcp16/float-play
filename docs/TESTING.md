@@ -70,6 +70,15 @@ Run these tests for changes that affect backward or forward media navigation.
 
 MN-01 through MN-08 completed successfully on real Chrome/YouTube on Windows on 2026-08-13. Standard-video and live-stream seeking remained inside valid media ranges, the live-edge guard avoided the previously observed end-of-media presentation, existing playback interactions did not regress, and the final navigation controls were approved with compact curved icons and background-only interaction feedback.
 
+## Volume control smoke tests
+
+Run these tests for changes that affect pointer or wheel interaction with the volume control.
+
+- **VC-01 — Wheel over speaker:** place the pointer over the speaker button and confirm wheel input changes volume by the configured step while keeping the media and FloatPlay UI synchronized.
+- **VC-02 — Wheel over slider:** reveal the volume slider, place the pointer directly over it, and confirm the same wheel directions and configured step apply as over the speaker button.
+- **VC-03 — Wheel scope:** use the wheel over the video, timeline, playback controls, and other non-volume areas and confirm FloatPlay does not change volume from those wheel events.
+- **VC-04 — Volume semantics:** confirm wheel changes preserve the existing mute/unmute and previous-volume behavior rather than introducing a separate volume state.
+
 ## Options Page smoke tests
 
 Run these tests for changes that affect persisted settings, the full-page Options Page, Settings menu access, or the in-player time display preference.
