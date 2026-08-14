@@ -1,3 +1,4 @@
+import type { PlaybackRateMirror } from "../../application/PlaybackSpeed";
 import {
   formatPlaybackRate,
   PLAYBACK_SPEED_PRESETS
@@ -6,6 +7,7 @@ import {
 export function createSpeedMenuItem(
   document: Document,
   media: HTMLVideoElement,
+  playbackRateMirror: PlaybackRateMirror,
   label: string,
   signal: AbortSignal
 ): HTMLDivElement {
@@ -51,6 +53,7 @@ export function createSpeedMenuItem(
       "click",
       () => {
         media.playbackRate = preset;
+        playbackRateMirror.setPlaybackRate(preset);
       },
       { signal }
     );
@@ -80,7 +83,7 @@ export function createSpeedMenuItem(
 
       if (nextOpen) {
         const selected = presets.querySelector<HTMLButtonElement>('.floatplay-speed-preset[aria-pressed="true"]');
-        selected?.focus();
+        (selected ?? presetButtons[0]?.button)?.focus();
       }
     },
     { signal }
