@@ -1,8 +1,8 @@
-# FloatPlay Privacy Policy (Draft)
+# FloatPlay Privacy Policy
 
 Last updated: 2026-08-14
 
-This draft describes the current FloatPlay v1 data-handling behavior. Publish an accurate copy at a stable public URL before Chrome Web Store submission and keep it synchronized with the shipped extension.
+This policy describes the current FloatPlay data-handling behavior for the version distributed through the Chrome Web Store. It must remain synchronized with the shipped extension and Chrome Web Store privacy disclosures.
 
 ## Purpose
 
@@ -46,6 +46,12 @@ FloatPlay does not include third-party analytics, advertising SDKs, or operation
 
 When Chrome storage sync is enabled, Google Chrome may synchronize FloatPlay preferences as part of Chrome's own sync infrastructure. That synchronization is provided by the browser rather than by FloatPlay infrastructure.
 
+## Chrome Web Store Limited Use
+
+FloatPlay's use of information received from Chrome and supported YouTube pages is limited to providing or improving the extension's disclosed single purpose and user-facing features. FloatPlay does not use or transfer this information for personalized advertising, creditworthiness, unrelated profiling, or sale of user data, and does not allow humans to read user data except where required by applicable law or a user explicitly provides information through a support request.
+
+FloatPlay is designed to comply with the Chrome Web Store User Data Policy, including its Limited Use requirements. If FloatPlay's data practices change, this policy and the Chrome Web Store disclosures must be updated before or together with that change.
+
 ## Retention and user control
 
 Transient YouTube media/page state is used while needed for the active feature and is not retained by FloatPlay as viewing history.
@@ -64,6 +70,8 @@ FloatPlay runs content scripts on YouTube origins required to detect and control
 
 If FloatPlay's data-handling practices change, this policy and the Chrome Web Store privacy disclosures must be updated before or together with the change as required by applicable store policy.
 
-## Contact
+## Contact and support
 
-Before public release, replace this section with the final public support/contact channel that will be maintained for FloatPlay users.
+Questions, privacy requests, bug reports, and support requests can be submitted through the public FloatPlay GitHub Issues page:
+
+https://github.com/renanrcp16/float-play/issues
