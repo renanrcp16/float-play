@@ -4,25 +4,27 @@ import type { Logger } from "../../shared/Logger";
 import { ChromeSettingsStore } from "./ChromeSettingsStore";
 import type { SettingsStorageArea } from "./ChromeSettingsStore";
 
-function createLogger(): Logger {
+function createLogger() {
   return {
     debug: vi.fn(),
     warn: vi.fn(),
     error: vi.fn()
-  };
+  } satisfies Logger;
 }
 
 describe("ChromeSettingsStore", () => {
   test("loads and normalizes settings from sync storage", async () => {
     const storage: SettingsStorageArea = {
-      get: vi.fn(async () => ({
-        settings: {
-          schemaVersion: SETTINGS_SCHEMA_VERSION,
-          seekBackwardSeconds: 15,
-          autoHideEnabled: false
-        }
-      })),
-      set: vi.fn(async () => undefined)
+      get: vi.fn(() =>
+        Promise.resolve({
+          settings: {
+            schemaVersion: SETTINGS_SCHEMA_VERSION,
+            seekBackwardSeconds: 15,
+            autoHideEnabled: false
+          }
+        })
+      ),
+      set: vi.fn(() => Promise.resolve())
     };
 
     const store = new ChromeSettingsStore(createLogger(), storage);
@@ -45,10 +47,8 @@ describe("ChromeSettingsStore", () => {
   test("falls back to defaults when loading fails", async () => {
     const logger = createLogger();
     const storage: SettingsStorageArea = {
-      get: vi.fn(async () => {
-        throw new Error("storage failure");
-      }),
-      set: vi.fn(async () => undefined)
+      get: vi.fn(() => Promise.reject(new Error("storage failure"))),
+      set: vi.fn(() => Promise.resolve())
     };
     const store = new ChromeSettingsStore(logger, storage);
 
@@ -57,9 +57,9 @@ describe("ChromeSettingsStore", () => {
   });
 
   test("saves normalized settings under the versioned settings key", async () => {
-    const set = vi.fn(async () => undefined);
+    const set = vi.fn(() => Promise.resolve());
     const storage: SettingsStorageArea = {
-      get: vi.fn(async () => ({})),
+      get: vi.fn(() => Promise.resolve({})),
       set
     };
     const store = new ChromeSettingsStore(createLogger(), storage);
