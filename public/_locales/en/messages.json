@@ -45,6 +45,7 @@
   "optionsShortcutMute": { "message": "Mute / Unmute" },
   "optionsShortcutSpeed": { "message": "Playback speed down / up" },
   "optionsApplyNotice": { "message": "Reload YouTube tabs that are already open to use the new settings." },
+  "optionsDeveloperCredit": { "message": "Developed by" },
   "optionsReset": { "message": "Restore defaults" },
   "optionsSave": { "message": "Save changes" },
   "optionsInvalidForm": { "message": "Check the highlighted values before saving." },
