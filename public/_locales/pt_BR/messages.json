@@ -20,6 +20,7 @@
   "volumeAction": { "message": "Volume" },
   "muteAction": { "message": "Silenciar" },
   "unmuteAction": { "message": "Ativar som" },
+  "triggerOpenAction": { "message": "Abrir FloatPlay" },
   "optionsPageTitle": { "message": "Configurações do FloatPlay" },
   "optionsPageDescription": { "message": "Escolha como os controles do mini player funcionam enquanto você assiste." },
   "optionsPlaybackSection": { "message": "Controles de reprodução" },

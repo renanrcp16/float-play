@@ -3,6 +3,11 @@ interface PageLocation {
   readonly pathname: string;
 }
 
+export interface YouTubeTriggerAnchor {
+  readonly parent: HTMLElement;
+  readonly after: ChildNode;
+}
+
 interface YouTubePlayerMessage {
   readonly channel: "floatplay:youtube-player";
   readonly type: "set-volume" | "set-muted" | "set-playback-rate";
@@ -16,6 +21,24 @@ export class YouTubeAdapter {
     const isYouTubeHost = location.hostname === "www.youtube.com" || location.hostname === "youtube.com";
 
     return isYouTubeHost && location.pathname === "/watch";
+  }
+
+  public findTriggerAnchor(root: ParentNode = document): YouTubeTriggerAnchor | null {
+    const metadata = root.querySelector("ytd-watch-metadata");
+    const owner = metadata?.querySelector("#owner");
+    const subscriptionArea = owner?.querySelector(
+      "#subscribe-button, ytd-subscribe-button-renderer, yt-subscribe-button-view-model"
+    );
+    const parent = subscriptionArea?.parentElement ?? null;
+
+    if (!(owner instanceof HTMLElement) || !(subscriptionArea instanceof HTMLElement) || parent === null) {
+      return null;
+    }
+
+    return {
+      parent,
+      after: subscriptionArea
+    };
   }
 
   public findActiveMedia(root: ParentNode = document): HTMLVideoElement | null {

@@ -35,5 +35,14 @@
       "run_at": "document_idle",
       "world": "ISOLATED"
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["brand/icon.svg"],
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://youtube.com/*"
+      ]
+    }
   ]
 }

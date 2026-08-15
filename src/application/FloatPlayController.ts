@@ -18,6 +18,7 @@ interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
   readonly speed: string;
   readonly settings: string;
   readonly moreOptions: string;
+  readonly triggerOpen: string;
 }
 
 export class FloatPlayController {
@@ -34,11 +35,14 @@ export class FloatPlayController {
     private readonly pip: DocumentPipManager,
     private readonly optionsPage: OptionsPageLauncher,
     private readonly labels: FloatPlayLabels,
+    triggerIconUrl: string,
     private settings: FloatPlaySettings,
     private readonly persistTimeDisplayMode: (mode: TimeDisplayMode) => void,
     private readonly logger: Logger
   ) {
     this.trigger = new SpikeTrigger({
+      label: this.labels.triggerOpen,
+      iconUrl: triggerIconUrl,
       onActivate: () => {
         void this.openPipFromUserGesture();
       }
@@ -50,7 +54,7 @@ export class FloatPlayController {
   }
 
   public start(): void {
-    this.trigger.mount();
+    this.trigger.mount(this.youtube.findTriggerAnchor());
 
     this.observer.observe(document.documentElement, {
       childList: true,
@@ -117,6 +121,8 @@ export class FloatPlayController {
 
       return;
     }
+
+    this.trigger.refreshPlacement(this.youtube.findTriggerAnchor());
 
     const hasMedia = this.youtube.findActiveMedia() !== null;
     const shouldShow = this.pip.isSupported() && hasMedia && !this.pip.isOpen();
