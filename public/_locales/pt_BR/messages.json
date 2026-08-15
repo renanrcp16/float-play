@@ -45,6 +45,7 @@
   "optionsShortcutMute": { "message": "Silenciar / Ativar som" },
   "optionsShortcutSpeed": { "message": "Diminuir / Aumentar velocidade" },
   "optionsApplyNotice": { "message": "Recarregue as abas do YouTube que já estiverem abertas para usar as novas configurações." },
+  "optionsDeveloperCredit": { "message": "Desenvolvido por" },
   "optionsReset": { "message": "Restaurar padrões" },
   "optionsSave": { "message": "Salvar alterações" },
   "optionsInvalidForm": { "message": "Revise os valores destacados antes de salvar." },
