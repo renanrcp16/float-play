@@ -32,7 +32,7 @@ test("loads the real Options Page with the current defaults", async ({ context, 
   await expect(page.locator("#auto-hide-delay")).toHaveValue("1");
 
   const portfolioLink = page.locator("#developer-portfolio-link");
-  await expect(portfolioLink).toHaveAttribute("href", "https://renan-rcp.vercel.app/");
+  await expect(portfolioLink).toHaveAttribute("href", "https://renan-rcp.vercel.app");
   await expect(portfolioLink).toHaveAttribute("target", "_blank");
   await expect(portfolioLink).toHaveAttribute("rel", "noopener noreferrer");
   expect(errors).toEqual([]);
