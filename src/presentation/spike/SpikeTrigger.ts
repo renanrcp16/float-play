@@ -1,7 +1,10 @@
 interface SpikeTriggerOptions {
   readonly label: string;
   readonly iconUrl: string;
+  readonly coachmarkLabel: string;
+  readonly coachmarkDismissLabel: string;
   readonly onActivate: () => void;
+  readonly onDismissCoachmark: () => void;
 }
 
 export interface TriggerInlineAnchor {
@@ -15,6 +18,7 @@ export class SpikeTrigger {
   private readonly lifecycle = new AbortController();
   private readonly host: HTMLDivElement;
   private readonly button: HTMLButtonElement;
+  private readonly coachmark: HTMLDivElement;
   private placement: TriggerPlacement = "fallback";
   private visible = false;
 
@@ -30,7 +34,7 @@ export class SpikeTrigger {
         all: initial;
       }
 
-      button {
+      .trigger-button {
         box-sizing: border-box;
         display: grid;
         place-items: center;
@@ -43,64 +47,167 @@ export class SpikeTrigger {
         cursor: pointer;
       }
 
-      button:hover {
+      .trigger-button:hover {
         background: rgb(127 127 127 / 18%);
       }
 
-      button:active {
+      .trigger-button:active {
         background: rgb(127 127 127 / 28%);
       }
 
-      button:focus-visible {
+      .trigger-button:focus-visible,
+      .coachmark-close:focus-visible {
         outline: 2px solid #7c8cff;
         outline-offset: 2px;
       }
 
-      button:disabled {
+      .trigger-button:disabled {
         cursor: wait;
         opacity: 0.6;
       }
 
-      img {
+      .trigger-icon {
         display: block;
         width: 26px;
         height: 26px;
         pointer-events: none;
       }
 
-      :host([data-placement="fallback"]) button {
+      .coachmark {
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 10px);
+        z-index: 2;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: max-content;
+        max-width: min(220px, calc(100vw - 32px));
+        padding: 9px 8px 9px 12px;
+        border-radius: 10px;
+        background: #7c8cff;
+        color: #1b2230;
+        box-shadow: 0 8px 24px rgb(0 0 0 / 24%);
+        font: 500 13px/1.35 system-ui, sans-serif;
+        transform: translateX(-50%);
+      }
+
+      .coachmark[hidden] {
+        display: none;
+      }
+
+      .coachmark::after {
+        position: absolute;
+        left: 50%;
+        bottom: -5px;
+        width: 10px;
+        height: 10px;
+        background: #7c8cff;
+        content: "";
+        transform: translateX(-50%) rotate(45deg);
+      }
+
+      .coachmark-copy {
+        position: relative;
+        z-index: 1;
+        max-width: 172px;
+      }
+
+      .coachmark-close {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: #1b2230;
+        cursor: pointer;
+        font: 600 18px/1 system-ui, sans-serif;
+      }
+
+      .coachmark-close:hover {
+        background: rgb(27 34 48 / 12%);
+      }
+
+      :host([data-placement="fallback"]) .trigger-button {
         background: rgb(18 18 18 / 88%);
         box-shadow: 0 4px 14px rgb(0 0 0 / 28%);
         backdrop-filter: blur(8px);
       }
 
-      :host([data-placement="fallback"]) button:hover {
+      :host([data-placement="fallback"]) .trigger-button:hover {
         background: rgb(30 30 30 / 94%);
       }
 
+      :host([data-placement="fallback"]) .coachmark {
+        right: 0;
+        left: auto;
+        transform: none;
+      }
+
+      :host([data-placement="fallback"]) .coachmark::after {
+        right: 15px;
+        left: auto;
+        transform: rotate(45deg);
+      }
+
       @media (prefers-reduced-motion: reduce) {
-        button {
+        .trigger-button,
+        .coachmark-close {
           transition: none;
         }
       }
     `;
 
     this.button = document.createElement("button");
+    this.button.className = "trigger-button";
     this.button.type = "button";
     this.button.setAttribute("aria-label", options.label);
     this.button.title = options.label;
 
     const icon = document.createElement("img");
+    icon.className = "trigger-icon";
     icon.src = options.iconUrl;
     icon.alt = "";
     icon.setAttribute("aria-hidden", "true");
     this.button.append(icon);
 
+    this.coachmark = document.createElement("div");
+    this.coachmark.className = "coachmark";
+    this.coachmark.hidden = true;
+    this.coachmark.setAttribute("role", "status");
+
+    const coachmarkCopy = document.createElement("span");
+    coachmarkCopy.className = "coachmark-copy";
+    coachmarkCopy.textContent = options.coachmarkLabel;
+
+    const coachmarkClose = document.createElement("button");
+    coachmarkClose.className = "coachmark-close";
+    coachmarkClose.type = "button";
+    coachmarkClose.textContent = "×";
+    coachmarkClose.setAttribute("aria-label", options.coachmarkDismissLabel);
+    coachmarkClose.title = options.coachmarkDismissLabel;
+
     this.button.addEventListener("click", options.onActivate, {
       signal: this.lifecycle.signal
     });
+    coachmarkClose.addEventListener(
+      "click",
+      (event) => {
+        event.stopPropagation();
+        options.onDismissCoachmark();
+      },
+      { signal: this.lifecycle.signal }
+    );
 
-    shadowRoot.append(style, this.button);
+    this.coachmark.append(coachmarkCopy, coachmarkClose);
+    shadowRoot.append(style, this.coachmark, this.button);
   }
 
   public mount(anchor: TriggerInlineAnchor | null = null): void {
@@ -123,6 +230,10 @@ export class SpikeTrigger {
   public setVisible(visible: boolean): void {
     this.visible = visible;
     this.applyVisibility();
+  }
+
+  public setCoachmarkVisible(visible: boolean): void {
+    this.coachmark.hidden = !visible;
   }
 
   public setBusy(busy: boolean): void {
