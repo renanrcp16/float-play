@@ -26,8 +26,10 @@ function targetWithMatches(matches: boolean): EventTarget {
 
 describe("interactive element semantics", () => {
   it("uses one conservative selector across presentation surfaces", () => {
+    expect(INTERACTIVE_ELEMENT_SELECTOR).toContain("a,");
     expect(INTERACTIVE_ELEMENT_SELECTOR).toContain("button");
     expect(INTERACTIVE_ELEMENT_SELECTOR).toContain("summary");
+    expect(INTERACTIVE_ELEMENT_SELECTOR).toContain("[tabindex]:not([tabindex='-1'])");
     expect(INTERACTIVE_ELEMENT_SELECTOR).toContain("[role='checkbox']");
     expect(INTERACTIVE_ELEMENT_SELECTOR).toContain("[role='slider']");
     expect(INTERACTIVE_ELEMENT_SELECTOR).toContain("[role='switch']");
