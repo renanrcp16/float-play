@@ -57,9 +57,13 @@ export class SpikeTrigger {
         background: rgb(127 127 127 / 28%);
       }
 
-      .trigger-button:focus-visible,
-      .coachmark-close:focus-visible {
+      .trigger-button:focus-visible {
         outline: 2px solid #7c8cff;
+        outline-offset: 2px;
+      }
+
+      .coachmark-close:focus-visible {
+        outline: 2px solid #1b2230;
         outline-offset: 2px;
       }
 
