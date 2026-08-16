@@ -1,6 +1,6 @@
 # FloatPlay Privacy Policy
 
-Last updated: 2026-08-14
+Last updated: 2026-08-15
 
 This policy describes the current FloatPlay data-handling behavior for the version distributed through the Chrome Web Store. It must remain synchronized with the shipped extension and Chrome Web Store privacy disclosures.
 
@@ -34,17 +34,23 @@ FloatPlay stores user preferences such as:
 
 These preferences use Chrome extension storage. FloatPlay currently uses `chrome.storage.sync` when available, which means Chrome may synchronize the preferences through the user's Chrome account according to the user's browser settings.
 
+### First-use onboarding state
+
+FloatPlay stores one boolean flag in `chrome.storage.local` after the user opens FloatPlay from the YouTube trigger or dismisses the first-use coachmark. The flag only records that this onboarding tip has already been seen so the tip is not shown repeatedly on that Chrome profile/device.
+
+The onboarding flag does not contain YouTube URLs, video identifiers, viewing history, timestamps, analytics identifiers, or other browsing activity.
+
 ## How information is used
 
-FloatPlay uses the information described above only to provide its disclosed Picture-in-Picture playback experience, synchronize its controls with the active YouTube media element, preserve supported navigation behavior, and remember user-selected FloatPlay preferences.
+FloatPlay uses the information described above only to provide its disclosed Picture-in-Picture playback experience, synchronize its controls with the active YouTube media element, preserve supported navigation behavior, remember user-selected FloatPlay preferences, and avoid repeating first-use onboarding that the user has already seen.
 
 ## Data transmission and sharing
 
-FloatPlay does not operate a FloatPlay backend and does not transmit YouTube viewing activity, media state, or FloatPlay preferences to FloatPlay-controlled servers.
+FloatPlay does not operate a FloatPlay backend and does not transmit YouTube viewing activity, media state, FloatPlay preferences, or onboarding state to FloatPlay-controlled servers.
 
 FloatPlay does not include third-party analytics, advertising SDKs, or operational telemetry and does not sell user data.
 
-When Chrome storage sync is enabled, Google Chrome may synchronize FloatPlay preferences as part of Chrome's own sync infrastructure. That synchronization is provided by the browser rather than by FloatPlay infrastructure.
+When Chrome storage sync is enabled, Google Chrome may synchronize FloatPlay preferences as part of Chrome's own sync infrastructure. That synchronization is provided by the browser rather than by FloatPlay infrastructure. The first-use onboarding flag uses local extension storage rather than FloatPlay infrastructure.
 
 ## Chrome Web Store Limited Use
 
@@ -58,11 +64,13 @@ Transient YouTube media/page state is used while needed for the active feature a
 
 Persisted FloatPlay preferences remain in Chrome extension storage until they are changed, reset, cleared through browser data controls, or otherwise removed by Chrome or extension uninstall behavior.
 
+The first-use onboarding flag remains in local Chrome extension storage until extension data is cleared or the extension is uninstalled.
+
 Users can restore FloatPlay's default settings from the Options Page and can remove the extension through Chrome at any time.
 
 ## Permissions and website access
 
-FloatPlay uses the Chrome `storage` permission to save extension preferences.
+FloatPlay uses the Chrome `storage` permission to save extension preferences and the local first-use onboarding flag.
 
 FloatPlay runs content scripts on YouTube origins required to detect and control the active supported media experience. FloatPlay does not request site access for unrelated websites.
 
