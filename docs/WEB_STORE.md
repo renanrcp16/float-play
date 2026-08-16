@@ -32,9 +32,9 @@ FloatPlay enhances YouTube Picture-in-Picture with a compact mini player and ric
 
 ### `storage`
 
-FloatPlay uses Chrome extension storage to persist user preferences such as backward and forward seek intervals, volume adjustment step, automatic control hiding, auto-hide delay, and elapsed/remaining time display preference.
+FloatPlay uses Chrome extension storage to persist user preferences such as backward and forward seek intervals, volume adjustment step, automatic control hiding, auto-hide delay, and elapsed/remaining time display preference. It also stores one device-local boolean flag recording that the first-use trigger coachmark has already been seen.
 
-The implementation uses `chrome.storage.sync` when available so Chrome may synchronize these preferences through the user's Chrome account according to the user's browser settings. FloatPlay does not operate a backend that receives these preferences.
+The implementation uses `chrome.storage.sync` when available for user-selected player preferences so Chrome may synchronize those preferences through the user's Chrome account according to the user's browser settings. The first-use coachmark flag uses `chrome.storage.local` and is not a watch-history or analytics record. FloatPlay does not operate a backend that receives either the preferences or onboarding state.
 
 ### YouTube content-script access
 
@@ -45,7 +45,7 @@ FloatPlay injects content scripts only on YouTube origins needed by the product.
 - move and safely restore the active media element;
 - keep controls synchronized with media playback state;
 - support YouTube SPA navigation and playlist progression;
-- provide the FloatPlay trigger and the approved origin-surface playback interaction.
+- provide the FloatPlay trigger, first-use trigger guidance, and the approved origin-surface playback interaction.
 
 FloatPlay does not request access to unrelated websites.
 
@@ -62,6 +62,10 @@ This state is processed inside the browser to provide the mini player and is not
 ### Persisted preferences
 
 User-selected FloatPlay settings are stored with Chrome extension storage. When Chrome sync is enabled, Chrome may synchronize those settings as part of the browser's own sync infrastructure.
+
+### Local onboarding state
+
+After the user opens FloatPlay from its YouTube trigger or dismisses the first-use coachmark, FloatPlay stores one `true`/`false`-style seen state in local Chrome extension storage so the tip is not repeatedly shown. The stored flag does not include video identifiers, URLs, timestamps, analytics identifiers, or browsing history.
 
 ### What FloatPlay does not do
 
@@ -89,6 +93,7 @@ Main features:
 - Keyboard shortcuts for playback, seeking, volume, mute, and speed.
 - Automatic control hiding with configurable timing.
 - Full Options Page with English and Brazilian Portuguese localization.
+- First-use guidance that points users to the FloatPlay trigger without adding permanent visible text to YouTube.
 - Continuity across supported YouTube SPA navigation and playlist progression when the browser/media lifecycle allows it.
 
 FloatPlay is designed for Google Chrome Desktop and supported YouTube watch pages. It does not block ads, download videos, collect watch history, or require a FloatPlay account.
@@ -113,6 +118,7 @@ Principais recursos:
 - Atalhos de teclado para reprodução, busca, volume, silenciar e velocidade.
 - Ocultação automática dos controles com tempo configurável.
 - Página completa de configurações em inglês e português do Brasil.
+- Orientação de primeira utilização que indica onde encontrar o botão do FloatPlay sem adicionar texto permanente ao YouTube.
 - Continuidade durante navegação SPA e avanço de playlists compatíveis quando o ciclo de vida do navegador e da mídia permitir.
 
 O FloatPlay foi projetado para Google Chrome Desktop e páginas compatíveis de vídeos do YouTube. Ele não bloqueia anúncios, não baixa vídeos, não coleta histórico de reprodução e não exige uma conta FloatPlay.
@@ -159,7 +165,7 @@ Immediately before submission, verify that:
 
 - the single-purpose statement matches the shipped extension;
 - permission and site-access justifications match `manifest.json`;
-- privacy disclosures describe all data handling, including local processing and Chrome storage sync;
+- privacy disclosures describe all data handling, including Chrome storage sync and the device-local onboarding flag;
 - the public privacy-policy URL works;
 - the support URL works;
 - listing text and screenshots match the submitted version;
