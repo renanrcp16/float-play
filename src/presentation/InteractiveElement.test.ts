@@ -12,7 +12,7 @@ function targetWithClosest(matches: boolean): EventTarget {
       expect(selector).toBe(INTERACTIVE_ELEMENT_SELECTOR);
       return matches ? ({} as Element) : null;
     }
-  } as EventTarget;
+  } as unknown as EventTarget;
 }
 
 function targetWithMatches(matches: boolean): EventTarget {
@@ -21,7 +21,7 @@ function targetWithMatches(matches: boolean): EventTarget {
       expect(selector).toBe(INTERACTIVE_ELEMENT_SELECTOR);
       return matches;
     }
-  } as EventTarget;
+  } as unknown as EventTarget;
 }
 
 describe("interactive element semantics", () => {
