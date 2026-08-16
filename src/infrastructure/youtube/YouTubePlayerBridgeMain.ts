@@ -35,7 +35,7 @@ window.addEventListener("message", (event) => {
     return;
   }
 
-  const player = document.getElementById("movie_player") as YouTubePlayerElement | null;
+  const player: YouTubePlayerElement | null = document.getElementById("movie_player");
 
   if (player === null) {
     return;
