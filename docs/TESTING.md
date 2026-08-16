@@ -34,7 +34,7 @@ Spike 0 completed successfully on real Chrome/YouTube on Windows on 2026-08-13.
 
 The validated behavior included media transfer and restoration, repeated open/close cycles, supported and unsupported routes, SPA video-to-video navigation, automatic playlist progression, live playback with a non-empty seekable range, natural advertising transitions, clean PiP termination when leaving `/watch`, and browser-driven PiP closure on full opener reload.
 
-The live test also showed that seeking directly to the reported end of the seekable range can briefly expose YouTube end-of-media presentation before returning to the live edge. Production live timeline behavior must therefore use the actual seekable range conservatively rather than treating its exact end as a semantic equivalent of YouTube's "Live" control.
+The live test also showed that seeking directly to the reported end of a seekable range can briefly expose YouTube end-of-media presentation before returning to the live edge. Production live timeline behavior must therefore use the actual seekable range conservatively rather than treating its exact end as a semantic equivalent of YouTube's "Live" control.
 
 ## YouTube trigger smoke tests
 
@@ -64,6 +64,7 @@ Run these tests for changes that affect the first production player shell or Pla
 - **PS-06 — Session lifecycle regression:** verify video A → B navigation, automatic playlist progression, PiP close/restoration, and leaving `/watch` still behave as validated by Spike 0.
 - **PS-07 — Localization and accessibility:** verify the Play/Pause control exposes English labels in English/fallback locales and Brazilian Portuguese labels in `pt-BR` through its accessible name. The label is not required to be visually rendered; keyboard focus on the control must remain visibly identifiable.
 - **PS-08 — Bright-content control contrast:** use bright and detailed video frames and confirm the lower control area remains readable without becoming a solid toolbar. The timeline progress/track/thumb, time display, and control icons must remain distinguishable, and the contrast backdrop must disappear together with auto-hidden controls.
+- **PS-09 — Dynamic origin geometry:** with PiP open, scroll the YouTube page and exercise layout changes such as viewport resize and theater-mode transitions. Confirm the current non-interactive origin video area still toggles playback exactly once, while clicking where the video used to be before the layout change does nothing. Native YouTube controls must remain usable throughout.
 
 ### Player shell validation result
 
