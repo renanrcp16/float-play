@@ -80,6 +80,10 @@ async function collectFiles(directory, prefix = "") {
       fail(`unsupported non-file entry in dist/: ${relativePath}`);
     }
 
+    if (relativePath.endsWith(".map")) {
+      fail(`source maps are forbidden in the release ZIP: ${relativePath}`);
+    }
+
     files.push({
       relativePath,
       data: await readFile(absolutePath)
@@ -215,6 +219,10 @@ function inspectZip(archive) {
       fileName.split("/").includes("..")
     ) {
       fail(`generated ZIP contains an unsafe entry path: ${fileName}`);
+    }
+
+    if (fileName.endsWith(".map")) {
+      fail(`generated ZIP contains a forbidden source map: ${fileName}`);
     }
 
     entries.push(fileName);
