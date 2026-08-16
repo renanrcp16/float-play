@@ -1,7 +1,8 @@
 import type { PlaybackRateMirror } from "../../application/PlaybackSpeed";
 import {
   formatPlaybackRate,
-  PLAYBACK_SPEED_PRESETS
+  PLAYBACK_SPEED_PRESETS,
+  setMediaPlaybackRate
 } from "../../application/PlaybackSpeed";
 
 const PLAYBACK_RATE_EPSILON = 0.001;
@@ -68,7 +69,14 @@ export function createSpeedMenuItem(
         }
 
         pendingPlaybackRate = preset;
+
+        if (!setMediaPlaybackRate(media, preset)) {
+          pendingPlaybackRate = null;
+          return;
+        }
+
         playbackRateMirror.setPlaybackRate(preset);
+        sync();
       },
       { signal }
     );
