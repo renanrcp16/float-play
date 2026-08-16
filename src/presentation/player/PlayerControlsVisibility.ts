@@ -3,9 +3,8 @@ import {
   shouldKeepControlsVisible
 } from "../../application/ControlVisibility";
 import type { ControlVisibilityConfig } from "../../application/ControlVisibility";
+import { isInteractiveElementTarget } from "../InteractiveElement";
 
-const INTERACTIVE_SELECTOR =
-  "button, input, select, textarea, a[href], [contenteditable='true'], [role='button'], [role='slider']";
 const CONTROL_AREA_SELECTOR =
   ".floatplay-controls, .floatplay-volume-control, .floatplay-overflow-menu";
 
@@ -214,10 +213,9 @@ function isWithinControlArea(target: EventTarget | null): boolean {
 }
 
 function hasKeyboardInteractiveFocus(document: Document): boolean {
-  const candidate = document.activeElement as {
-    closest?: (selector: string) => Element | null;
-  } | null;
-  const interactive = candidate?.closest?.(INTERACTIVE_SELECTOR);
-
-  return interactive?.matches(":focus-visible") ?? false;
+  const activeElement = document.activeElement;
+  return (
+    isInteractiveElementTarget(activeElement) &&
+    activeElement?.matches(":focus-visible") === true
+  );
 }
