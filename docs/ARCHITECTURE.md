@@ -244,9 +244,27 @@ FloatPlay intentionally uses a small privilege surface:
 - content scripts limited to `https://www.youtube.com/*` and `https://youtube.com/*`;
 - one narrow service worker operation for opening the Options Page;
 - one MAIN-world bridge limited to local YouTube player synchronization;
-- no FloatPlay backend, remote executable code, analytics, telemetry, authentication, or unrelated host access.
+- one web-accessible resource, `brand/icon.svg`, limited to the approved YouTube origins;
+- an explicit extension-page Content Security Policy of `default-src 'self'`;
+- no host permissions, optional permissions, externally connectable surface, sandbox pages, FloatPlay backend, remote executable code, analytics, telemetry, authentication, or unrelated host access.
 
-Any new permission, host, externally connectable surface, remote code path, backend dependency, or expanded MAIN-world responsibility requires a fresh architecture/security review.
+The source and built manifests are required to match exactly. Release verification also treats the current manifest keys, content-script definitions, execution worlds, `run_at` values, background worker, CSP, icon set, and web-accessible resources as an explicit v1 allowlist.
+
+Any new manifest key, permission, host, externally connectable surface, remote code path, backend dependency, additional web-accessible resource, sandbox, or expanded MAIN-world responsibility requires a fresh architecture/security review before the release allowlist is changed.
+
+## Release artifact boundary
+
+`dist/` is the complete production extension tree and is the only input to the Chrome Web Store ZIP.
+
+The release process enforces the following boundaries:
+
+- all four JavaScript build entries are generated from tracked TypeScript sources through Vite;
+- production source maps are disabled and `.map` files are rejected by both release verification and packaging;
+- `pnpm verify:release` rebuilds `dist/`, validates the manifest security allowlist, checks referenced assets/locales, and rejects forbidden artifacts;
+- `pnpm package:release` runs verification first, then creates a deterministic archive containing exactly the regular files present in the verified `dist/` tree;
+- the ZIP places `manifest.json` at its root and rejects unsafe archive paths or source-map entries.
+
+The release package must not silently acquire repository source files, tests, dependency trees, or other non-extension artifacts.
 
 ## Dependency rule
 
