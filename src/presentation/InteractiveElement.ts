@@ -1,5 +1,5 @@
 export const INTERACTIVE_ELEMENT_SELECTOR = [
-  "a[href]",
+  "a",
   "button",
   "input",
   "select",
@@ -7,6 +7,7 @@ export const INTERACTIVE_ELEMENT_SELECTOR = [
   "summary",
   "label",
   "[contenteditable='true']",
+  "[tabindex]:not([tabindex='-1'])",
   "[role='button']",
   "[role='checkbox']",
   "[role='link']",
