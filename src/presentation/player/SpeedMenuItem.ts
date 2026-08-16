@@ -6,6 +6,7 @@ import {
 } from "../../application/PlaybackSpeed";
 
 const PLAYBACK_RATE_EPSILON = 0.001;
+const SPEED_PRESETS_ID = "floatplay-speed-presets";
 
 export function createSpeedMenuItem(
   document: Document,
@@ -22,8 +23,8 @@ export function createSpeedMenuItem(
   const trigger = document.createElement("button");
   trigger.type = "button";
   trigger.className = "floatplay-overflow-menu-item floatplay-speed-trigger";
-  trigger.setAttribute("aria-haspopup", "true");
   trigger.setAttribute("aria-expanded", "false");
+  trigger.setAttribute("aria-controls", SPEED_PRESETS_ID);
 
   const icon = createSpeedIcon(document);
   const labelText = document.createElement("span");
@@ -41,6 +42,7 @@ export function createSpeedMenuItem(
   trigger.append(icon, labelText, currentValue, chevron);
 
   const presets = document.createElement("div");
+  presets.id = SPEED_PRESETS_ID;
   presets.className = "floatplay-speed-presets";
   presets.hidden = true;
 

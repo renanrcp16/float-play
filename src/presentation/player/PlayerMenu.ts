@@ -1,3 +1,5 @@
+const OVERFLOW_PANEL_ID = "floatplay-overflow-panel";
+
 export class PlayerMenu {
   private panel: HTMLDivElement | null = null;
   private trigger: HTMLButtonElement | null = null;
@@ -19,12 +21,13 @@ export class PlayerMenu {
     trigger.type = "button";
     trigger.className = "floatplay-playback-button floatplay-overflow-trigger";
     trigger.setAttribute("aria-label", this.label);
-    trigger.setAttribute("aria-haspopup", "true");
     trigger.setAttribute("aria-expanded", "false");
+    trigger.setAttribute("aria-controls", OVERFLOW_PANEL_ID);
     trigger.title = this.label;
     trigger.append(this.createTriggerIcon());
 
     const panel = this.document.createElement("div");
+    panel.id = OVERFLOW_PANEL_ID;
     panel.className = "floatplay-overflow-panel";
     panel.hidden = true;
     panel.append(...this.items);
@@ -37,7 +40,7 @@ export class PlayerMenu {
         const closeTarget = target?.closest?.('[data-floatplay-close-overflow="true"]');
 
         if (closeTarget !== null && closeTarget !== undefined) {
-          this.close();
+          this.close(true);
         }
       },
       { signal: this.signal }
@@ -47,7 +50,7 @@ export class PlayerMenu {
       "pointerdown",
       (event) => {
         if (event.target === null || !root.contains(event.target as Node)) {
-          this.close();
+          this.close(false);
         }
       },
       { signal: this.signal }
@@ -61,8 +64,7 @@ export class PlayerMenu {
         }
 
         event.preventDefault();
-        this.close();
-        trigger.focus();
+        this.close(true);
       },
       { signal: this.signal }
     );
@@ -81,7 +83,7 @@ export class PlayerMenu {
     if (this.panel.hidden) {
       this.open();
     } else {
-      this.close();
+      this.close(false);
     }
   }
 
@@ -95,13 +97,17 @@ export class PlayerMenu {
     this.panel.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
   }
 
-  private close(): void {
+  private close(restoreFocus: boolean): void {
     if (this.panel === null || this.trigger === null) {
       return;
     }
 
     this.panel.hidden = true;
     this.trigger.setAttribute("aria-expanded", "false");
+
+    if (restoreFocus && this.trigger.isConnected) {
+      this.trigger.focus();
+    }
   }
 
   private createTriggerIcon(): SVGSVGElement {

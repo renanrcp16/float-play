@@ -12,6 +12,7 @@ import {
 import { getDisplayedVolume, resolveVolumeInput } from "../../application/VolumeSemantics";
 import type { VolumeMirror } from "../../application/VolumeController";
 import type { Logger } from "../../shared/Logger";
+import { isInteractiveElementTarget } from "../InteractiveElement";
 
 type PlayerShortcutMirror = VolumeMirror & PlaybackRateMirror;
 
@@ -35,7 +36,7 @@ export class PlayerKeyboardShortcuts {
     this.playerWindow.addEventListener(
       "keydown",
       (event) => {
-        if (event.defaultPrevented || isInteractiveTarget(event.target)) {
+        if (event.defaultPrevented || isInteractiveElementTarget(event.target)) {
           return;
         }
 
@@ -111,13 +112,4 @@ export class PlayerKeyboardShortcuts {
 
     this.mirror.setPlaybackRate(nextRate);
   }
-}
-
-function isInteractiveTarget(target: EventTarget | null): boolean {
-  const candidate = target as { closest?: (selector: string) => Element | null } | null;
-  const interactive = candidate?.closest?.(
-    "button, input, select, textarea, a[href], [contenteditable='true'], [role='button'], [role='slider']"
-  );
-
-  return interactive !== null && interactive !== undefined;
 }

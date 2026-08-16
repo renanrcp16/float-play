@@ -1,22 +1,6 @@
 import { togglePlayback } from "../../application/MediaPlayback";
 import type { Logger } from "../../shared/Logger";
-
-const INTERACTIVE_SELECTOR = [
-  "a",
-  "button",
-  "input",
-  "select",
-  "textarea",
-  "summary",
-  "label",
-  "[contenteditable='true']",
-  "[role='button']",
-  "[role='checkbox']",
-  "[role='link']",
-  "[role='menuitem']",
-  "[role='slider']",
-  "[role='switch']"
-].join(",");
+import { eventPathHasInteractiveElement } from "../InteractiveElement";
 
 interface OriginSurfaceBounds {
   readonly left: number;
@@ -87,7 +71,7 @@ export class OriginPlaybackSurface {
         x: event.clientX,
         y: event.clientY,
         bounds: this.getCurrentBounds(),
-        interactiveTarget: this.isInteractiveTarget(event)
+        interactiveTarget: eventPathHasInteractiveElement(event.composedPath())
       })
     ) {
       return;
@@ -125,16 +109,6 @@ export class OriginPlaybackSurface {
       right: rect.right,
       bottom: rect.bottom
     };
-  }
-
-  private isInteractiveTarget(event: MouseEvent): boolean {
-    for (const target of event.composedPath()) {
-      if (target instanceof Element && target.matches(INTERACTIVE_SELECTOR)) {
-        return true;
-      }
-    }
-
-    return false;
   }
 }
 
