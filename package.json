@@ -10,13 +10,15 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "build": "vite build && vite build --config vite.options.config.mjs && vite build --config vite.service-worker.config.mjs",
+    "build": "vite build && vite build --config vite.options.config.mjs && vite build --config vite.service-worker.config.mjs && vite build --config vite.youtube-player.config.mjs",
     "build:options": "vite build --config vite.options.config.mjs",
     "build:service-worker": "vite build --config vite.service-worker.config.mjs",
+    "build:youtube-player": "vite build --config vite.youtube-player.config.mjs",
     "capture:store-screenshot": "pnpm build && pnpm --dir e2e capture:store-screenshot",
     "dev": "vite build --watch",
     "dev:options": "vite build --config vite.options.config.mjs --watch",
     "dev:service-worker": "vite build --config vite.service-worker.config.mjs --watch",
+    "dev:youtube-player": "vite build --config vite.youtube-player.config.mjs --watch",
     "e2e:install": "pnpm --dir e2e install --frozen-lockfile && pnpm --dir e2e exec playwright install chromium",
     "lint": "eslint .",
     "package:release": "pnpm verify:release && node scripts/package-release.mjs",
