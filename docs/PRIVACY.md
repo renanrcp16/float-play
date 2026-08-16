@@ -1,6 +1,6 @@
 # FloatPlay Privacy Policy
 
-Last updated: 2026-08-15
+Last updated: 2026-08-16
 
 This policy describes the current FloatPlay data-handling behavior for the version distributed through the Chrome Web Store. It must remain synchronized with the shipped extension and Chrome Web Store privacy disclosures.
 
@@ -22,6 +22,8 @@ While FloatPlay is active on a supported YouTube page, the extension reads infor
 - supported-route and DOM context needed to attach, move, restore, and reconcile the player safely.
 
 This information is processed inside the browser for the active feature. FloatPlay does not maintain its own watch-history database.
+
+Playback state changes initiated by FloatPlay are applied to the active `HTMLVideoElement` as the primary media path. For volume, mute, and playback-rate compatibility with YouTube's own player state, FloatPlay also sends a narrow same-page message to a MAIN-world bridge running in the same YouTube tab. That bridge accepts only the three supported playback-state actions and invokes the corresponding YouTube player method when that method exists. The bridge does not read Chrome extension storage, access FloatPlay privileged APIs, send network requests, or receive URLs, video identifiers, account identifiers, analytics identifiers, or other user data from FloatPlay.
 
 ### FloatPlay preferences
 
@@ -47,6 +49,8 @@ FloatPlay uses the information described above only to provide its disclosed Pic
 ## Data transmission and sharing
 
 FloatPlay does not operate a FloatPlay backend and does not transmit YouTube viewing activity, media state, FloatPlay preferences, or onboarding state to FloatPlay-controlled servers.
+
+The same-tab MAIN-world playback bridge described above is local communication inside the active YouTube page; it is not a network transmission or transfer to FloatPlay infrastructure.
 
 FloatPlay does not include third-party analytics, advertising SDKs, or operational telemetry and does not sell user data.
 
@@ -76,7 +80,7 @@ FloatPlay runs content scripts on YouTube origins required to detect and control
 
 ## Changes to this policy
 
-If FloatPlay's data-handling practices change, this policy and the Chrome Web Store privacy disclosures must be updated before or together with the change as required by applicable store policy.
+If FloatPlay's data-handling practices change, this policy and the Chrome Web Store privacy disclosures must be updated before or together with that change as required by applicable store policy.
 
 ## Contact and support
 
