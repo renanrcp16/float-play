@@ -1,10 +1,56 @@
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { stdout } from "node:process";
 import { fileURLToPath } from "node:url";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distDir = path.join(rootDir, "dist");
+
+const expectedMatches = ["https://www.youtube.com/*", "https://youtube.com/*"];
+const expectedManifestKeys = [
+  "background",
+  "content_scripts",
+  "content_security_policy",
+  "default_locale",
+  "description",
+  "icons",
+  "manifest_version",
+  "minimum_chrome_version",
+  "name",
+  "options_page",
+  "permissions",
+  "version",
+  "web_accessible_resources"
+];
+const expectedIcons = {
+  "16": "icons/icon-16.png",
+  "32": "icons/icon-32.png",
+  "48": "icons/icon-48.png",
+  "128": "icons/icon-128.png"
+};
+const expectedContentScripts = [
+  {
+    matches: expectedMatches,
+    js: ["youtube-player-main.js"],
+    run_at: "document_start",
+    world: "MAIN"
+  },
+  {
+    matches: expectedMatches,
+    js: ["content.js"],
+    run_at: "document_idle",
+    world: "ISOLATED"
+  }
+];
+const expectedWebAccessibleResources = [
+  {
+    resources: ["brand/icon.svg"],
+    matches: expectedMatches
+  }
+];
+const expectedExtensionCsp = {
+  extension_pages: "default-src 'self'"
+};
 
 const packageJson = await readJson(path.join(rootDir, "package.json"));
 const sourceManifest = await readJson(path.join(rootDir, "public", "manifest.json"));
@@ -15,33 +61,70 @@ assertEqual(
   sourceManifest.version,
   "package.json and public/manifest.json versions must match"
 );
-assertEqual(
-  sourceManifest.version,
-  distManifest.version,
-  "dist/manifest.json must match the source manifest version"
+assertDeepEqual(
+  distManifest,
+  sourceManifest,
+  "dist/manifest.json must match public/manifest.json exactly"
 );
 
+assertStringArrayEqual(
+  Object.keys(distManifest),
+  expectedManifestKeys,
+  "release manifest top-level keys changed from the approved v1 allowlist"
+);
+assertEqual(distManifest.manifest_version, 3, "release manifest must remain Manifest V3");
+assertEqual(distManifest.name, "__MSG_extensionName__", "release manifest name changed");
+assertEqual(
+  distManifest.description,
+  "__MSG_extensionDescription__",
+  "release manifest description changed"
+);
+assertEqual(distManifest.default_locale, "en", "release manifest default locale changed");
+assertEqual(
+  distManifest.minimum_chrome_version,
+  "116",
+  "release manifest minimum Chrome version changed"
+);
 assertStringArrayEqual(
   distManifest.permissions,
   ["storage"],
   "release manifest permissions changed from the approved v1 set"
 );
+assertDeepEqual(distManifest.icons, expectedIcons, "release manifest icon set changed");
+assertEqual(distManifest.options_page, "options.html", "release manifest options page changed");
+assertDeepEqual(
+  distManifest.background,
+  { service_worker: "service-worker.js" },
+  "release manifest background worker changed"
+);
+assertDeepEqual(
+  distManifest.content_security_policy,
+  expectedExtensionCsp,
+  "release manifest extension CSP changed from the approved local-only policy"
+);
+assertDeepEqual(
+  distManifest.content_scripts,
+  expectedContentScripts,
+  "release manifest content scripts changed from the approved v1 allowlist"
+);
+assertDeepEqual(
+  distManifest.web_accessible_resources,
+  expectedWebAccessibleResources,
+  "release manifest web-accessible resources changed from the approved v1 allowlist"
+);
 
-const expectedMatches = ["https://www.youtube.com/*", "https://youtube.com/*"];
-const contentScripts = Array.isArray(distManifest.content_scripts) ? distManifest.content_scripts : [];
-
-if (contentScripts.length === 0) {
-  fail("release manifest must contain content scripts");
+for (const forbiddenField of [
+  "host_permissions",
+  "optional_permissions",
+  "optional_host_permissions",
+  "externally_connectable",
+  "sandbox"
+]) {
+  assertAbsentField(distManifest, forbiddenField);
 }
 
-for (const contentScript of contentScripts) {
-  assertStringArrayEqual(
-    contentScript.matches,
-    expectedMatches,
-    "release manifest content-script scope changed from the approved YouTube origins"
-  );
-}
-
+const contentScripts = distManifest.content_scripts;
+const webAccessibleResources = distManifest.web_accessible_resources;
 const requiredFiles = new Set([
   "manifest.json",
   "_locales/en/messages.json",
@@ -49,47 +132,33 @@ const requiredFiles = new Set([
 ]);
 
 addRequiredFile(requiredFiles, distManifest.options_page, "options_page");
-addRequiredFile(requiredFiles, distManifest.background?.service_worker, "background.service_worker");
+addRequiredFile(requiredFiles, distManifest.background.service_worker, "background.service_worker");
 
-for (const iconPath of Object.values(distManifest.icons ?? {})) {
+for (const iconPath of Object.values(distManifest.icons)) {
   addRequiredFile(requiredFiles, iconPath, "icons");
 }
 
 for (const contentScript of contentScripts) {
-  for (const scriptPath of contentScript.js ?? []) {
+  for (const scriptPath of contentScript.js) {
     addRequiredFile(requiredFiles, scriptPath, "content_scripts.js");
   }
 }
 
-const webAccessibleResources = Array.isArray(distManifest.web_accessible_resources)
-  ? distManifest.web_accessible_resources
-  : [];
-
 for (const resourceGroup of webAccessibleResources) {
-  assertStringArrayEqual(
-    resourceGroup.matches,
-    expectedMatches,
-    "release manifest web-accessible resource scope changed from the approved YouTube origins"
-  );
-
-  if (
-    !Array.isArray(resourceGroup.resources) ||
-    resourceGroup.resources.some((value) => typeof value !== "string")
-  ) {
-    fail("release manifest web_accessible_resources.resources must be a string array");
-  }
-
   for (const resourcePath of resourceGroup.resources) {
     addRequiredFile(requiredFiles, resourcePath, "web_accessible_resources.resources");
   }
 }
 
-const optionsPage = distManifest.options_page;
-if (typeof optionsPage === "string") {
-  const optionsHtml = await readFile(path.join(distDir, optionsPage), "utf8");
-  for (const assetPath of collectLocalHtmlAssets(optionsHtml)) {
-    requiredFiles.add(assetPath);
-  }
+const optionsHtml = await readFile(path.join(distDir, distManifest.options_page), "utf8");
+for (const assetPath of collectLocalHtmlAssets(optionsHtml)) {
+  requiredFiles.add(assetPath);
+}
+
+const distFiles = await collectFiles(distDir);
+const sourceMaps = distFiles.filter((relativePath) => relativePath.endsWith(".map"));
+if (sourceMaps.length > 0) {
+  fail(`release dist must not contain source maps: ${sourceMaps.join(", ")}`);
 }
 
 for (const relativePath of requiredFiles) {
@@ -106,7 +175,7 @@ for (const relativePath of requiredFiles) {
 }
 
 stdout.write(
-  `Release verification passed for FloatPlay ${sourceManifest.version} (${requiredFiles.size} required files checked).\n`
+  `Release verification passed for FloatPlay ${sourceManifest.version} (${requiredFiles.size} required files, ${distFiles.length} packaged files checked).\n`
 );
 
 async function readJson(filePath) {
@@ -116,6 +185,35 @@ async function readJson(filePath) {
     const message = error instanceof Error ? error.message : String(error);
     fail(`unable to read ${path.relative(rootDir, filePath)}: ${message}`);
   }
+}
+
+async function collectFiles(directory, prefix = "") {
+  let entries;
+  try {
+    entries = await readdir(directory, { withFileTypes: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    fail(`unable to read ${path.relative(rootDir, directory)}: ${message}`);
+  }
+
+  const files = [];
+  for (const entry of entries) {
+    const relativePath = prefix.length === 0 ? entry.name : `${prefix}/${entry.name}`;
+    const absolutePath = path.join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...(await collectFiles(absolutePath, relativePath)));
+      continue;
+    }
+
+    if (!entry.isFile()) {
+      fail(`unsupported non-file entry in dist/: ${relativePath}`);
+    }
+
+    files.push(relativePath);
+  }
+
+  return files.sort((left, right) => left.localeCompare(right, "en"));
 }
 
 function assertEqual(actual, expected, message) {
@@ -137,6 +235,37 @@ function assertStringArrayEqual(actual, expected, message) {
     actualSorted.some((value, index) => value !== expectedSorted[index])
   ) {
     fail(`${message}: expected ${expectedSorted.join(", ")}, received ${actualSorted.join(", ")}`);
+  }
+}
+
+function assertDeepEqual(actual, expected, message) {
+  const actualCanonical = JSON.stringify(canonicalize(actual));
+  const expectedCanonical = JSON.stringify(canonicalize(expected));
+
+  if (actualCanonical !== expectedCanonical) {
+    fail(`${message}: expected ${expectedCanonical}, received ${actualCanonical}`);
+  }
+}
+
+function canonicalize(value) {
+  if (Array.isArray(value)) {
+    return value.map(canonicalize);
+  }
+
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([left], [right]) => left.localeCompare(right, "en"))
+        .map(([key, child]) => [key, canonicalize(child)])
+    );
+  }
+
+  return value;
+}
+
+function assertAbsentField(object, fieldName) {
+  if (Object.hasOwn(object, fieldName)) {
+    fail(`release manifest must not define ${fieldName}`);
   }
 }
 
