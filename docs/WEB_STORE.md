@@ -47,6 +47,8 @@ FloatPlay injects content scripts only on YouTube origins needed by the product.
 - support YouTube SPA navigation and playlist progression;
 - provide the FloatPlay trigger, first-use trigger guidance, and the approved origin-surface playback interaction.
 
+FloatPlay uses an isolated content script for extension logic plus one narrow MAIN-world bridge on the same approved YouTube origins. Playback state changes are applied to the active `HTMLVideoElement` first. The MAIN-world bridge is used only to mirror FloatPlay volume, mute, and playback-rate changes into YouTube's own player state when the corresponding page method exists. The bridge accepts only those three validated same-page message actions and has no Chrome storage/runtime access, backend access, analytics, or identifiers.
+
 FloatPlay does not request access to unrelated websites.
 
 ## Data handling
@@ -58,6 +60,8 @@ FloatPlay handles only data required to provide its disclosed single purpose.
 While the extension is active on YouTube, it reads media and page state needed for playback behavior, such as playback time, paused state, volume, mute state, playback rate, seekable ranges, active media identity, and supported-route/DOM context.
 
 This state is processed inside the browser to provide the mini player and is not retained by FloatPlay as a watch-history database.
+
+The same-page playback bridge receives only the requested playback action and its value. That communication stays inside the active YouTube tab and is not transmitted to FloatPlay infrastructure.
 
 ### Persisted preferences
 
@@ -147,7 +151,7 @@ A real YouTube/FloatPlay PiP screenshot remains a separate manual asset because 
 
 - Select the generated 1280x800 Options Page screenshot for upload, or capture an additional current real PiP/YouTube screenshot if it represents the core experience more clearly.
 - Set final category, language/listing localization, distribution visibility, and regions in the developer dashboard.
-- Complete the Privacy practices disclosure and Limited Use certification so they match `docs/PRIVACY.md` and the shipped behavior.
+- Complete the Privacy practices disclosure and Limited Use certification so they match `docs/PRIVACY.md` and the shipped behavior, including local YouTube media processing and the same-tab playback synchronization bridge.
 - Run the final real Chrome/YouTube smoke-test matrix from `docs/TESTING.md` against the exact release candidate.
 
 ### Recommended / promotional assets
@@ -165,7 +169,7 @@ Immediately before submission, verify that:
 
 - the single-purpose statement matches the shipped extension;
 - permission and site-access justifications match `manifest.json`;
-- privacy disclosures describe all data handling, including Chrome storage sync and the device-local onboarding flag;
+- privacy disclosures describe all data handling, including local media/page processing, Chrome storage sync, the device-local onboarding flag, and the same-tab playback synchronization bridge;
 - the public privacy-policy URL works;
 - the support URL works;
 - listing text and screenshots match the submitted version;
