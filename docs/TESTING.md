@@ -50,7 +50,7 @@ Run these tests for changes that affect the FloatPlay entry point on the YouTube
 - **TR-08 — Fresh-profile coachmark:** with FloatPlay onboarding state absent, open a supported `/watch` video and confirm one compact coachmark appears anchored to the trigger. Confirm English shows `Click here to open FloatPlay` and `pt-BR` shows `Clique aqui para abrir o FloatPlay`, while the permanent trigger itself remains icon-only.
 - **TR-09 — Explicit coachmark dismiss:** with onboarding state absent, activate the coachmark close control. Confirm the coachmark disappears without opening PiP, the trigger remains usable, and the coachmark does not return after reload or video A → B SPA navigation.
 - **TR-10 — Activation completes onboarding:** with onboarding state absent, activate the FloatPlay trigger while the coachmark is visible. Confirm the coachmark disappears, PiP opens normally, and the coachmark does not return after closing PiP and reloading YouTube.
-- **TR-11 — Coachmark accessibility:** keyboard-focus both the FloatPlay trigger and coachmark close control. Confirm visible focus, localized accessible names, and no keyboard trap. The coachmark must not prevent direct activation of the FloatPlay trigger.
+- **TR-11 — Coachmark accessibility:** keyboard-focus the FloatPlay trigger and then the coachmark close control. Confirm visible focus and localized accessible names. Activate the close control with the keyboard and confirm focus returns to the FloatPlay trigger after the coachmark is hidden. The coachmark text may be announced as status text, but its close button must not be nested inside a live/status role. The coachmark must not trap focus or prevent direct activation of the FloatPlay trigger.
 
 ## Player shell smoke tests
 
@@ -60,7 +60,7 @@ Run these tests for changes that affect the first production player shell or Pla
 - **PS-02 — Passive PiP video surface:** click the video image inside the PiP window, away from controls, and confirm playback does not change. Pointer Play/Pause inside PiP must require activation of the explicit Play/Pause control.
 - **PS-03 — Origin surface, standard video:** while PiP is active, click the non-interactive central video area left in the YouTube player and confirm playback toggles exactly once.
 - **PS-04 — Origin surface, live stream:** repeat PS-03 on a live stream and confirm the behavior matches standard video playback.
-- **PS-05 — Native YouTube controls:** while PiP is active, interact with visible native YouTube controls that remain on the page. FloatPlay must not intercept buttons, sliders, links, form controls, or other semantically interactive elements.
+- **PS-05 — Native YouTube controls:** while PiP is active, interact with visible native YouTube controls that remain on the page. FloatPlay must not intercept buttons, sliders, links, form controls, focusable custom controls, or other semantically interactive elements.
 - **PS-06 — Session lifecycle regression:** verify video A → B navigation, automatic playlist progression, PiP close/restoration, and leaving `/watch` still behave as validated by Spike 0.
 - **PS-07 — Localization and accessibility:** verify the Play/Pause control exposes English labels in English/fallback locales and Brazilian Portuguese labels in `pt-BR` through its accessible name. The label is not required to be visually rendered; keyboard focus on the control must remain visibly identifiable.
 - **PS-08 — Bright-content control contrast:** use bright and detailed video frames and confirm the lower control area remains readable without becoming a solid toolbar. The timeline progress/track/thumb, time display, and control icons must remain distinguishable, and the contrast backdrop must disappear together with auto-hidden controls.
@@ -106,6 +106,17 @@ Run these tests for changes to the MAIN-world bridge or active-media selection.
 - **YS-04 — External high playback rate:** start with an external playback rate above the FloatPlay preset range, open FloatPlay, and confirm the rate is preserved until the user explicitly chooses a FloatPlay preset.
 - **YS-05 — Competing media candidates:** on navigation/layout states where more than one `<video>` is present, confirm FloatPlay selects the video actually visible in the watch viewport. A large off-screen/preloaded video must not become the active source merely because its raw dimensions are larger.
 - **YS-06 — SPA regression:** navigate video A → B and through a playlist while exercising volume/rate controls. Confirm bridge synchronization remains single, no duplicate behavior appears, and the active media remains correct.
+
+## Accessibility and focus smoke tests
+
+Run these tests for changes to keyboard interaction, disclosures, focus handling, auto-hide focus behavior, or the shared definition of interactive elements.
+
+- **AX-01 — Coachmark focus restoration:** reset first-use onboarding, focus the coachmark close control with the keyboard, activate it, and confirm the coachmark hides and focus returns to the FloatPlay trigger rather than remaining on a hidden control.
+- **AX-02 — Overflow disclosure:** open More options using the keyboard and confirm focus moves to the first enabled action. Press `Escape` and confirm the panel hides, `aria-expanded` returns to `false`, and focus returns to More options. Reopen it and activate a closing action such as Fit; focus must not remain inside the hidden panel.
+- **AX-03 — Speed disclosure:** open Playback speed from the overflow, confirm focus moves to the selected/current preset (or first preset when none matches), choose a preset, and confirm the preset panel closes and focus returns to the Playback speed control.
+- **AX-04 — Shortcut scope:** focus buttons, sliders, links, form controls, custom focusable elements, and supported interactive ARIA roles inside FloatPlay. Confirm global playback shortcuts do not fire from those targets.
+- **AX-05 — Auto-hide focus:** while playback is running, keyboard-focus an interactive FloatPlay control and wait longer than the configured auto-hide delay. Controls must remain visible while keyboard focus is on that interactive element and may resume hiding only after focus leaves.
+- **AX-06 — Origin interaction scope:** while PiP is active, exercise native YouTube controls and focusable/custom interactive elements inside the current origin player area. FloatPlay must not intercept them as passive-surface Play/Pause clicks.
 
 ## Options Page smoke tests
 
