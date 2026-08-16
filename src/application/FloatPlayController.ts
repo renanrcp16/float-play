@@ -248,8 +248,7 @@ export class FloatPlayController {
     );
     const originSurface = new OriginPlaybackSurface(
       session.media,
-      session.originElement.ownerDocument,
-      session.originBounds,
+      session.originElement,
       session.signal,
       this.logger
     );
