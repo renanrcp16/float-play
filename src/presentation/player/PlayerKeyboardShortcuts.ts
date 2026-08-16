@@ -5,8 +5,11 @@ import {
 import { togglePlayback } from "../../application/MediaPlayback";
 import { seekBy } from "../../application/MediaSeek";
 import { adjustVolume, setMediaVolume } from "../../application/MediaVolume";
+import {
+  setMediaPlaybackRate,
+  type PlaybackRateMirror
+} from "../../application/PlaybackSpeed";
 import { getDisplayedVolume, resolveVolumeInput } from "../../application/VolumeSemantics";
-import type { PlaybackRateMirror } from "../../application/PlaybackSpeed";
 import type { VolumeMirror } from "../../application/VolumeController";
 import type { Logger } from "../../shared/Logger";
 
@@ -102,9 +105,11 @@ export class PlayerKeyboardShortcuts {
   private adjustPlaybackRate(direction: -1 | 1): void {
     const nextRate = getAdjacentPlaybackRate(this.media.playbackRate, direction);
 
-    if (nextRate !== null) {
-      this.mirror.setPlaybackRate(nextRate);
+    if (nextRate === null || !setMediaPlaybackRate(this.media, nextRate)) {
+      return;
     }
+
+    this.mirror.setPlaybackRate(nextRate);
   }
 }
 

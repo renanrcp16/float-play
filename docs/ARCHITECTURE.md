@@ -2,119 +2,176 @@
 
 ## Status
 
-Spike 0 is complete and the core Document Picture-in-Picture feasibility assumptions have been validated against real Chrome and YouTube behavior. This document defines the current architecture boundaries for FloatPlay. Future structural changes should preserve these principles unless an explicit architectural decision replaces them.
+FloatPlay is in final v1 release hardening. The core Document Picture-in-Picture integration and production player behavior have been validated against real Chrome and YouTube. This document describes the current production architecture and must stay synchronized with runtime changes.
 
 ## Goals
 
-The architecture should make FloatPlay:
+The architecture should keep FloatPlay:
 
-- Resilient to YouTube SPA navigation.
-- Minimally coupled to YouTube's private DOM structure.
-- Easy to test without requiring YouTube for every behavioral rule.
-- Explicit about lifecycle and cleanup.
-- Conservative about permissions and privileged extension contexts.
-- Small enough to remain understandable without unnecessary abstraction layers.
+- resilient to YouTube SPA navigation;
+- minimally coupled to private YouTube implementation details;
+- local-first and explicit about data flow;
+- easy to test without requiring live YouTube for every deterministic rule;
+- explicit about lifecycle and cleanup;
+- conservative about permissions and privileged extension contexts;
+- small enough to remain understandable without unnecessary framework or service layers.
 
 ## Runtime model
 
-The current runtime path is:
+FloatPlay currently uses four extension execution surfaces:
 
 ```text
-YouTube watch page
+YouTube page
+  │
+  ├─ MAIN-world bridge (typed build entry)
+  │     └─ optional YouTube player synchronization for volume/mute/rate
+  │
+  └─ ISOLATED content script
         │
-        ▼
-Content bootstrap
-        │
-        ▼
-FloatPlayController
-        │
-        ├── YouTubeAdapter ──> active HTMLVideoElement
-        │
-        └── DocumentPipManager ──> active PiP session
-                                      │
-                    ┌─────────────────┴─────────────────┐
-                    ▼                                   ▼
-             PlayerShell                     OriginPlaybackSurface
-          (PiP presentation)                 (YouTube origin surface)
+        └─ FloatPlayController
+             ├─ YouTubeAdapter
+             │    ├─ supported-route detection
+             │    ├─ trigger anchor detection
+             │    ├─ active HTMLVideoElement selection
+             │    └─ narrow same-page bridge messages
+             ├─ DocumentPipManager
+             │    └─ Document PiP session + safe media restoration
+             ├─ FloatPlay trigger / first-use onboarding
+             └─ PiP presentation components
+
+Options Page
+  └─ ChromeSettingsStore (chrome.storage.sync)
+
+Service worker
+  └─ opens the Options Page on validated extension messages
+
+Content script onboarding
+  └─ ChromeOnboardingStore (chrome.storage.local)
 ```
 
-The active `HTMLVideoElement` remains shared across these layers and is the playback source of truth.
+The active `HTMLVideoElement` is the playback source of truth.
 
 ## Architectural boundaries
 
 ### Application
 
-Application code coordinates use cases and lifecycle. It may depend on contracts exposed by infrastructure and presentation components but should not contain YouTube selector knowledge.
+Application code coordinates use cases and lifecycle. It may depend on narrow infrastructure contracts and presentation components, but it must not contain YouTube selector knowledge or direct global Chrome API usage.
 
-Examples:
+Examples include:
 
-- Reconciling whether a supported media source exists.
-- Opening or ending a FloatPlay session.
-- Mounting presentation components for an active PiP session.
-- Rebinding future player state to a newly active media source.
+- reconciling whether the current page is supported;
+- deciding whether a usable media source exists;
+- opening and ending a FloatPlay session;
+- mounting presentation components for an active PiP session;
+- applying deterministic playback rules;
+- coordinating persisted user preferences and onboarding state through adapters.
 
-Playback rules that do not require DOM knowledge, such as toggling Play/Pause against a media contract, belong in application-level helpers so they can be tested independently.
+Playback rules that do not require YouTube DOM knowledge belong in application helpers so they can be tested independently.
 
 ### Infrastructure — YouTube
 
-YouTube integration owns knowledge required to find and observe the active media source on YouTube.
+`YouTubeAdapter` owns YouTube-specific integration knowledge.
 
-This layer should prefer platform-neutral media characteristics over private YouTube implementation details.
+Its responsibilities include:
 
-The current adapter selects the largest visible connected `<video>` element on a supported watch page instead of depending on YouTube-specific video classes.
+- validating the exact supported YouTube host and `/watch` route;
+- locating the preferred trigger anchor in the watch metadata/channel action area;
+- falling back safely when that anchor is unavailable;
+- finding the active connected `<video>` using platform-neutral media geometry;
+- ranking candidate videos by their area actually visible inside the current viewport rather than raw element dimensions;
+- sending a minimal same-page synchronization message for volume, mute, and playback-rate compatibility.
+
+The adapter should prefer platform-neutral media characteristics over private YouTube selectors and APIs whenever possible.
+
+### MAIN-world YouTube player bridge
+
+The MAIN-world bridge exists only because YouTube maintains player state in its page context in addition to the `HTMLVideoElement` state exposed to the isolated extension content script.
+
+The bridge is a typed source file under `src/infrastructure/youtube/` and is built into `youtube-player-main.js`. It is not an untracked public JavaScript artifact.
+
+The bridge:
+
+- listens only for same-window, same-origin `window.postMessage` events;
+- accepts only the `floatplay:youtube-player` channel;
+- validates exactly three actions: volume, mute, and playback rate;
+- validates and clamps numeric values before use;
+- invokes the corresponding YouTube player method only when that method exists;
+- has no access to Chrome extension storage, privileged runtime APIs, FloatPlay settings, account identifiers, video identifiers, analytics identifiers, or backend services.
+
+The bridge is compatibility synchronization, not the primary media behavior path. FloatPlay applies supported state changes to the active `HTMLVideoElement` first. If a private YouTube synchronization method disappears, the extension should preserve native media behavior wherever the platform API still supports it.
 
 ### Infrastructure — Picture-in-Picture
 
-The Picture-in-Picture layer owns:
+`DocumentPipManager` owns:
 
-- Document Picture-in-Picture capability detection.
-- Window creation.
-- Media movement into the PiP document.
-- Initial window geometry hints.
-- PiP document styling required by the integration.
-- Safe restoration of the media node.
-- PiP lifecycle cleanup.
-- A minimal session context for presentation components.
+- Document Picture-in-Picture capability detection;
+- window creation;
+- media movement into the PiP document;
+- initial window geometry hints;
+- PiP document baseline styling;
+- safe restoration of the exact media node;
+- session lifecycle and cleanup;
+- the minimal session context needed by presentation components.
 
-It must not own YouTube navigation logic or presentation behavior.
+It must not own YouTube navigation logic, trigger placement, settings, or presentation behavior.
 
 ### Infrastructure — Chrome
 
-Chrome-specific adapters should remain narrow. The current Chrome i18n adapter exposes localized extension messages without coupling presentation components directly to global Chrome APIs.
+Chrome-specific adapters remain narrow and capability-focused.
+
+Current responsibilities include:
+
+- localized extension messages through `ChromeI18n`;
+- settings persistence through `chrome.storage.sync`;
+- device-local onboarding persistence through `chrome.storage.local`;
+- extension resource URL resolution;
+- validated messaging used to open the Options Page.
+
+The Manifest V3 service worker exists only to receive the validated open-options request and call `chrome.runtime.openOptionsPage()`.
 
 ### Presentation
 
-Presentation owns visual controls, focus behavior, menus, responsive layout, and interaction surfaces.
+Presentation owns visible controls, layout, focus behavior, menus, and user interaction surfaces.
 
-The first production presentation slice consists of:
+Current presentation responsibilities include:
 
-- `PlayerShell`, rendered inside the Document PiP window.
-- `OriginPlaybackSurface`, which preserves a predictable Play/Pause interaction on the non-interactive central area of the original YouTube player while the media element is inside PiP.
+- the YouTube entry trigger and first-use coachmark;
+- `PlayerShell` inside the Document PiP window;
+- timeline and time-display controls;
+- volume controls;
+- keyboard shortcuts;
+- overflow actions such as speed, fit, and settings;
+- automatic control visibility;
+- `OriginPlaybackSurface` for the eligible non-interactive area at the original YouTube player location.
 
-The PiP video image itself is passive. Clicking the video image does not toggle playback; Play/Pause inside the PiP window is performed through the explicit semantic control.
+The PiP video image itself is passive. Play/Pause inside PiP requires the explicit playback control or supported keyboard shortcut.
 
-The origin interaction layer must not intentionally intercept native YouTube buttons, sliders, links, form controls, or other semantically interactive elements. This keeps FloatPlay behavior predictable without depending on private YouTube player classes.
+The origin interaction layer resolves the current origin-container geometry at click time and fails closed when the container is disconnected or no longer has trustworthy visible geometry. It must not intentionally intercept native YouTube controls or reuse stale opening-time coordinates.
 
-### Settings
+### Settings and onboarding
 
-Settings will use a versioned schema with Chrome extension storage when the Options Page is introduced.
+User-facing player preferences use a versioned settings schema and `chrome.storage.sync`.
+
+The first-use trigger coachmark uses one device-local boolean in `chrome.storage.local`. It is separate from synchronized player preferences and contains no URL, video, timestamp, history, or analytics information.
 
 ## Source-of-truth rules
 
 The active `HTMLVideoElement` is authoritative for:
 
-- Paused/playing state.
-- Current time.
-- Duration and seekable ranges.
-- Volume.
-- Muted state.
-- Playback rate.
+- paused/playing state;
+- current time;
+- duration and seekable ranges;
+- volume;
+- muted state;
+- playback rate.
 
-FloatPlay presentation state must reflect media events rather than attempting to maintain a second authoritative media model.
+FloatPlay controls should mutate or read this platform media state first and reflect media events instead of maintaining a competing playback model.
+
+The narrow YouTube MAIN-world bridge may mirror selected state changes into YouTube's own player implementation, but it must not become the authoritative playback state.
 
 ## State categories
 
-FloatPlay distinguishes three categories of state:
+FloatPlay distinguishes three categories of runtime state:
 
 ### Media state
 
@@ -122,32 +179,44 @@ Owned by the active media element.
 
 ### Application state
 
-Examples include whether FloatPlay has an active PiP session and which media element is currently bound.
+Examples include whether a PiP session is active, whether the trigger is actionable, and whether first-use onboarding remains pending for the current extension profile.
 
 ### Presentation state
 
-Examples include whether an overflow menu is open or whether controls are currently visible.
+Examples include whether controls are visible, an overflow disclosure is open, or the coachmark is currently rendered.
 
 These categories may interact but should not be collapsed into one global mutable object.
 
 ## YouTube SPA strategy
 
-YouTube is a single-page application. A content script cannot assume a full page reload for every video navigation.
+YouTube is a single-page application. FloatPlay cannot assume a full document reload between videos.
 
-The preferred strategy is:
+The current strategy is:
 
-1. Observe relevant DOM changes without continuous polling.
-2. Coalesce bursts of DOM changes.
-3. Reconcile current application state against the current page and media state.
-4. Rebind only when the active source actually changes.
+1. observe relevant DOM mutations;
+2. coalesce mutation bursts through `requestAnimationFrame`;
+3. reconcile current route, trigger anchor, media availability, and PiP state;
+4. keep one trigger instance and reattach it when the preferred anchor is recreated;
+5. avoid continuous high-frequency polling and avoid depending exclusively on private YouTube navigation events.
 
-The project should avoid depending exclusively on private YouTube navigation events.
+## Active-media selection
+
+Multiple `<video>` elements may exist in the page DOM. FloatPlay does not select a candidate solely because it has the largest raw rectangle.
+
+For each connected candidate it:
+
+1. rejects zero-sized, `display:none`, hidden/collapsed, or fully transparent media;
+2. intersects the media rectangle with the current viewport;
+3. rejects candidates with zero visible viewport area;
+4. selects the candidate with the largest actual viewport intersection.
+
+This reduces the risk of choosing a large preloaded or off-screen video while keeping the algorithm independent of private YouTube video classes.
 
 ## Cleanup rule
 
 Any component that creates a listener, observer, animation frame, timer, subscription, or separate window must own an explicit cleanup path.
 
-Cleanup must be idempotent where practical. Presentation components created for a PiP session are tied to that session's abort signal so their listeners are removed when the session ends.
+Cleanup should be idempotent where practical. PiP presentation components are tied to the active session abort signal, and document-level controller resources are tied to the controller lifecycle signal.
 
 ## PiP restoration strategy
 
@@ -155,44 +224,48 @@ Before moving a media element, FloatPlay records its logical DOM position with a
 
 When the PiP window closes:
 
-1. Prefer replacing the still-connected placeholder with the media node.
-2. If the placeholder is gone but the original parent remains valid, restore relative to the recorded sibling when possible.
-3. Do not insert the media node into an arbitrary fallback container merely to keep it connected.
-4. Surface a structured failure for investigation if no safe restoration target remains.
-
-Spike 0 validated this strategy against repeated open/close cycles, SPA video navigation, playlist progression, live playback, advertising transitions, unsupported-route cleanup, and full opener reload behavior. These scenarios remain regression requirements.
+1. prefer replacing the still-connected placeholder with the media node;
+2. if the placeholder is gone but the original parent remains valid, restore relative to the recorded sibling when possible;
+3. do not insert the media node into an arbitrary fallback container merely to keep it connected;
+4. surface a structured failure for investigation if no safe restoration target remains.
 
 ## Styling isolation
 
-FloatPlay UI injected into the YouTube document should use an isolated styling boundary when it owns visible markup so YouTube CSS does not accidentally style FloatPlay controls and FloatPlay CSS does not leak into YouTube.
+Visible FloatPlay UI injected into YouTube uses an isolated Shadow DOM boundary for the trigger so YouTube CSS does not accidentally style it and FloatPlay styles do not leak into YouTube.
 
-The PiP player shell lives in its own Document PiP document and therefore has a separate document styling scope. Interaction behavior attached to existing YouTube elements should avoid unnecessary style mutation.
+The PiP player shell lives in its own Document PiP document and therefore has a separate document styling scope.
 
 ## Privilege model
 
-The current implementation requires no extension service worker and no privileged background operations.
+FloatPlay intentionally uses a small privilege surface:
 
-A service worker should be introduced only when a concrete feature requires background extension APIs or coordination that cannot live safely in the existing contexts.
+- Manifest V3;
+- one explicit Chrome permission: `storage`;
+- content scripts limited to `https://www.youtube.com/*` and `https://youtube.com/*`;
+- one narrow service worker operation for opening the Options Page;
+- one MAIN-world bridge limited to local YouTube player synchronization;
+- no FloatPlay backend, remote executable code, analytics, telemetry, authentication, or unrelated host access.
+
+Any new permission, host, externally connectable surface, remote code path, backend dependency, or expanded MAIN-world responsibility requires a fresh architecture/security review.
 
 ## Dependency rule
 
-Dependencies are added only when they solve a meaningful problem more clearly or safely than available platform APIs.
+Runtime behavior is implemented with browser/platform APIs and native DOM APIs; the extension currently has no runtime package dependency.
 
-The toolchain uses Vite for extension bundling, TypeScript for static type safety, ESLint with typescript-eslint for linting, and Vitest for automated tests.
+The development toolchain uses Vite, TypeScript, ESLint with typescript-eslint, Vitest, and an isolated Playwright package for browser E2E.
 
-The first production player shell is implemented with native DOM APIs. React remains intentionally deferred and should be introduced only if future presentation complexity creates a concrete maintainability benefit that outweighs the additional runtime and architectural cost.
+A presentation framework should be introduced only if future complexity creates a concrete maintainability benefit that outweighs the additional runtime and architectural cost.
 
 ## Testing strategy
 
-Testing grows in layers:
+Testing is layered:
 
-- Unit tests for deterministic rules and calculations.
-- Integration tests for media-control behavior.
-- Browser-level tests for extension lifecycle and critical flows.
-- Manual smoke tests against the real YouTube application.
+- unit tests for deterministic calculations, normalization, and playback rules;
+- browser E2E for extension-owned deterministic surfaces;
+- real Chrome/YouTube smoke tests for live YouTube DOM, MAIN-world synchronization, Document PiP lifecycle, SPA navigation, playlists, live streams, and other browser-owned behavior.
 
-Tests should assert user-visible or behavioral outcomes rather than implementation details when possible. Real YouTube smoke tests remain mandatory for integration behavior that cannot be represented faithfully with isolated mocks.
+Synthetic tests must not be presented as proof of live YouTube compatibility. Conversely, deterministic regressions should not rely only on manual smoke testing when a stable automated test is practical.
 
 ## Future architectural decisions
 
-Decisions with long-term structural impact should be recorded as short Architecture Decision Records under `docs/decisions/` once the first such decision needs to be preserved.
+Decisions with long-term structural impact should be recorded as short Architecture Decision Records under `docs/decisions/` when a dedicated ADR provides more value than keeping the current canonical architecture document synchronized.

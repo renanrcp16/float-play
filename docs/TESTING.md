@@ -96,6 +96,17 @@ Run these tests for changes that affect pointer or wheel interaction with the vo
 - **VC-03 — Wheel scope:** use the wheel over the video, timeline, playback controls, and other non-volume areas and confirm FloatPlay does not change volume from those wheel events.
 - **VC-04 — Volume semantics:** confirm wheel changes preserve the existing mute/unmute and previous-volume behavior rather than introducing a separate volume state.
 
+## YouTube player synchronization smoke tests
+
+Run these tests for changes to the MAIN-world bridge or active-media selection.
+
+- **YS-01 — Media-first playback rate:** choose several FloatPlay playback-speed presets and use `[` / `]`. Confirm the active `HTMLVideoElement.playbackRate` changes immediately and the FloatPlay UI follows the media event.
+- **YS-02 — YouTube synchronization:** after changing volume, mute, or playback rate from FloatPlay, close PiP and confirm YouTube's player UI/state reflects the same value without a second user action.
+- **YS-03 — Optional private methods:** if a YouTube player synchronization method is temporarily unavailable during debugging, the corresponding native media operation that can be performed through `HTMLVideoElement` must remain functional rather than depending exclusively on the private method.
+- **YS-04 — External high playback rate:** start with an external playback rate above the FloatPlay preset range, open FloatPlay, and confirm the rate is preserved until the user explicitly chooses a FloatPlay preset.
+- **YS-05 — Competing media candidates:** on navigation/layout states where more than one `<video>` is present, confirm FloatPlay selects the video actually visible in the watch viewport. A large off-screen/preloaded video must not become the active source merely because its raw dimensions are larger.
+- **YS-06 — SPA regression:** navigate video A → B and through a playlist while exercising volume/rate controls. Confirm bridge synchronization remains single, no duplicate behavior appears, and the active media remains correct.
+
 ## Options Page smoke tests
 
 Run these tests for changes that affect persisted settings, the full-page Options Page, Settings menu access, or the in-player time display preference.
