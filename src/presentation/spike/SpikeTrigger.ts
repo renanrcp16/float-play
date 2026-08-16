@@ -1,3 +1,5 @@
+const COACHMARK_COPY_ID = "floatplay-trigger-coachmark-copy";
+
 interface SpikeTriggerOptions {
   readonly label: string;
   readonly iconUrl: string;
@@ -181,11 +183,14 @@ export class SpikeTrigger {
     this.coachmark = document.createElement("div");
     this.coachmark.className = "coachmark";
     this.coachmark.hidden = true;
-    this.coachmark.setAttribute("role", "status");
 
     const coachmarkCopy = document.createElement("span");
+    coachmarkCopy.id = COACHMARK_COPY_ID;
     coachmarkCopy.className = "coachmark-copy";
     coachmarkCopy.textContent = options.coachmarkLabel;
+    coachmarkCopy.setAttribute("role", "status");
+    coachmarkCopy.setAttribute("aria-live", "polite");
+    coachmarkCopy.setAttribute("aria-atomic", "true");
 
     const coachmarkClose = document.createElement("button");
     coachmarkClose.className = "coachmark-close";
@@ -202,6 +207,7 @@ export class SpikeTrigger {
       (event) => {
         event.stopPropagation();
         options.onDismissCoachmark();
+        this.button.focus();
       },
       { signal: this.lifecycle.signal }
     );
@@ -234,6 +240,12 @@ export class SpikeTrigger {
 
   public setCoachmarkVisible(visible: boolean): void {
     this.coachmark.hidden = !visible;
+
+    if (visible) {
+      this.button.setAttribute("aria-describedby", COACHMARK_COPY_ID);
+    } else {
+      this.button.removeAttribute("aria-describedby");
+    }
   }
 
   public setBusy(busy: boolean): void {
