@@ -29,7 +29,7 @@ interface OriginSurfaceClickState {
   readonly button: number;
   readonly x: number;
   readonly y: number;
-  readonly bounds: OriginSurfaceBounds;
+  readonly bounds: OriginSurfaceBounds | null;
   readonly interactiveTarget: boolean;
 }
 
@@ -39,8 +39,7 @@ export class OriginPlaybackSurface {
 
   public constructor(
     private readonly media: HTMLVideoElement,
-    private readonly originDocument: Document,
-    private readonly originBounds: OriginSurfaceBounds,
+    private readonly originElement: HTMLElement,
     sessionSignal: AbortSignal,
     private readonly logger: Logger
   ) {
@@ -58,7 +57,7 @@ export class OriginPlaybackSurface {
       return;
     }
 
-    this.originDocument.addEventListener(
+    this.originElement.ownerDocument.addEventListener(
       "click",
       (event) => {
         this.handleClick(event);
@@ -87,7 +86,7 @@ export class OriginPlaybackSurface {
         button: event.button,
         x: event.clientX,
         y: event.clientY,
-        bounds: this.originBounds,
+        bounds: this.getCurrentBounds(),
         interactiveTarget: this.isInteractiveTarget(event)
       })
     ) {
@@ -100,6 +99,32 @@ export class OriginPlaybackSurface {
     void togglePlayback(this.media).catch((error: unknown) => {
       this.logger.error("Unable to toggle media playback from the YouTube origin surface.", error);
     });
+  }
+
+  private getCurrentBounds(): OriginSurfaceBounds | null {
+    if (!this.originElement.isConnected) {
+      return null;
+    }
+
+    const rect = this.originElement.getBoundingClientRect();
+
+    if (
+      !Number.isFinite(rect.left) ||
+      !Number.isFinite(rect.top) ||
+      !Number.isFinite(rect.right) ||
+      !Number.isFinite(rect.bottom) ||
+      rect.width <= 0 ||
+      rect.height <= 0
+    ) {
+      return null;
+    }
+
+    return {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom
+    };
   }
 
   private isInteractiveTarget(event: MouseEvent): boolean {
@@ -117,12 +142,22 @@ export function shouldToggleFromOriginSurface(state: OriginSurfaceClickState): b
   return (
     state.button === 0 &&
     !state.interactiveTarget &&
+    state.bounds !== null &&
     isPointWithinBounds(state.x, state.y, state.bounds)
   );
 }
 
 export function isPointWithinBounds(x: number, y: number, bounds: OriginSurfaceBounds): boolean {
-  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+  if (
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    !Number.isFinite(bounds.left) ||
+    !Number.isFinite(bounds.top) ||
+    !Number.isFinite(bounds.right) ||
+    !Number.isFinite(bounds.bottom) ||
+    bounds.right < bounds.left ||
+    bounds.bottom < bounds.top
+  ) {
     return false;
   }
 
