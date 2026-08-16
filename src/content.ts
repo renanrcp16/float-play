@@ -1,6 +1,7 @@
 import { FloatPlayController } from "./application/FloatPlayController";
 import type { TimeDisplayMode } from "./application/Settings";
 import { ChromeI18n } from "./infrastructure/chrome/ChromeI18n";
+import { ChromeOnboardingStore } from "./infrastructure/chrome/ChromeOnboardingStore";
 import { ChromeOptionsPage } from "./infrastructure/chrome/ChromeOptionsPage";
 import { ChromeRuntime } from "./infrastructure/chrome/ChromeRuntime";
 import { ChromeSettingsStore } from "./infrastructure/chrome/ChromeSettingsStore";
@@ -18,7 +19,11 @@ async function bootstrap(): Promise<void> {
   const i18n = new ChromeI18n();
   const runtime = new ChromeRuntime();
   const settingsStore = new ChromeSettingsStore(logger);
-  const settings = await settingsStore.load();
+  const onboardingStore = new ChromeOnboardingStore(logger);
+  const [settings, hasSeenTriggerCoachmark] = await Promise.all([
+    settingsStore.load(),
+    onboardingStore.hasSeenTriggerCoachmark()
+  ]);
   const youtube = new YouTubeAdapter();
   const pip = new DocumentPipManager(logger);
   const optionsPage = new ChromeOptionsPage();
@@ -53,9 +58,21 @@ async function bootstrap(): Promise<void> {
       volume: i18n.getMessage("volumeAction", "Volume"),
       mute: i18n.getMessage("muteAction", "Mute"),
       unmute: i18n.getMessage("unmuteAction", "Unmute"),
-      triggerOpen: i18n.getMessage("triggerOpenAction", "Open FloatPlay")
+      triggerOpen: i18n.getMessage("triggerOpenAction", "Open FloatPlay"),
+      triggerCoachmark: i18n.getMessage(
+        "triggerCoachmark",
+        "Click here to open FloatPlay"
+      ),
+      triggerCoachmarkDismiss: i18n.getMessage(
+        "triggerCoachmarkDismissAction",
+        "Dismiss FloatPlay tip"
+      )
     },
     runtime.getUrl("brand/icon.svg"),
+    !hasSeenTriggerCoachmark,
+    () => {
+      void onboardingStore.markTriggerCoachmarkSeen();
+    },
     settings,
     (mode) => {
       void persistTimeDisplayMode(settingsStore, mode);

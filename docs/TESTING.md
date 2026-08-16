@@ -41,12 +41,16 @@ The live test also showed that seeking directly to the reported end of the seeka
 Run these tests for changes that affect the FloatPlay entry point on the YouTube watch page.
 
 - **TR-01 — Preferred placement:** on a standard `/watch` video, confirm the FloatPlay icon appears immediately after the channel subscription/notification control area, visually beside the bell, and does not overlay the video or modify the native player control bar.
-- **TR-02 — Icon-only presentation:** confirm the trigger renders the approved FloatPlay `icon.svg` with no visible FloatPlay text in normal and theater layouts.
+- **TR-02 — Icon-only presentation:** confirm the permanent trigger renders the approved FloatPlay `icon.svg` with no visible FloatPlay text in normal and theater layouts.
 - **TR-03 — Localization and accessibility:** hover and keyboard-focus the trigger. Confirm the native title/accessible name is `Open FloatPlay` in English/fallback locales and `Abrir FloatPlay` in `pt-BR`, with a visible keyboard focus indicator.
 - **TR-04 — Activation:** activate the icon and confirm Document Picture-in-Picture opens exactly once with the same media/session behavior as before. The YouTube trigger must not remain actionable while PiP is open.
 - **TR-05 — SPA reconciliation:** navigate from video A to video B without a full reload and confirm the trigger is reattached once, remains beside the subscription/notification area when that anchor exists, and does not duplicate.
 - **TR-06 — Fallback:** if the expected subscription/notification anchor is absent in an alternate YouTube layout, confirm FloatPlay uses the icon-only fixed lower-right viewport fallback instead of inserting into another guessed DOM location.
 - **TR-07 — Unsupported surfaces:** confirm Home, Shorts, and YouTube Music do not expose an actionable FloatPlay trigger and that leaving `/watch` cleans up the entry point.
+- **TR-08 — Fresh-profile coachmark:** with FloatPlay onboarding state absent, open a supported `/watch` video and confirm one compact coachmark appears anchored to the trigger. Confirm English shows `Click here to open FloatPlay` and `pt-BR` shows `Clique aqui para abrir o FloatPlay`, while the permanent trigger itself remains icon-only.
+- **TR-09 — Explicit coachmark dismiss:** with onboarding state absent, activate the coachmark close control. Confirm the coachmark disappears without opening PiP, the trigger remains usable, and the coachmark does not return after reload or video A → B SPA navigation.
+- **TR-10 — Activation completes onboarding:** with onboarding state absent, activate the FloatPlay trigger while the coachmark is visible. Confirm the coachmark disappears, PiP opens normally, and the coachmark does not return after closing PiP and reloading YouTube.
+- **TR-11 — Coachmark accessibility:** keyboard-focus both the FloatPlay trigger and coachmark close control. Confirm visible focus, localized accessible names, and no keyboard trap. The coachmark must not prevent direct activation of the FloatPlay trigger.
 
 ## Player shell smoke tests
 
@@ -102,9 +106,10 @@ Run these tests for changes that affect persisted settings, the full-page Option
 - **OP-05 — Reset defaults:** save non-default values, activate `Restore defaults`, and confirm backward/forward seek return to 5 seconds and auto-hide delay returns to 1 second without corrupting unrelated persisted preferences.
 - **OP-06 — Validation and feedback:** enter unsupported numeric values and confirm invalid settings are not persisted; save valid values and confirm success feedback is exposed without requiring a page reload.
 - **OP-07 — Time display preference:** click the timeline time display in the PiP player, confirm it toggles between elapsed/duration and remaining-time presentation, reopen FloatPlay, and confirm the selected mode persists. The Options Page must not expose a duplicate time-display setting.
-- **OP-08 — Localization:** verify English UI for English/fallback browser locales and Brazilian Portuguese UI for `pt-BR`, including labels, descriptions, status feedback, and shortcut reference text.
+- **OP-08 — Localization:** verify English UI for English/fallback browser locales and Brazilian Portuguese UI for `pt-BR`, including labels, descriptions, status feedback, shortcut reference text, and the trigger-location guidance.
 - **OP-09 — Theme and responsiveness:** verify the Options Page follows light/dark system preference, remains usable at narrow browser widths, and preserves visible keyboard focus and readable contrast.
 - **OP-10 — Keyboard accessibility:** navigate through every form control, action, and relevant in-player control using the keyboard; confirm semantic controls, visible focus, and meaningful accessible names remain intact.
+- **OP-11 — Trigger rediscovery guidance:** confirm the page explains that FloatPlay opens from its icon beside YouTube's subscription/notification controls and that this guidance remains secondary to the settings content.
 
 ## Result recording
 

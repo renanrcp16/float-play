@@ -53,9 +53,15 @@ FloatPlay must expose a discreet icon control on supported YouTube watch pages w
 
 When YouTube exposes the expected watch metadata structure safely, the trigger should appear immediately after the channel subscription/notification control area so it is visually associated with the video actions without modifying the native player control bar.
 
-The trigger must use the approved FloatPlay icon without visible text. Its localized `title` and accessible name must identify the action as `Open FloatPlay` in English and `Abrir FloatPlay` in Brazilian Portuguese.
+The trigger must use the approved FloatPlay icon without visible permanent text. Its localized `title` and accessible name must identify the action as `Open FloatPlay` in English and `Abrir FloatPlay` in Brazilian Portuguese.
 
-If the preferred metadata anchor cannot be identified safely, FloatPlay must fall back to an icon-only fixed trigger in the original lower-right viewport position rather than guessing another YouTube DOM location.
+For a user who has not yet seen the trigger onboarding, FloatPlay must show one compact localized coachmark visually anchored to the trigger when the trigger first becomes actionable. The coachmark copy is `Click here to open FloatPlay` in English and `Clique aqui para abrir o FloatPlay` in Brazilian Portuguese.
+
+Opening FloatPlay from the trigger or explicitly dismissing the coachmark must mark that onboarding as seen. FloatPlay must persist only a boolean seen flag in `chrome.storage.local`; the flag must not contain YouTube URLs, video identifiers, timestamps, analytics identifiers, or watch-history data. Once seen, the coachmark must not return during later visits on the same Chrome profile/device unless extension data is cleared.
+
+If local onboarding storage is unavailable or cannot be read, FloatPlay must keep the trigger usable and skip the coachmark rather than blocking the core feature.
+
+If the preferred metadata anchor cannot be identified safely, FloatPlay must fall back to an icon-only fixed trigger in the original lower-right viewport position rather than guessing another YouTube DOM location. First-use onboarding may remain anchored to that fallback trigger when it is otherwise eligible to display.
 
 ### FR-002 — Explicit user activation
 
@@ -277,6 +283,8 @@ Compatibility with every third-party extension cannot be guaranteed.
 
 FloatPlay must provide a full Options Page that opens in a normal browser tab.
 
+The Options Page must include a concise localized reference explaining that the mini player opens from the FloatPlay icon beside YouTube's subscription/notification controls so users can rediscover the entry point after first-use onboarding is gone.
+
 ### FR-045 — Seek settings
 
 The Options Page must allow independent configuration of backward and forward seek durations.
@@ -305,7 +313,7 @@ The mini-player overflow menu must provide a direct path to open the full Option
 
 ### FR-051 — Chrome storage
 
-Small user preferences should use Chrome extension storage rather than custom cookies, browser history, or a backend service.
+Small user preferences and minimal local onboarding state should use Chrome extension storage rather than custom cookies, browser history, or a backend service.
 
 ### FR-052 — Settings schema version
 
@@ -313,7 +321,7 @@ Persisted settings must include an explicit schema version so future releases ca
 
 ### FR-053 — Synchronization
 
-Preferences appropriate for cross-device synchronization should use `chrome.storage.sync` when available and within Chrome storage constraints.
+Preferences appropriate for cross-device synchronization should use `chrome.storage.sync` when available and within Chrome storage constraints. Device-local onboarding state should use `chrome.storage.local` and must not be treated as a synchronized user preference.
 
 ## 15. Internationalization
 
@@ -406,6 +414,8 @@ FloatPlay v1 must not transmit operational telemetry to FloatPlay infrastructure
 ### NFR-014 — No watch history collection
 
 FloatPlay must not collect or persist the user's YouTube watch history.
+
+The first-use coachmark seen flag is product UI state only and must remain independent of YouTube viewing activity.
 
 ## 19. Security
 
@@ -581,6 +591,7 @@ FloatPlay v1.0.0 is ready only when:
 - Reduced-motion behavior is respected.
 - English and Brazilian Portuguese localization are complete.
 - Settings persistence and schema migration behavior are covered.
+- First-use onboarding is discoverable, dismissible, and persists only its local seen flag.
 - Lint passes.
 - Typecheck passes.
 - Automated tests pass.

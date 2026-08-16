@@ -30,6 +30,7 @@ test("loads the real Options Page with the current defaults", async ({ context, 
   await expect(page.locator("#volume-step")).toHaveValue("5");
   await expect(page.locator("#auto-hide-enabled")).toBeChecked();
   await expect(page.locator("#auto-hide-delay")).toHaveValue("1");
+  await expect(page.locator('[data-i18n="optionsHowToOpen"]')).toContainText("FloatPlay");
 
   const portfolioLink = page.locator("#developer-portfolio-link");
   await expect(portfolioLink).toHaveAttribute("href", "https://renan-rcp.vercel.app");

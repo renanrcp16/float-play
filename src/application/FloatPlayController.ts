@@ -19,6 +19,8 @@ interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
   readonly settings: string;
   readonly moreOptions: string;
   readonly triggerOpen: string;
+  readonly triggerCoachmark: string;
+  readonly triggerCoachmarkDismiss: string;
 }
 
 export class FloatPlayController {
@@ -28,6 +30,7 @@ export class FloatPlayController {
   private reconcileFrame: number | null = null;
   private playerShell: PlayerShell | null = null;
   private originSurface: OriginPlaybackSurface | null = null;
+  private triggerCoachmarkPending: boolean;
   private busy = false;
 
   public constructor(
@@ -36,15 +39,24 @@ export class FloatPlayController {
     private readonly optionsPage: OptionsPageLauncher,
     private readonly labels: FloatPlayLabels,
     triggerIconUrl: string,
+    triggerCoachmarkInitiallyVisible: boolean,
+    private readonly persistTriggerCoachmarkSeen: () => void,
     private settings: FloatPlaySettings,
     private readonly persistTimeDisplayMode: (mode: TimeDisplayMode) => void,
     private readonly logger: Logger
   ) {
+    this.triggerCoachmarkPending = triggerCoachmarkInitiallyVisible;
     this.trigger = new SpikeTrigger({
       label: this.labels.triggerOpen,
       iconUrl: triggerIconUrl,
+      coachmarkLabel: this.labels.triggerCoachmark,
+      coachmarkDismissLabel: this.labels.triggerCoachmarkDismiss,
       onActivate: () => {
+        this.dismissTriggerCoachmark();
         void this.openPipFromUserGesture();
+      },
+      onDismissCoachmark: () => {
+        this.dismissTriggerCoachmark();
       }
     });
 
@@ -114,6 +126,7 @@ export class FloatPlayController {
 
     if (!supportedPage) {
       this.trigger.setVisible(false);
+      this.trigger.setCoachmarkVisible(false);
 
       if (this.pip.isOpen()) {
         this.pip.dispose();
@@ -128,6 +141,17 @@ export class FloatPlayController {
     const shouldShow = this.pip.isSupported() && hasMedia && !this.pip.isOpen();
 
     this.trigger.setVisible(shouldShow);
+    this.trigger.setCoachmarkVisible(shouldShow && this.triggerCoachmarkPending);
+  }
+
+  private dismissTriggerCoachmark(): void {
+    if (!this.triggerCoachmarkPending) {
+      return;
+    }
+
+    this.triggerCoachmarkPending = false;
+    this.trigger.setCoachmarkVisible(false);
+    this.persistTriggerCoachmarkSeen();
   }
 
   private async openPipFromUserGesture(): Promise<void> {
