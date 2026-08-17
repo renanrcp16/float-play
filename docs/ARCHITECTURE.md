@@ -115,6 +115,8 @@ The bridge is compatibility synchronization, not the primary media behavior path
 
 It must not own YouTube navigation logic, trigger placement, settings, or presentation behavior.
 
+FloatPlay v1 declares Chrome 130 as its minimum supported browser version because the reviewed window-creation contract uses both `disallowReturnToOpener` and `preferInitialWindowPlacement`. The declared baseline must cover the complete requested Document Picture-in-Picture behavior rather than relying on older Chrome versions to ignore unsupported options silently.
+
 ### Infrastructure — Chrome
 
 Chrome-specific adapters remain narrow and capability-focused.
@@ -128,6 +130,8 @@ Current responsibilities include:
 - validated messaging used to open the Options Page.
 
 The Manifest V3 service worker exists only to receive the validated open-options request and call `chrome.runtime.openOptionsPage()`.
+
+The manifest explicitly closes Chrome's external extension/page messaging surface with `externally_connectable.ids` set to an empty list and no web-page match patterns. Internal extension messaging remains available to FloatPlay's own contexts; relaxing the external policy requires a fresh security review.
 
 ### Presentation
 
@@ -240,17 +244,19 @@ The PiP player shell lives in its own Document PiP document and therefore has a 
 FloatPlay intentionally uses a small privilege surface:
 
 - Manifest V3;
+- Chrome 130 minimum so the supported baseline covers the complete reviewed Document Picture-in-Picture option set;
 - one explicit Chrome permission: `storage`;
 - content scripts limited to `https://www.youtube.com/*` and `https://youtube.com/*`;
 - one narrow service worker operation for opening the Options Page;
 - one MAIN-world bridge limited to local YouTube player synchronization;
 - one web-accessible resource, `brand/icon.svg`, limited to the approved YouTube origins;
 - an explicit extension-page Content Security Policy of `default-src 'self'`;
-- no host permissions, optional permissions, externally connectable surface, sandbox pages, FloatPlay backend, remote executable code, analytics, telemetry, authentication, or unrelated host access.
+- an explicit `externally_connectable` policy with no allowed extension IDs and no allowed web-page matches;
+- no host permissions, optional permissions, sandbox pages, FloatPlay backend, remote executable code, analytics, telemetry, authentication, or unrelated host access.
 
-The source and built manifests are required to match exactly. Release verification also treats the current manifest keys, content-script definitions, execution worlds, `run_at` values, background worker, CSP, icon set, and web-accessible resources as an explicit v1 allowlist.
+The source and built manifests are required to match exactly. Release verification also treats the current manifest keys, content-script definitions, execution worlds, `run_at` values, background worker, CSP, external-messaging policy, icon set, and web-accessible resources as an explicit v1 allowlist.
 
-Any new manifest key, permission, host, externally connectable surface, remote code path, backend dependency, additional web-accessible resource, sandbox, or expanded MAIN-world responsibility requires a fresh architecture/security review before the release allowlist is changed.
+Any new manifest key, permission, host, external connection allowance, remote code path, backend dependency, additional web-accessible resource, sandbox, or expanded MAIN-world responsibility requires a fresh architecture/security review before the release allowlist is changed.
 
 ## Release artifact boundary
 
