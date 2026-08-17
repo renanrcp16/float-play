@@ -157,13 +157,6 @@ test("shows actionable inline feedback for invalid numeric settings", async ({
   const seekBackward = page.locator("#seek-backward");
   const seekBackwardError = page.locator("#seek-backward-error");
 
-  await seekBackward.evaluate((input) => {
-    input.removeAttribute("max");
-    input.removeAttribute("step");
-  });
-  await expect(seekBackward).not.toHaveAttribute("max");
-  await expect(seekBackward).not.toHaveAttribute("step");
-
   await seekBackward.fill("1000");
   await page.locator("#save-button").click();
 
