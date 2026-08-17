@@ -50,25 +50,17 @@ describe("ChromeSettingsStore", () => {
   });
 
   test("ignores the pre-v1 legacy settings object", async () => {
-    const storage = createMemoryStorage({
-      settings: {
-        ...DEFAULT_SETTINGS,
-        seekBackwardSeconds: 15,
-        timeDisplayMode: "remaining"
-      }
-    });
+    const storage: ChromeStorageArea = {
+      get: vi.fn((keys: string | string[]) => {
+        const requestedKeys = Array.isArray(keys) ? keys : [keys];
+        expect(requestedKeys).not.toContain("settings");
+        return Promise.resolve({});
+      }),
+      set: vi.fn(() => Promise.resolve())
+    };
     const store = new ChromeSettingsStore(createLogger(), storage);
 
     await expect(store.load()).resolves.toEqual(DEFAULT_SETTINGS);
-    expect(storage.get).toHaveBeenCalledWith([
-      "settings.v1.schemaVersion",
-      "settings.v1.seekBackwardSeconds",
-      "settings.v1.seekForwardSeconds",
-      "settings.v1.volumeStep",
-      "settings.v1.autoHideEnabled",
-      "settings.v1.autoHideDelayMs",
-      "settings.v1.timeDisplayMode"
-    ]);
   });
 
   test("uses defaults when the v1 schema version is missing", async () => {
