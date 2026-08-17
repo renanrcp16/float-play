@@ -44,7 +44,7 @@ async function getTimeDisplayMode(extensionWorker) {
   }, TIME_DISPLAY_MODE_KEY);
 }
 
-test("loads the real Options Page with the current defaults", async ({ context, extensionId }) => {
+test("loads the real branded Options Page with trusted project links", async ({ context, extensionId }) => {
   const { page, errors } = await openOptionsPage(context, extensionId);
 
   await expect(page).toHaveTitle(/FloatPlay/);
@@ -59,6 +59,31 @@ test("loads the real Options Page with the current defaults", async ({ context, 
   await expect(portfolioLink).toHaveAttribute("href", "https://renan-rcp.vercel.app");
   await expect(portfolioLink).toHaveAttribute("target", "_blank");
   await expect(portfolioLink).toHaveAttribute("rel", "noopener noreferrer");
+
+  const sourceLink = page.locator("#source-code-link");
+  await expect(sourceLink).toHaveText("Source code");
+  await expect(sourceLink).toHaveAttribute("href", "https://github.com/renanrcp16/float-play");
+  await expect(sourceLink).toHaveAttribute("target", "_blank");
+  await expect(sourceLink).toHaveAttribute("rel", "noopener noreferrer");
+
+  const brandStyles = await page.evaluate(() => {
+    const styles = getComputedStyle(document.documentElement);
+    return {
+      main: styles.getPropertyValue("--brand-main").trim().toLowerCase(),
+      auxiliary: styles.getPropertyValue("--brand-aux").trim().toLowerCase(),
+      dark: styles.getPropertyValue("--brand-dark").trim().toLowerCase(),
+      light: styles.getPropertyValue("--brand-light").trim().toLowerCase(),
+      fontFamily: styles.fontFamily
+    };
+  });
+
+  expect(brandStyles).toMatchObject({
+    main: "#7c8cff",
+    auxiliary: "#b4beff",
+    dark: "#1b2230",
+    light: "#f5f7fa"
+  });
+  expect(brandStyles.fontFamily).not.toContain("Inter");
   expect(errors).toEqual([]);
 
   await page.close();
