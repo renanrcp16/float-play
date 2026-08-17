@@ -13,6 +13,7 @@ const expectedManifestKeys = [
   "content_security_policy",
   "default_locale",
   "description",
+  "externally_connectable",
   "icons",
   "manifest_version",
   "minimum_chrome_version",
@@ -51,6 +52,9 @@ const expectedWebAccessibleResources = [
 const expectedExtensionCsp = {
   extension_pages: "default-src 'self'"
 };
+const expectedExternallyConnectable = {
+  ids: []
+};
 
 const packageJson = await readJson(path.join(rootDir, "package.json"));
 const sourceManifest = await readJson(path.join(rootDir, "public", "manifest.json"));
@@ -82,7 +86,7 @@ assertEqual(
 assertEqual(distManifest.default_locale, "en", "release manifest default locale changed");
 assertEqual(
   distManifest.minimum_chrome_version,
-  "116",
+  "130",
   "release manifest minimum Chrome version changed"
 );
 assertStringArrayEqual(
@@ -103,6 +107,11 @@ assertDeepEqual(
   "release manifest extension CSP changed from the approved local-only policy"
 );
 assertDeepEqual(
+  distManifest.externally_connectable,
+  expectedExternallyConnectable,
+  "release manifest external messaging policy changed from the approved closed policy"
+);
+assertDeepEqual(
   distManifest.content_scripts,
   expectedContentScripts,
   "release manifest content scripts changed from the approved v1 allowlist"
@@ -117,7 +126,6 @@ for (const forbiddenField of [
   "host_permissions",
   "optional_permissions",
   "optional_host_permissions",
-  "externally_connectable",
   "sandbox"
 ]) {
   assertAbsentField(distManifest, forbiddenField);

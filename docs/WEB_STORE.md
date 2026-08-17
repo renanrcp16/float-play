@@ -9,10 +9,11 @@ This document prepares Chrome Web Store metadata and reviewer-facing explanation
 - Manifest: Manifest V3
 - Default locale: English
 - Additional locale: Brazilian Portuguese
-- Minimum Chrome version: 116
+- Minimum Chrome version: 130
 - Current explicit permission: `storage`
 - Current content-script scope: `https://www.youtube.com/*` and `https://youtube.com/*`
 - Extension-page CSP: `default-src 'self'`
+- External messaging: explicitly closed with an empty `externally_connectable.ids` allowlist and no web-page match patterns
 - Web-accessible resource exposure: only `brand/icon.svg` on the approved YouTube origins
 
 Do not change the public release version to `1.0.0` until the v1 Definition of Done is complete.
@@ -57,13 +58,14 @@ FloatPlay does not request access to unrelated websites.
 
 The production Manifest is treated as an explicit v1 security allowlist rather than an open-ended configuration file.
 
-The release verifier requires the approved Manifest V3 structure and fails if the extension gains an unreviewed manifest key or changes security-sensitive values such as permissions, host scope, content-script files/worlds/timing, background worker, CSP, or web-accessible resources.
+The release verifier requires the approved Manifest V3 structure and fails if the extension gains an unreviewed manifest key or changes security-sensitive values such as permissions, host scope, external connection allowances, content-script files/worlds/timing, background worker, CSP, or web-accessible resources.
 
 The current package intentionally has:
 
+- Chrome 130 as the minimum supported version so the declared baseline includes the complete reviewed Document Picture-in-Picture option set used by FloatPlay;
 - no `host_permissions`;
 - no optional permissions or optional host permissions;
-- no `externally_connectable` surface;
+- an explicit `externally_connectable` policy with no allowed extension IDs and no allowed web-page matches;
 - no sandboxed extension pages;
 - no remote executable code;
 - no runtime-loaded external script dependency;
@@ -123,7 +125,7 @@ Main features:
 - First-use guidance that points users to the FloatPlay trigger without adding permanent visible text to YouTube.
 - Continuity across supported YouTube SPA navigation and playlist progression when the browser/media lifecycle allows it.
 
-FloatPlay is designed for Google Chrome Desktop and supported YouTube watch pages. It does not block ads, download videos, collect watch history, or require a FloatPlay account.
+FloatPlay is designed for Google Chrome Desktop 130 or later and supported YouTube watch pages. It does not block ads, download videos, collect watch history, or require a FloatPlay account.
 
 ## Store listing — Brazilian Portuguese
 
@@ -148,7 +150,7 @@ Principais recursos:
 - Orientação de primeira utilização que indica onde encontrar o botão do FloatPlay sem adicionar texto permanente ao YouTube.
 - Continuidade durante navegação SPA e avanço de playlists compatíveis quando o ciclo de vida do navegador e da mídia permitir.
 
-O FloatPlay foi projetado para Google Chrome Desktop e páginas compatíveis de vídeos do YouTube. Ele não bloqueia anúncios, não baixa vídeos, não coleta histórico de reprodução e não exige uma conta FloatPlay.
+O FloatPlay foi projetado para Google Chrome Desktop 130 ou superior e páginas compatíveis de vídeos do YouTube. Ele não bloqueia anúncios, não baixa vídeos, não coleta histórico de reprodução e não exige uma conta FloatPlay.
 
 ## Store asset inventory
 
@@ -175,8 +177,8 @@ A real YouTube/FloatPlay PiP screenshot remains a separate manual asset because 
 - Select the generated 1280x800 Options Page screenshot for upload, or capture an additional current real PiP/YouTube screenshot if it represents the core experience more clearly.
 - Set final category, language/listing localization, distribution visibility, and regions in the developer dashboard.
 - Complete the Privacy practices disclosure and Limited Use certification so they match `docs/PRIVACY.md` and the shipped behavior, including local YouTube media processing and the same-tab playback synchronization bridge.
-- Run the final real Chrome/YouTube smoke-test matrix from `docs/TESTING.md` against the exact release candidate.
-- Run `pnpm package:release` on the exact upload commit and inspect the resulting ZIP for the approved manifest/CSP and absence of source maps.
+- Run the final real Chrome/YouTube smoke-test matrix from `docs/TESTING.md` against the exact release candidate using Chrome 130 or later.
+- Run `pnpm package:release` on the exact upload commit and inspect the resulting ZIP for the approved manifest/CSP/external-messaging policy and absence of source maps.
 
 ### Recommended / promotional assets
 
@@ -193,7 +195,7 @@ Immediately before submission, verify that:
 
 - the single-purpose statement matches the shipped extension;
 - permission and site-access justifications match `manifest.json`;
-- the approved manifest allowlist and explicit CSP match the reviewed v1 security posture;
+- the Chrome 130 baseline, approved manifest allowlist, explicit CSP, and explicit closed external-messaging policy match the reviewed v1 security posture;
 - privacy disclosures describe all data handling, including local media/page processing, Chrome storage sync, the device-local onboarding flag, and the same-tab playback synchronization bridge;
 - the public privacy-policy URL works;
 - the support URL works;
