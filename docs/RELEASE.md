@@ -34,14 +34,14 @@ The release verifier requires `dist/manifest.json` to match the source manifest 
 
 ## Settings safety contract
 
-The v1 Options Page and persisted settings enforce these supported numeric ranges:
+The v1 Options Page and persisted settings enforce these supported numeric ranges and increments:
 
-- backward seek: 0.1 through 600 seconds;
-- forward seek: 0.1 through 600 seconds;
-- volume adjustment step: 1% through 100%;
-- auto-hide delay: 0 through 60 seconds.
+- backward seek: 1 through 600 seconds, in whole-second increments;
+- forward seek: 1 through 600 seconds, in whole-second increments;
+- volume adjustment step: 1% through 100%, in whole percentage-point increments;
+- auto-hide delay: 0 through 60 seconds, in whole-second increments.
 
-The approved defaults remain 5 seconds backward, 5 seconds forward, 5% volume adjustment, automatic control hiding enabled, and a 1-second auto-hide delay. Persisted or form values outside the supported ranges must be rejected or normalized to safe defaults rather than reaching playback/timer code unchecked.
+The approved defaults remain 5 seconds backward, 5 seconds forward, 5% volume adjustment, automatic control hiding enabled, and a 1-second auto-hide delay. Persisted or form values outside the supported ranges or increments must be rejected or normalized to safe defaults rather than reaching playback/timer code unchecked.
 
 ## CI and dependency security
 
@@ -89,7 +89,7 @@ pnpm test:e2e
 
 8. Run the complete applicable real Chrome/YouTube smoke matrix from `docs/TESTING.md` and issue #53 against that exact SHA. Record at minimum the Chrome version, operating system, tested commit, other YouTube-modifying extensions, and any FloatPlay console/runtime errors.
 9. The final real smoke must include a natural YouTube advertising transition when available. FloatPlay must neither block nor automatically skip the ad, and the supported player experience must remain structurally sound when normal content resumes.
-10. Recheck Options Page validation at the supported numeric boundaries and confirm defaults remain 5s / 5s / 5% / 1s.
+10. Recheck Options Page validation at the supported numeric boundaries and whole-number increments, and confirm defaults remain 5s / 5s / 5% / 1s.
 11. Review `docs/WEB_STORE.md`, `docs/PRIVACY.md`, `.github/SECURITY.md`, the production manifest, and repository security settings against the exact candidate.
 12. From that same exact SHA, create the release package:
 

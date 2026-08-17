@@ -50,10 +50,19 @@ test("loads the real branded Options Page with trusted project links", async ({ 
 
   await expect(page).toHaveTitle(/FloatPlay/);
   await expect(page.locator("#seek-backward")).toHaveValue("5");
+  await expect(page.locator("#seek-backward")).toHaveAttribute("min", "1");
+  await expect(page.locator("#seek-backward")).toHaveAttribute("max", "600");
+  await expect(page.locator("#seek-backward")).toHaveAttribute("step", "1");
+  await expect(page.locator("#seek-backward")).toHaveAttribute("inputmode", "numeric");
   await expect(page.locator("#seek-forward")).toHaveValue("5");
+  await expect(page.locator("#seek-forward")).toHaveAttribute("step", "1");
   await expect(page.locator("#volume-step")).toHaveValue("5");
+  await expect(page.locator("#volume-step")).toHaveAttribute("step", "1");
   await expect(page.locator("#auto-hide-enabled")).toBeChecked();
   await expect(page.locator("#auto-hide-delay")).toHaveValue("1");
+  await expect(page.locator("#auto-hide-delay")).toHaveAttribute("min", "0");
+  await expect(page.locator("#auto-hide-delay")).toHaveAttribute("max", "60");
+  await expect(page.locator("#auto-hide-delay")).toHaveAttribute("step", "1");
   await expect(page.locator('[data-i18n="optionsHowToOpen"]')).toContainText("FloatPlay");
 
   const portfolioLink = page.locator("#developer-portfolio-link");
@@ -94,10 +103,10 @@ test("persists supported settings and restores defaults", async ({ context, exte
   const firstOpen = await openOptionsPage(context, extensionId);
   const page = firstOpen.page;
 
-  await page.locator("#seek-backward").fill("7.5");
-  await page.locator("#seek-forward").fill("8.5");
+  await page.locator("#seek-backward").fill("7");
+  await page.locator("#seek-forward").fill("8");
   await page.locator("#volume-step").fill("12");
-  await page.locator("#auto-hide-delay").fill("3.5");
+  await page.locator("#auto-hide-delay").fill("3");
   await page.locator("#auto-hide-enabled").uncheck();
   await page.locator("#save-button").click();
   await expect(page.locator("#form-status")).toHaveAttribute("data-tone", "success");
@@ -107,11 +116,11 @@ test("persists supported settings and restores defaults", async ({ context, exte
   const secondOpen = await openOptionsPage(context, extensionId);
   const reopenedPage = secondOpen.page;
 
-  await expect(reopenedPage.locator("#seek-backward")).toHaveValue("7.5");
-  await expect(reopenedPage.locator("#seek-forward")).toHaveValue("8.5");
+  await expect(reopenedPage.locator("#seek-backward")).toHaveValue("7");
+  await expect(reopenedPage.locator("#seek-forward")).toHaveValue("8");
   await expect(reopenedPage.locator("#volume-step")).toHaveValue("12");
   await expect(reopenedPage.locator("#auto-hide-enabled")).not.toBeChecked();
-  await expect(reopenedPage.locator("#auto-hide-delay")).toHaveValue("3.5");
+  await expect(reopenedPage.locator("#auto-hide-delay")).toHaveValue("3");
   await expect(reopenedPage.locator("#auto-hide-delay")).toBeDisabled();
 
   await reopenedPage.locator("#reset-button").click();
@@ -144,16 +153,20 @@ test("restores canonical numeric constraints before saving", async ({
 
   await seekBackward.evaluate((input) => {
     input.removeAttribute("max");
+    input.removeAttribute("step");
   });
   await expect(seekBackward).not.toHaveAttribute("max");
+  await expect(seekBackward).not.toHaveAttribute("step");
 
   await seekBackward.fill("100000");
   await page.locator("#save-button").click();
 
+  await expect(seekBackward).toHaveAttribute("min", "1");
   await expect(seekBackward).toHaveAttribute("max", "600");
+  await expect(seekBackward).toHaveAttribute("step", "1");
   await expect(page.locator("#form-status")).toHaveAttribute("data-tone", "error");
+  await expect(seekBackward).toHaveAttribute("aria-invalid", "true");
   await expect(seekBackward).toBeFocused();
-  expect(await seekBackward.evaluate((input) => input.validity.rangeOverflow)).toBe(true);
 
   const storedSeek = await extensionWorker.evaluate(async (key) => {
     const stored = await chrome.storage.sync.get(key);
@@ -161,6 +174,39 @@ test("restores canonical numeric constraints before saving", async ({
   }, SEEK_BACKWARD_KEY);
 
   expect(storedSeek).not.toBe(100000);
+  expect(errors).toEqual([]);
+  await page.close();
+});
+
+test("rejects decimal values even when input guards and DOM step are bypassed", async ({
+  context,
+  extensionId,
+  extensionWorker
+}) => {
+  const { page, errors } = await openOptionsPage(context, extensionId);
+  const seekBackward = page.locator("#seek-backward");
+
+  await seekBackward.evaluate((input) => {
+    input.removeAttribute("step");
+    input.value = "7.5";
+    input.dispatchEvent(new globalThis.Event("input", { bubbles: true }));
+  });
+  await expect(seekBackward).not.toHaveAttribute("step");
+  await expect(seekBackward).toHaveValue("7.5");
+
+  await page.locator("#save-button").click();
+
+  await expect(seekBackward).toHaveAttribute("step", "1");
+  await expect(page.locator("#form-status")).toHaveAttribute("data-tone", "error");
+  await expect(seekBackward).toHaveAttribute("aria-invalid", "true");
+  await expect(seekBackward).toBeFocused();
+
+  const storedSeek = await extensionWorker.evaluate(async (key) => {
+    const stored = await chrome.storage.sync.get(key);
+    return stored[key];
+  }, SEEK_BACKWARD_KEY);
+
+  expect(storedSeek).not.toBe(7.5);
   expect(errors).toEqual([]);
   await page.close();
 });

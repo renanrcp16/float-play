@@ -3,7 +3,7 @@ import { DEFAULT_SEEK_SECONDS } from "./MediaSeek";
 import { DEFAULT_VOLUME_STEP } from "./MediaVolume";
 
 export const SETTINGS_SCHEMA_VERSION = 1 as const;
-export const MIN_SEEK_SECONDS = 0.1;
+export const MIN_SEEK_SECONDS = 1;
 export const MAX_SEEK_SECONDS = 600;
 export const MIN_VOLUME_STEP = 0.01;
 export const MAX_VOLUME_STEP = 1;
@@ -41,29 +41,33 @@ export function normalizeSettings(value: unknown): FloatPlaySettings {
 
   return {
     schemaVersion: SETTINGS_SCHEMA_VERSION,
-    seekBackwardSeconds: boundedNumberOr(
+    seekBackwardSeconds: boundedSteppedNumberOr(
       value.seekBackwardSeconds,
       MIN_SEEK_SECONDS,
       MAX_SEEK_SECONDS,
+      1,
       DEFAULT_SETTINGS.seekBackwardSeconds
     ),
-    seekForwardSeconds: boundedNumberOr(
+    seekForwardSeconds: boundedSteppedNumberOr(
       value.seekForwardSeconds,
       MIN_SEEK_SECONDS,
       MAX_SEEK_SECONDS,
+      1,
       DEFAULT_SETTINGS.seekForwardSeconds
     ),
-    volumeStep: boundedNumberOr(
+    volumeStep: boundedSteppedNumberOr(
       value.volumeStep,
       MIN_VOLUME_STEP,
       MAX_VOLUME_STEP,
+      0.01,
       DEFAULT_SETTINGS.volumeStep
     ),
     autoHideEnabled: booleanOr(value.autoHideEnabled, DEFAULT_SETTINGS.autoHideEnabled),
-    autoHideDelayMs: boundedNumberOr(
+    autoHideDelayMs: boundedSteppedNumberOr(
       value.autoHideDelayMs,
       MIN_AUTO_HIDE_DELAY_MS,
       MAX_AUTO_HIDE_DELAY_MS,
+      1000,
       DEFAULT_SETTINGS.autoHideDelayMs
     ),
     timeDisplayMode: timeDisplayModeOr(value.timeDisplayMode, DEFAULT_SETTINGS.timeDisplayMode)
@@ -74,10 +78,25 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function boundedNumberOr(value: unknown, minimum: number, maximum: number, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value) && value >= minimum && value <= maximum
+function boundedSteppedNumberOr(
+  value: unknown,
+  minimum: number,
+  maximum: number,
+  step: number,
+  fallback: number
+): number {
+  return typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= minimum &&
+    value <= maximum &&
+    isStepAligned(value, minimum, step)
     ? value
     : fallback;
+}
+
+function isStepAligned(value: number, minimum: number, step: number): boolean {
+  const units = (value - minimum) / step;
+  return Math.abs(units - Math.round(units)) < 1e-9;
 }
 
 function booleanOr(value: unknown, fallback: boolean): boolean {
