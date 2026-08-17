@@ -68,6 +68,8 @@ Examples include:
 
 Playback rules that do not require YouTube DOM knowledge belong in application helpers so they can be tested independently.
 
+`MediaSeekableRange.ts` is the single source of truth for validating media `seekable` ranges, locating the range that contains the current playback time, and applying FloatPlay's conservative 0.5-second guard before the exact reported live edge. Seek buttons and the timeline reuse this shared safety contract while retaining their own interaction-specific decisions, such as the timeline requiring a positive-width range.
+
 ### Infrastructure — YouTube
 
 `YouTubeAdapter` owns YouTube-specific integration knowledge.
