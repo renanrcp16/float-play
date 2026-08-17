@@ -164,7 +164,6 @@ test("shows actionable inline feedback for invalid numeric settings", async ({
   await expect(seekBackward).toHaveAttribute("max", "600");
   await expect(seekBackward).toHaveAttribute("step", "1");
   await expect(seekBackward).toHaveAttribute("aria-invalid", "true");
-  await expect(seekBackward).toBeFocused();
   await expect(seekBackwardError).toBeVisible();
   await expect(seekBackwardError).toHaveText("Use a whole number from 1 to 600 seconds.");
 

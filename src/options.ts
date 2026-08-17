@@ -78,10 +78,23 @@ async function initialize(): Promise<void> {
 
     clearStatus(controls);
   });
-  controls.saveButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    void saveSettings(controls);
-  });
+  controls.form.addEventListener(
+    "invalid",
+    (event) => {
+      if (!(event.target instanceof HTMLInputElement)) {
+        return;
+      }
+
+      const constraint = numericFieldConstraints(controls).find(
+        (candidate) => candidate.input === event.target
+      );
+
+      if (constraint !== undefined) {
+        validateNumericField(constraint);
+      }
+    },
+    true
+  );
   controls.form.addEventListener("submit", (event) => {
     event.preventDefault();
     void saveSettings(controls);
