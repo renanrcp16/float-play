@@ -375,6 +375,19 @@ kbd {
   margin-top: 4px;
 }
 
+.credit-line a {
+  color: var(--muted);
+  font-weight: 500;
+  text-decoration-color: var(--border-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.credit-line a:hover {
+  color: var(--text);
+  text-decoration-color: var(--muted);
+}
+
 .credit-separator {
   margin: 0 2px;
   color: var(--border-strong);
