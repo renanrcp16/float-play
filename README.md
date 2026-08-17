@@ -25,6 +25,7 @@ The production player, YouTube trigger and first-use guidance, Options Page, Eng
 - [Release readiness](docs/RELEASE.md)
 - [Chrome Web Store preparation](docs/WEB_STORE.md)
 - [Privacy policy](docs/PRIVACY.md)
+- [Security policy](.github/SECURITY.md)
 - [Contributing](CONTRIBUTING.md)
 - [Agent instructions](AGENTS.md)
 
