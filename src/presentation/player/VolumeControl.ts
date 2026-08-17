@@ -24,9 +24,10 @@ export class VolumeControl {
 
   public mount(): void {
     const document = this.playerWindow.document;
-    const playerRoot = document.querySelector<HTMLElement>('[data-floatplay="player-shell"]');
+    const controls = document.querySelector<HTMLElement>(".floatplay-controls");
+    const buttonRow = controls?.querySelector<HTMLElement>(".floatplay-button-row") ?? null;
 
-    if (playerRoot === null || this.signal.aborted) {
+    if (controls === null || buttonRow === null || this.signal.aborted) {
       return;
     }
 
@@ -52,7 +53,7 @@ export class VolumeControl {
 
     sliderWrap.append(slider);
     root.append(button, sliderWrap);
-    playerRoot.append(root);
+    controls.insertBefore(root, buttonRow);
 
     button.addEventListener("click", () => this.setMuted(!this.media.muted), { signal: this.signal });
     root.addEventListener(
