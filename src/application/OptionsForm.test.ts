@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { DEFAULT_SETTINGS } from "./Settings";
-import { optionsFormValuesToSettings, settingsToOptionsFormValues } from "./OptionsForm";
+import { optionsFormValuesToSettingsPatch, settingsToOptionsFormValues } from "./OptionsForm";
 
 describe("options form conversions", () => {
   it("converts stored settings into user-facing units", () => {
@@ -19,34 +19,29 @@ describe("options form conversions", () => {
     });
   });
 
-  it("converts valid form values while preserving the timeline preference", () => {
-    expect(optionsFormValuesToSettings({
+  it("converts valid form values into only the settings owned by the options page", () => {
+    expect(optionsFormValuesToSettingsPatch({
       seekBackwardSeconds: 7,
       seekForwardSeconds: 13,
       volumeStepPercent: 10,
       autoHideEnabled: false,
       autoHideDelaySeconds: 1.5
-    }, {
-      ...DEFAULT_SETTINGS,
-      timeDisplayMode: "remaining"
     })).toEqual({
-      schemaVersion: 1,
       seekBackwardSeconds: 7,
       seekForwardSeconds: 13,
       volumeStep: 0.1,
       autoHideEnabled: false,
-      autoHideDelayMs: 1500,
-      timeDisplayMode: "remaining"
+      autoHideDelayMs: 1500
     });
   });
 
   it("rejects invalid user-facing values", () => {
-    expect(optionsFormValuesToSettings({
+    expect(optionsFormValuesToSettingsPatch({
       seekBackwardSeconds: 0,
       seekForwardSeconds: 10,
       volumeStepPercent: 101,
       autoHideEnabled: true,
       autoHideDelaySeconds: -1
-    }, DEFAULT_SETTINGS)).toBeNull();
+    })).toBeNull();
   });
 });
