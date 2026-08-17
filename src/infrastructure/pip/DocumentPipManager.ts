@@ -1,4 +1,5 @@
 import { calculateInitialPipSize } from "./PipWindowSize";
+import { chooseMediaRestoreStrategy } from "./MediaRestoreStrategy";
 import type { Logger } from "../../shared/Logger";
 
 interface DocumentPictureInPictureOptions {
@@ -202,13 +203,18 @@ export class DocumentPipManager {
     session.lifecycle.abort();
 
     try {
-      if (session.origin.placeholder.isConnected) {
+      const strategy = chooseMediaRestoreStrategy(
+        session.origin.placeholder.isConnected,
+        session.origin.parent.isConnected
+      );
+
+      if (strategy === "placeholder") {
         session.origin.placeholder.replaceWith(session.media);
         this.logger.debug("Restored media using the original placeholder.");
         return;
       }
 
-      if (session.origin.parent.isConnected) {
+      if (strategy === "parent") {
         const sibling = session.origin.nextSibling;
         const validSibling = sibling !== null && sibling.parentNode === session.origin.parent;
 
