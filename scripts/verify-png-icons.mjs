@@ -1,5 +1,7 @@
+import { Buffer } from "node:buffer";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { stdout } from "node:process";
 import { fileURLToPath } from "node:url";
 import { inflateSync } from "node:zlib";
 
@@ -18,7 +20,7 @@ for (const [relativePath, expectedSize] of expectedIcons) {
   verifyPng(buffer, relativePath, expectedSize);
 }
 
-console.log(`PNG icon verification passed (${expectedIcons.size} icons).`);
+stdout.write(`PNG icon verification passed (${expectedIcons.size} icons).\n`);
 
 function verifyPng(buffer, relativePath, expectedSize) {
   if (buffer.length < pngSignature.length || !buffer.subarray(0, 8).equals(pngSignature)) {
