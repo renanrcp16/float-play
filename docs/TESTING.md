@@ -125,6 +125,7 @@ Run these tests for changes to keyboard interaction, disclosures, focus handling
 - **AX-04 — Shortcut scope:** focus buttons, sliders, links, form controls, custom focusable elements, and supported interactive ARIA roles inside FloatPlay. Confirm global playback shortcuts do not fire from those targets.
 - **AX-05 — Auto-hide focus:** while playback is running, keyboard-focus an interactive FloatPlay control and wait longer than the configured auto-hide delay. Controls must remain visible while keyboard focus is on that interactive element and may resume hiding only after focus leaves.
 - **AX-06 — Origin interaction scope:** while PiP is active, exercise native YouTube controls and focusable/custom interactive elements inside the current origin player area. FloatPlay must not intercept them as passive-surface Play/Pause clicks.
+- **AX-07 — Sequential focus order:** open FloatPlay and traverse the player using `Tab`. Focus must follow the visible/logical order: timeline, time display, volume button, the volume slider when it is revealed/focusable, backward, Play/Pause, forward, then the remaining controls in their visual/logical order. Reverse traversal with `Shift+Tab` must remain coherent. Do not use positive `tabindex` values to manufacture this order.
 
 ## Options Page smoke tests
 
@@ -141,6 +142,7 @@ Run these tests for changes that affect persisted settings, the full-page Option
 - **OP-09 — Theme and responsiveness:** verify the Options Page follows light/dark system preference, remains usable at narrow browser widths, and preserves visible keyboard focus and readable contrast.
 - **OP-10 — Keyboard accessibility:** navigate through every form control, action, and relevant in-player control using the keyboard; confirm semantic controls, visible focus, and meaningful accessible names remain intact.
 - **OP-11 — Trigger rediscovery guidance:** confirm the page explains that FloatPlay opens from its icon beside YouTube's subscription/notification controls and that this guidance remains secondary to the settings content.
+- **OP-12 — Settings launch repeatability:** across several PiP open/close cycles and after a normal YouTube page reload, activate `Settings` from the overflow menu each time and confirm the Options Page opens. If one activation fails, capture FloatPlay console/runtime errors before reloading the page so the failure can be diagnosed rather than masked.
 
 ## Result recording
 
