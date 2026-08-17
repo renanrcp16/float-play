@@ -4,7 +4,13 @@ This document is the canonical source for browser and YouTube smoke-test procedu
 
 ## Automated validation
 
-Run `pnpm validate` before browser testing. It runs lint, TypeScript type checking, automated tests, and the production build. Browser-facing changes still require real Chrome and YouTube validation.
+Run `pnpm validate` before browser testing. It runs lint, TypeScript type checking, automated tests, and the production build.
+
+Run `pnpm test:e2e` for deterministic browser-level coverage of extension-owned flows using the built Manifest V3 extension in Playwright Chromium. The current suite covers the real Options Page plus the trigger/onboarding lifecycle on a synthetic `https://www.youtube.com/watch` fixture that supplies only the minimal supported anchor and visible media conditions.
+
+The synthetic trigger fixture verifies icon-only trigger semantics, first-use coachmark visibility and explicit-dismiss persistence through real `chrome.storage.local`, single-trigger reconciliation across navigation-like DOM replacement, and fallback/inline placement transitions. It does not mock `FloatPlayController` or `FloatPlayTrigger`; the closed production Shadow DOM is inspected through Chromium DevTools Protocol.
+
+Passing deterministic E2E does not prove compatibility with the current live YouTube DOM or real Document Picture-in-Picture lifecycle. Browser-facing release validation still requires the applicable real Chrome/YouTube smoke scenarios below.
 
 ## Spike 0 foundation gates
 
@@ -51,6 +57,8 @@ Run these tests for changes that affect the FloatPlay entry point on the YouTube
 - **TR-09 — Explicit coachmark dismiss:** with onboarding state absent, activate the coachmark close control. Confirm the coachmark disappears without opening PiP, the trigger remains usable, and the coachmark does not return after reload or video A → B SPA navigation.
 - **TR-10 — Activation completes onboarding:** with onboarding state absent, activate the FloatPlay trigger while the coachmark is visible. Confirm the coachmark disappears, PiP opens normally, and the coachmark does not return after closing PiP and reloading YouTube.
 - **TR-11 — Coachmark accessibility:** keyboard-focus the FloatPlay trigger and then the coachmark close control. Confirm visible focus and localized accessible names. Activate the close control with the keyboard and confirm focus returns to the FloatPlay trigger after the coachmark is hidden. The coachmark text may be announced as status text, but its close button must not be nested inside a live/status role. The coachmark must not trap focus or prevent direct activation of the FloatPlay trigger.
+
+The deterministic E2E suite automatically covers the extension-owned parts of TR-02, TR-05, TR-06, TR-08, and TR-09 against the synthetic watch fixture. The full TR scenarios above remain the authority for live YouTube placement, localization, visual behavior, user-gesture PiP opening, and real SPA compatibility.
 
 ## Player shell smoke tests
 
@@ -129,7 +137,7 @@ Run these tests for changes that affect persisted settings, the full-page Option
 - **OP-05 — Reset defaults:** save non-default values, activate `Restore defaults`, and confirm backward/forward seek return to 5 seconds and auto-hide delay returns to 1 second without corrupting unrelated persisted preferences.
 - **OP-06 — Validation and feedback:** enter unsupported numeric values and confirm invalid settings are not persisted; save valid values and confirm success feedback is exposed without requiring a page reload.
 - **OP-07 — Time display preference:** click the timeline time display in the PiP player, confirm it toggles between elapsed/duration and remaining-time presentation, reopen FloatPlay, and confirm the selected mode persists. The Options Page must not expose a duplicate time-display setting.
-- **OP-08 — Localization:** verify English UI for English/fallback browser locales and Brazilian Portuguese UI for `pt-BR`, including labels, descriptions, status feedback, shortcut reference text, and the trigger-location guidance.
+- **OP-08 — Localization:** verify English UI for English/fallback browser locales and Brazilian Portuguese UI in `pt-BR`, including labels, descriptions, status feedback, shortcut reference text, and the trigger-location guidance.
 - **OP-09 — Theme and responsiveness:** verify the Options Page follows light/dark system preference, remains usable at narrow browser widths, and preserves visible keyboard focus and readable contrast.
 - **OP-10 — Keyboard accessibility:** navigate through every form control, action, and relevant in-player control using the keyboard; confirm semantic controls, visible focus, and meaningful accessible names remain intact.
 - **OP-11 — Trigger rediscovery guidance:** confirm the page explains that FloatPlay opens from its icon beside YouTube's subscription/notification controls and that this guidance remains secondary to the settings content.
