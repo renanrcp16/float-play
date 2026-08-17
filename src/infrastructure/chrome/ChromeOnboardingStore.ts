@@ -1,16 +1,12 @@
 import type { Logger } from "../../shared/Logger";
+import type { ChromeStorageArea } from "./ChromeStorageArea";
 
 const TRIGGER_COACHMARK_SEEN_KEY = "triggerCoachmarkSeen";
-
-export interface OnboardingStorageArea {
-  get(key: string): Promise<Record<string, unknown>>;
-  set(items: Record<string, unknown>): Promise<void>;
-}
 
 type GlobalWithChromeLocalStorage = typeof globalThis & {
   chrome?: {
     storage?: {
-      local?: OnboardingStorageArea;
+      local?: ChromeStorageArea;
     };
   };
 };
@@ -18,7 +14,7 @@ type GlobalWithChromeLocalStorage = typeof globalThis & {
 export class ChromeOnboardingStore {
   public constructor(
     private readonly logger: Logger,
-    private readonly storageArea: OnboardingStorageArea | null = resolveLocalStorageArea()
+    private readonly storageArea: ChromeStorageArea | null = resolveLocalStorageArea()
   ) {}
 
   public async hasSeenTriggerCoachmark(): Promise<boolean> {
@@ -51,6 +47,6 @@ export class ChromeOnboardingStore {
   }
 }
 
-function resolveLocalStorageArea(): OnboardingStorageArea | null {
+function resolveLocalStorageArea(): ChromeStorageArea | null {
   return (globalThis as GlobalWithChromeLocalStorage).chrome?.storage?.local ?? null;
 }
