@@ -1,18 +1,14 @@
 import { DEFAULT_SETTINGS, normalizeSettings } from "../../application/Settings";
 import type { FloatPlaySettings } from "../../application/Settings";
 import type { Logger } from "../../shared/Logger";
+import type { ChromeStorageArea } from "./ChromeStorageArea";
 
 const SETTINGS_STORAGE_KEY = "settings";
-
-export interface SettingsStorageArea {
-  get(key: string): Promise<Record<string, unknown>>;
-  set(items: Record<string, unknown>): Promise<void>;
-}
 
 type GlobalWithChromeStorage = typeof globalThis & {
   chrome?: {
     storage?: {
-      sync?: SettingsStorageArea;
+      sync?: ChromeStorageArea;
     };
   };
 };
@@ -20,7 +16,7 @@ type GlobalWithChromeStorage = typeof globalThis & {
 export class ChromeSettingsStore {
   public constructor(
     private readonly logger: Logger,
-    private readonly storageArea: SettingsStorageArea | null = resolveSyncStorageArea()
+    private readonly storageArea: ChromeStorageArea | null = resolveSyncStorageArea()
   ) {}
 
   public async load(): Promise<FloatPlaySettings> {
@@ -49,6 +45,6 @@ export class ChromeSettingsStore {
   }
 }
 
-function resolveSyncStorageArea(): SettingsStorageArea | null {
+function resolveSyncStorageArea(): ChromeStorageArea | null {
   return (globalThis as GlobalWithChromeStorage).chrome?.storage?.sync ?? null;
 }
