@@ -12,6 +12,8 @@ This document prepares Chrome Web Store metadata and reviewer-facing explanation
 - Minimum Chrome version: 116
 - Current explicit permission: `storage`
 - Current content-script scope: `https://www.youtube.com/*` and `https://youtube.com/*`
+- Extension-page CSP: `default-src 'self'`
+- Web-accessible resource exposure: only `brand/icon.svg` on the approved YouTube origins
 
 Do not change the public release version to `1.0.0` until the v1 Definition of Done is complete.
 
@@ -50,6 +52,27 @@ FloatPlay injects content scripts only on YouTube origins needed by the product.
 FloatPlay uses an isolated content script for extension logic plus one narrow MAIN-world bridge on the same approved YouTube origins. Playback state changes are applied to the active `HTMLVideoElement` first. The MAIN-world bridge is used only to mirror FloatPlay volume, mute, and playback-rate changes into YouTube's own player state when the corresponding page method exists. The bridge accepts only those three validated same-page message actions and has no Chrome storage/runtime access, backend access, analytics, or identifiers.
 
 FloatPlay does not request access to unrelated websites.
+
+## Release security posture
+
+The production Manifest is treated as an explicit v1 security allowlist rather than an open-ended configuration file.
+
+The release verifier requires the approved Manifest V3 structure and fails if the extension gains an unreviewed manifest key or changes security-sensitive values such as permissions, host scope, content-script files/worlds/timing, background worker, CSP, or web-accessible resources.
+
+The current package intentionally has:
+
+- no `host_permissions`;
+- no optional permissions or optional host permissions;
+- no `externally_connectable` surface;
+- no sandboxed extension pages;
+- no remote executable code;
+- no runtime-loaded external script dependency;
+- an explicit `default-src 'self'` CSP for extension pages and the service worker;
+- no production source maps in `dist/` or the Chrome Web Store ZIP.
+
+The release ZIP is generated only from the verified `dist/` tree. The packager preserves deterministic ordering, places the manifest at the archive root, rejects unsafe paths and `.map` entries, and verifies that archive entries match `dist/` exactly.
+
+Any future expansion of this security surface requires an intentional source change, verifier allowlist change, documentation update, and fresh security/privacy review before release.
 
 ## Data handling
 
@@ -153,6 +176,7 @@ A real YouTube/FloatPlay PiP screenshot remains a separate manual asset because 
 - Set final category, language/listing localization, distribution visibility, and regions in the developer dashboard.
 - Complete the Privacy practices disclosure and Limited Use certification so they match `docs/PRIVACY.md` and the shipped behavior, including local YouTube media processing and the same-tab playback synchronization bridge.
 - Run the final real Chrome/YouTube smoke-test matrix from `docs/TESTING.md` against the exact release candidate.
+- Run `pnpm package:release` on the exact upload commit and inspect the resulting ZIP for the approved manifest/CSP and absence of source maps.
 
 ### Recommended / promotional assets
 
@@ -169,9 +193,10 @@ Immediately before submission, verify that:
 
 - the single-purpose statement matches the shipped extension;
 - permission and site-access justifications match `manifest.json`;
+- the approved manifest allowlist and explicit CSP match the reviewed v1 security posture;
 - privacy disclosures describe all data handling, including local media/page processing, Chrome storage sync, the device-local onboarding flag, and the same-tab playback synchronization bridge;
 - the public privacy-policy URL works;
 - the support URL works;
 - listing text and screenshots match the submitted version;
 - no unsupported claims, rankings, badges, or comparative marketing have been added;
-- the ZIP contains `manifest.json` at its root.
+- the ZIP contains `manifest.json` at its root and contains no source maps or unexpected repository artifacts.

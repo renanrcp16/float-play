@@ -10,7 +10,7 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: false,
-    sourcemap: true,
+    sourcemap: false,
     lib: {
       entry: youtubePlayerEntry,
       name: "FloatPlayYouTubePlayerBridge",
