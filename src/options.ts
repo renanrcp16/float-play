@@ -215,14 +215,14 @@ function installNumericInputGuards(controls: OptionsControls): void {
 }
 
 function applyCanonicalNumericConstraints(controls: OptionsControls): void {
-  configureNumericInput(controls.seekBackward, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS, 0.1);
-  configureNumericInput(controls.seekForward, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS, 0.1);
+  configureNumericInput(controls.seekBackward, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS, 1);
+  configureNumericInput(controls.seekForward, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS, 1);
   configureNumericInput(controls.volumeStep, MIN_VOLUME_STEP * 100, MAX_VOLUME_STEP * 100, 1);
   configureNumericInput(
     controls.autoHideDelay,
     MIN_AUTO_HIDE_DELAY_MS / 1000,
     MAX_AUTO_HIDE_DELAY_MS / 1000,
-    0.1
+    1
   );
 
   controls.seekBackward.disabled = false;
@@ -244,7 +244,7 @@ function configureNumericInput(
 }
 
 function containsUnsupportedNumberNotation(value: string): boolean {
-  return /[-eE+]/.test(value);
+  return /[-eE+.,]/.test(value);
 }
 
 function updateAutoHideState(controls: OptionsControls): void {
