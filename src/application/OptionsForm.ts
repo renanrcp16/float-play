@@ -31,10 +31,14 @@ export function optionsFormValuesToSettingsPatch(
   values: OptionsFormValues
 ): FloatPlaySettingsPatch | null {
   if (
-    !isWithinRange(values.seekBackwardSeconds, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS) ||
-    !isWithinRange(values.seekForwardSeconds, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS) ||
-    !isWithinRange(values.volumeStepPercent, MIN_VOLUME_STEP * 100, MAX_VOLUME_STEP * 100) ||
-    !isWithinRange(
+    !isWholeNumberWithinRange(values.seekBackwardSeconds, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS) ||
+    !isWholeNumberWithinRange(values.seekForwardSeconds, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS) ||
+    !isWholeNumberWithinRange(
+      values.volumeStepPercent,
+      MIN_VOLUME_STEP * 100,
+      MAX_VOLUME_STEP * 100
+    ) ||
+    !isWholeNumberWithinRange(
       values.autoHideDelaySeconds,
       MIN_AUTO_HIDE_DELAY_MS / 1000,
       MAX_AUTO_HIDE_DELAY_MS / 1000
@@ -52,6 +56,6 @@ export function optionsFormValuesToSettingsPatch(
   };
 }
 
-function isWithinRange(value: number, minimum: number, maximum: number): boolean {
-  return Number.isFinite(value) && value >= minimum && value <= maximum;
+function isWholeNumberWithinRange(value: number, minimum: number, maximum: number): boolean {
+  return Number.isInteger(value) && value >= minimum && value <= maximum;
 }
