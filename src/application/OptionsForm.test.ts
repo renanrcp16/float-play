@@ -8,14 +8,14 @@ describe("options form conversions", () => {
     expect(settingsToOptionsFormValues({
       ...DEFAULT_SETTINGS,
       volumeStep: 0.1,
-      autoHideDelayMs: 1250,
+      autoHideDelayMs: 2000,
       timeDisplayMode: "remaining"
     })).toEqual({
       seekBackwardSeconds: 5,
       seekForwardSeconds: 5,
       volumeStepPercent: 10,
       autoHideEnabled: true,
-      autoHideDelaySeconds: 1.25
+      autoHideDelaySeconds: 2
     });
   });
 
@@ -25,13 +25,13 @@ describe("options form conversions", () => {
       seekForwardSeconds: 13,
       volumeStepPercent: 10,
       autoHideEnabled: false,
-      autoHideDelaySeconds: 1.5
+      autoHideDelaySeconds: 2
     })).toEqual({
       seekBackwardSeconds: 7,
       seekForwardSeconds: 13,
       volumeStep: 0.1,
       autoHideEnabled: false,
-      autoHideDelayMs: 1500
+      autoHideDelayMs: 2000
     });
   });
 
@@ -45,13 +45,39 @@ describe("options form conversions", () => {
     })).toBeNull();
   });
 
-  it("rejects finite values above the supported seek and auto-hide limits", () => {
+  it("rejects decimal user-facing values", () => {
     expect(optionsFormValuesToSettingsPatch({
-      seekBackwardSeconds: MAX_SEEK_SECONDS + 0.1,
+      seekBackwardSeconds: 7.5,
       seekForwardSeconds: 10,
       volumeStepPercent: 5,
       autoHideEnabled: true,
-      autoHideDelaySeconds: MAX_AUTO_HIDE_DELAY_MS / 1000 + 0.1
+      autoHideDelaySeconds: 1
+    })).toBeNull();
+
+    expect(optionsFormValuesToSettingsPatch({
+      seekBackwardSeconds: 7,
+      seekForwardSeconds: 10,
+      volumeStepPercent: 5.5,
+      autoHideEnabled: true,
+      autoHideDelaySeconds: 1
+    })).toBeNull();
+
+    expect(optionsFormValuesToSettingsPatch({
+      seekBackwardSeconds: 7,
+      seekForwardSeconds: 10,
+      volumeStepPercent: 5,
+      autoHideEnabled: true,
+      autoHideDelaySeconds: 1.5
+    })).toBeNull();
+  });
+
+  it("rejects finite values above the supported seek and auto-hide limits", () => {
+    expect(optionsFormValuesToSettingsPatch({
+      seekBackwardSeconds: MAX_SEEK_SECONDS + 1,
+      seekForwardSeconds: 10,
+      volumeStepPercent: 5,
+      autoHideEnabled: true,
+      autoHideDelaySeconds: MAX_AUTO_HIDE_DELAY_MS / 1000 + 1
     })).toBeNull();
   });
 });
