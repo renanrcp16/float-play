@@ -30,7 +30,7 @@ describe("settings normalization", () => {
         seekForwardSeconds: 11,
         volumeStep: 0.1,
         autoHideEnabled: false,
-        autoHideDelayMs: 3200,
+        autoHideDelayMs: 3000,
         timeDisplayMode: "remaining"
       })
     ).toEqual({
@@ -39,7 +39,7 @@ describe("settings normalization", () => {
       seekForwardSeconds: 11,
       volumeStep: 0.1,
       autoHideEnabled: false,
-      autoHideDelayMs: 3200,
+      autoHideDelayMs: 3000,
       timeDisplayMode: "remaining"
     });
   });
@@ -54,6 +54,18 @@ describe("settings normalization", () => {
         autoHideEnabled: "yes",
         autoHideDelayMs: -1,
         timeDisplayMode: "unknown"
+      })
+    ).toEqual(DEFAULT_SETTINGS);
+  });
+
+  test("rejects values that do not align with whole user-facing steps", () => {
+    expect(
+      normalizeSettings({
+        schemaVersion: SETTINGS_SCHEMA_VERSION,
+        seekBackwardSeconds: 7.5,
+        seekForwardSeconds: 8.5,
+        volumeStep: 0.055,
+        autoHideDelayMs: 1500
       })
     ).toEqual(DEFAULT_SETTINGS);
   });
@@ -92,10 +104,10 @@ describe("settings normalization", () => {
     expect(
       normalizeSettings({
         schemaVersion: SETTINGS_SCHEMA_VERSION,
-        seekBackwardSeconds: MIN_SEEK_SECONDS / 2,
-        seekForwardSeconds: MAX_SEEK_SECONDS + 0.1,
+        seekBackwardSeconds: MIN_SEEK_SECONDS - 1,
+        seekForwardSeconds: MAX_SEEK_SECONDS + 1,
         volumeStep: MIN_VOLUME_STEP / 2,
-        autoHideDelayMs: MAX_AUTO_HIDE_DELAY_MS + 1
+        autoHideDelayMs: MAX_AUTO_HIDE_DELAY_MS + 1000
       })
     ).toEqual(DEFAULT_SETTINGS);
   });
