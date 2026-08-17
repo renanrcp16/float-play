@@ -39,6 +39,8 @@ The workflow provides three independent signals:
 - `Dependency audit` audits both the root and isolated `e2e/` dependency trees for known high or critical vulnerabilities.
 - `Browser E2E` installs Playwright Chromium on the GitHub runner and executes the deterministic extension-owned E2E suite using both committed lockfiles.
 
+The Browser E2E suite uses the built extension. It covers the real Options Page and a deterministic synthetic YouTube `/watch` fixture for extension-owned trigger/onboarding behavior, including coachmark persistence, trigger reconciliation, and fallback placement. That fixture is intentionally not a substitute for live YouTube DOM compatibility or real Document Picture-in-Picture lifecycle validation.
+
 CI uses `--frozen-lockfile` and must never rewrite dependency resolution as part of validation.
 
 `.github/dependabot.yml` monitors GitHub Actions for weekly version updates. FloatPlay currently uses pnpm 11, while GitHub's documented Dependabot package-manager support currently stops at pnpm 10. Root and `e2e/` package version updates therefore remain intentionally reviewed rather than relying on an unsupported Dependabot configuration. Revisit this boundary when GitHub documents pnpm 11 support.
@@ -76,6 +78,8 @@ pnpm audit:dependencies
 ```bash
 pnpm test:e2e
 ```
+
+A passing E2E suite confirms the deterministic extension-owned browser flows covered by `e2e/README.md`; it does not waive the live Chrome/YouTube smoke requirement.
 
 8. Run the relevant real Chrome/YouTube smoke-test matrix from `docs/TESTING.md`. Record Chrome version, operating system, tested commit, other YouTube-modifying extensions, FloatPlay console errors, and results.
 9. Review the production manifest and confirm the release security contract above still represents the intended product. Any new capability requires review before the verifier allowlist is changed.
@@ -140,9 +144,9 @@ Do not upload a release candidate until all of the following are true:
 - CI is green for the exact candidate commit;
 - `pnpm validate` passes;
 - `pnpm audit:dependencies` reports no unresolved high or critical advisory;
-- `pnpm test:e2e` passes;
+- `pnpm test:e2e` passes on the built extension;
+- the applicable real Chrome/YouTube smoke matrix passes independently of the synthetic E2E fixture;
 - `pnpm package:release` completes successfully, including the embedded manifest/security verification;
-- required real Chrome/YouTube smoke tests pass;
 - the generated ZIP has been inspected and contains no source maps or unexpected files;
 - dependency graph and Dependabot alerts are enabled, supported security-update automation is enabled, and current repository security alerts have been reviewed;
 - permission and privacy disclosures match the shipped manifest and runtime behavior;
