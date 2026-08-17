@@ -1,4 +1,13 @@
-import type { FloatPlaySettings, FloatPlaySettingsPatch } from "./Settings";
+import {
+  MAX_AUTO_HIDE_DELAY_MS,
+  MAX_SEEK_SECONDS,
+  MAX_VOLUME_STEP,
+  MIN_AUTO_HIDE_DELAY_MS,
+  MIN_SEEK_SECONDS,
+  MIN_VOLUME_STEP,
+  type FloatPlaySettings,
+  type FloatPlaySettingsPatch
+} from "./Settings";
 
 export interface OptionsFormValues {
   readonly seekBackwardSeconds: number;
@@ -22,10 +31,14 @@ export function optionsFormValuesToSettingsPatch(
   values: OptionsFormValues
 ): FloatPlaySettingsPatch | null {
   if (
-    !isPositiveFinite(values.seekBackwardSeconds) ||
-    !isPositiveFinite(values.seekForwardSeconds) ||
-    !isVolumePercent(values.volumeStepPercent) ||
-    !isNonNegativeFinite(values.autoHideDelaySeconds)
+    !isWithinRange(values.seekBackwardSeconds, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS) ||
+    !isWithinRange(values.seekForwardSeconds, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS) ||
+    !isWithinRange(values.volumeStepPercent, MIN_VOLUME_STEP * 100, MAX_VOLUME_STEP * 100) ||
+    !isWithinRange(
+      values.autoHideDelaySeconds,
+      MIN_AUTO_HIDE_DELAY_MS / 1000,
+      MAX_AUTO_HIDE_DELAY_MS / 1000
+    )
   ) {
     return null;
   }
@@ -39,14 +52,6 @@ export function optionsFormValuesToSettingsPatch(
   };
 }
 
-function isPositiveFinite(value: number): boolean {
-  return Number.isFinite(value) && value > 0;
-}
-
-function isNonNegativeFinite(value: number): boolean {
-  return Number.isFinite(value) && value >= 0;
-}
-
-function isVolumePercent(value: number): boolean {
-  return Number.isFinite(value) && value > 0 && value <= 100;
+function isWithinRange(value: number, minimum: number, maximum: number): boolean {
+  return Number.isFinite(value) && value >= minimum && value <= maximum;
 }

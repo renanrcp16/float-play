@@ -1,5 +1,15 @@
 import { describe, expect, test } from "vitest";
-import { DEFAULT_SETTINGS, SETTINGS_SCHEMA_VERSION, normalizeSettings } from "./Settings";
+import {
+  DEFAULT_SETTINGS,
+  MAX_AUTO_HIDE_DELAY_MS,
+  MAX_SEEK_SECONDS,
+  MAX_VOLUME_STEP,
+  MIN_AUTO_HIDE_DELAY_MS,
+  MIN_SEEK_SECONDS,
+  MIN_VOLUME_STEP,
+  SETTINGS_SCHEMA_VERSION,
+  normalizeSettings
+} from "./Settings";
 
 describe("settings normalization", () => {
   test("uses the approved v1 defaults when no compatible settings are stored", () => {
@@ -48,17 +58,45 @@ describe("settings normalization", () => {
     ).toEqual(DEFAULT_SETTINGS);
   });
 
-  test("accepts zero delay and the maximum valid volume step", () => {
+  test("accepts the supported boundary values", () => {
     expect(
       normalizeSettings({
         schemaVersion: SETTINGS_SCHEMA_VERSION,
-        autoHideDelayMs: 0,
-        volumeStep: 1
+        seekBackwardSeconds: MIN_SEEK_SECONDS,
+        seekForwardSeconds: MAX_SEEK_SECONDS,
+        volumeStep: MIN_VOLUME_STEP,
+        autoHideDelayMs: MIN_AUTO_HIDE_DELAY_MS
       })
     ).toEqual({
       ...DEFAULT_SETTINGS,
-      autoHideDelayMs: 0,
-      volumeStep: 1
+      seekBackwardSeconds: MIN_SEEK_SECONDS,
+      seekForwardSeconds: MAX_SEEK_SECONDS,
+      volumeStep: MIN_VOLUME_STEP,
+      autoHideDelayMs: MIN_AUTO_HIDE_DELAY_MS
     });
+
+    expect(
+      normalizeSettings({
+        schemaVersion: SETTINGS_SCHEMA_VERSION,
+        volumeStep: MAX_VOLUME_STEP,
+        autoHideDelayMs: MAX_AUTO_HIDE_DELAY_MS
+      })
+    ).toEqual({
+      ...DEFAULT_SETTINGS,
+      volumeStep: MAX_VOLUME_STEP,
+      autoHideDelayMs: MAX_AUTO_HIDE_DELAY_MS
+    });
+  });
+
+  test("rejects finite values outside the supported upper and lower bounds", () => {
+    expect(
+      normalizeSettings({
+        schemaVersion: SETTINGS_SCHEMA_VERSION,
+        seekBackwardSeconds: MIN_SEEK_SECONDS / 2,
+        seekForwardSeconds: MAX_SEEK_SECONDS + 0.1,
+        volumeStep: MIN_VOLUME_STEP / 2,
+        autoHideDelayMs: MAX_AUTO_HIDE_DELAY_MS + 1
+      })
+    ).toEqual(DEFAULT_SETTINGS);
   });
 });
