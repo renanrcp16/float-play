@@ -48,6 +48,8 @@ CI uses `--frozen-lockfile` and must never rewrite dependency resolution as part
 
 Repository administrators must keep the GitHub dependency graph and Dependabot alerts enabled under repository Advanced Security settings. Enable Dependabot security updates where GitHub supports the repository's current dependency ecosystem. These repository-level settings are part of the release security posture even though they are not stored in the Git tree, and they do not replace the pnpm audit gate.
 
+Repository governance is also part of the release security posture. `main` must be governed by GitHub rules or branch protection that require pull-request-based changes and prevent force pushes. GitHub Private Vulnerability Reporting must be enabled for the public repository, and `.github/SECURITY.md` is the canonical public reporting policy. Required CI status checks should be added to the branch rules once the complete workflow can run reliably within the repository's Actions quota.
+
 Immediately before a release candidate is packaged, run the explicit dependency audit locally as well:
 
 ```bash
@@ -84,8 +86,8 @@ A passing E2E suite confirms the deterministic extension-owned browser flows cov
 
 8. Run the relevant real Chrome/YouTube smoke-test matrix from `docs/TESTING.md`. Record Chrome version, operating system, tested commit, other YouTube-modifying extensions, FloatPlay console errors, and results.
 9. Review the production manifest and confirm the release security contract above still represents the intended product, including the Chrome 130 baseline and explicit closed external-messaging policy. Any new capability requires review before the verifier allowlist is changed.
-10. Confirm the dependency graph and Dependabot alerts remain enabled for the repository, enable Dependabot security updates where supported, and review any current security alerts. Confirm package-version automation has not been expanded beyond GitHub's documented pnpm compatibility.
-11. Review `docs/WEB_STORE.md` and `docs/PRIVACY.md` against the current implementation and current Chrome Web Store policy before submission.
+10. Confirm repository security governance: `main` requires pull-request-based changes and blocks force pushes; GitHub Private Vulnerability Reporting is enabled; the dependency graph and Dependabot alerts remain enabled; Dependabot security updates are enabled where supported; and current repository security alerts have been reviewed. Confirm package-version automation has not been expanded beyond GitHub's documented pnpm compatibility.
+11. Review `docs/WEB_STORE.md`, `docs/PRIVACY.md`, and `.github/SECURITY.md` against the current implementation and public release process before submission.
 12. From the exact commit intended for upload, create the release package:
 
 ```bash
@@ -149,6 +151,8 @@ Do not upload a release candidate until all of the following are true:
 - the applicable real Chrome/YouTube smoke matrix passes independently of the synthetic E2E fixture;
 - `pnpm package:release` completes successfully, including the embedded manifest/security verification;
 - the generated ZIP has been inspected and contains no source maps or unexpected files;
+- `main` is protected against direct/force-push release changes through pull-request-based repository rules;
+- GitHub Private Vulnerability Reporting is enabled and `.github/SECURITY.md` reflects the intended reporting process;
 - dependency graph and Dependabot alerts are enabled, supported security-update automation is enabled, and current repository security alerts have been reviewed;
 - permission and privacy disclosures match the shipped manifest and runtime behavior;
 - the Chrome 130 minimum, explicit CSP, explicit external-messaging policy, and Manifest allowlist match the reviewed v1 architecture;
