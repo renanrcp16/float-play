@@ -1,5 +1,10 @@
 export const DEFAULT_VOLUME_STEP = 0.05;
 
+export interface VolumeMirror {
+  setVolume(volume: number): void;
+  setMuted(muted: boolean): void;
+}
+
 export function clampVolume(value: number): number {
   if (!Number.isFinite(value)) {
     return 0;
@@ -11,10 +16,6 @@ export function clampVolume(value: number): number {
 export function adjustVolume(currentVolume: number, direction: -1 | 1, step = DEFAULT_VOLUME_STEP): number {
   const safeStep = Number.isFinite(step) && step > 0 ? step : DEFAULT_VOLUME_STEP;
   return clampVolume(currentVolume + direction * safeStep);
-}
-
-export function toggleMuted(media: HTMLMediaElement): void {
-  media.muted = !media.muted;
 }
 
 export function setMediaVolume(media: HTMLMediaElement, value: number): void {
