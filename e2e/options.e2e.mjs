@@ -189,7 +189,7 @@ test("rejects decimal values even when input guards and DOM step are bypassed", 
   await seekBackward.evaluate((input) => {
     input.removeAttribute("step");
     input.value = "7.5";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new globalThis.Event("input", { bubbles: true }));
   });
   await expect(seekBackward).not.toHaveAttribute("step");
   await expect(seekBackward).toHaveValue("7.5");
