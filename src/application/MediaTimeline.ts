@@ -1,15 +1,15 @@
+import {
+  findContainingSeekableRange,
+  getSafeSeekableEnd,
+  readSeekableRanges,
+  type MediaTimeRanges
+} from "./MediaSeekableRange";
 import type { TimeDisplayMode } from "./Settings";
-
-export interface TimelineRanges {
-  readonly length: number;
-  start(index: number): number;
-  end(index: number): number;
-}
 
 export interface TimelineMedia {
   currentTime: number;
   readonly duration: number;
-  readonly seekable: TimelineRanges;
+  readonly seekable: MediaTimeRanges;
 }
 
 export interface MediaTimelineState {
@@ -19,24 +19,26 @@ export interface MediaTimelineState {
   readonly current: number;
 }
 
-const EDGE_GUARD_SECONDS = 0.5;
-
 export function getMediaTimelineState(media: TimelineMedia): MediaTimelineState | null {
-  const ranges = readRanges(media.seekable);
-  const range = ranges.find(([start, end]) => media.currentTime >= start && media.currentTime <= end) ?? ranges.at(-1);
+  const ranges = readSeekableRanges(media.seekable).filter((range) => range.end > range.start);
+  const range = findContainingSeekableRange(media.currentTime, ranges) ?? ranges.at(-1);
 
-  if (range !== undefined) {
-    const [start, end] = range;
+  if (range !== undefined && range !== null) {
     return {
-      start,
-      end,
-      safeEnd: end - start > EDGE_GUARD_SECONDS ? end - EDGE_GUARD_SECONDS : end,
-      current: clamp(media.currentTime, start, end)
+      start: range.start,
+      end: range.end,
+      safeEnd: getSafeSeekableEnd(range),
+      current: clamp(media.currentTime, range.start, range.end)
     };
   }
 
   if (Number.isFinite(media.duration) && media.duration > 0) {
-    return { start: 0, end: media.duration, safeEnd: media.duration, current: clamp(media.currentTime, 0, media.duration) };
+    return {
+      start: 0,
+      end: media.duration,
+      safeEnd: media.duration,
+      current: clamp(media.currentTime, 0, media.duration)
+    };
   }
 
   return null;
@@ -78,18 +80,6 @@ export function formatTimelineTimeDisplay(
 
 export function getNextTimeDisplayMode(mode: TimeDisplayMode): TimeDisplayMode {
   return mode === "elapsed" ? "remaining" : "elapsed";
-}
-
-function readRanges(ranges: TimelineRanges): Array<readonly [number, number]> {
-  const result: Array<readonly [number, number]> = [];
-
-  for (let index = 0; index < ranges.length; index += 1) {
-    const start = ranges.start(index);
-    const end = ranges.end(index);
-    if (Number.isFinite(start) && Number.isFinite(end) && end > start) result.push([start, end]);
-  }
-
-  return result;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
