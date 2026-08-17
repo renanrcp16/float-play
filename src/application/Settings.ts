@@ -16,6 +16,8 @@ export interface FloatPlaySettings {
   readonly timeDisplayMode: TimeDisplayMode;
 }
 
+export type FloatPlaySettingsPatch = Partial<Omit<FloatPlaySettings, "schemaVersion">>;
+
 export const DEFAULT_SETTINGS: FloatPlaySettings = {
   schemaVersion: SETTINGS_SCHEMA_VERSION,
   seekBackwardSeconds: DEFAULT_SEEK_SECONDS,
