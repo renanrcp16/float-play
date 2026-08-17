@@ -1,5 +1,8 @@
 import { expect, test } from "./fixtures.mjs";
 
+const SETTINGS_SCHEMA_VERSION_KEY = "settings.v1.schemaVersion";
+const TIME_DISPLAY_MODE_KEY = "settings.v1.timeDisplayMode";
+
 async function openOptionsPage(context, extensionId) {
   const page = await context.newPage();
   const errors = [];
@@ -19,6 +22,26 @@ async function openOptionsPage(context, extensionId) {
   await expect(page.locator("#settings-form")).toBeVisible();
 
   return { page, errors };
+}
+
+async function setTimeDisplayMode(extensionWorker, mode) {
+  await extensionWorker.evaluate(async ({ schemaKey, timeKey, value }) => {
+    await chrome.storage.sync.set({
+      [schemaKey]: 1,
+      [timeKey]: value
+    });
+  }, {
+    schemaKey: SETTINGS_SCHEMA_VERSION_KEY,
+    timeKey: TIME_DISPLAY_MODE_KEY,
+    value: mode
+  });
+}
+
+async function getTimeDisplayMode(extensionWorker) {
+  return extensionWorker.evaluate(async (timeKey) => {
+    const stored = await chrome.storage.sync.get(timeKey);
+    return stored[timeKey];
+  }, TIME_DISPLAY_MODE_KEY);
 }
 
 test("loads the real Options Page with the current defaults", async ({ context, extensionId }) => {
@@ -83,4 +106,25 @@ test("persists supported settings and restores defaults", async ({ context, exte
   await expect(thirdOpen.page.locator("#auto-hide-delay")).toHaveValue("1");
   expect(thirdOpen.errors).toEqual([]);
   await thirdOpen.page.close();
+});
+
+test("does not overwrite the player-owned time display preference", async ({
+  context,
+  extensionId,
+  extensionWorker
+}) => {
+  await setTimeDisplayMode(extensionWorker, "remaining");
+  const { page, errors } = await openOptionsPage(context, extensionId);
+
+  await page.locator("#seek-backward").fill("9");
+  await page.locator("#save-button").click();
+  await expect(page.locator("#form-status")).toHaveAttribute("data-tone", "success");
+  await expect.poll(() => getTimeDisplayMode(extensionWorker)).toBe("remaining");
+
+  await page.locator("#reset-button").click();
+  await expect(page.locator("#form-status")).toHaveAttribute("data-tone", "success");
+  await expect.poll(() => getTimeDisplayMode(extensionWorker)).toBe("remaining");
+  expect(errors).toEqual([]);
+
+  await page.close();
 });
