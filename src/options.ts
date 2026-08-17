@@ -4,6 +4,7 @@ import {
   type OptionsFormValues
 } from "./application/OptionsForm";
 import { DEFAULT_SETTINGS, type FloatPlaySettings } from "./application/Settings";
+import { resolveSupportedLocale } from "./application/SupportedLocale";
 import { ChromeI18n } from "./infrastructure/chrome/ChromeI18n";
 import { ChromeSettingsStore } from "./infrastructure/chrome/ChromeSettingsStore";
 import { ConsoleLogger } from "./shared/Logger";
@@ -53,7 +54,7 @@ async function initialize(): Promise<void> {
 }
 
 function localizeDocument(): void {
-  document.documentElement.lang = i18n.getUiLanguage("en");
+  document.documentElement.lang = resolveSupportedLocale(i18n.getUiLanguage("en"));
   document.title = i18n.getMessage("optionsPageTitle", "FloatPlay Settings");
 
   for (const element of document.querySelectorAll<HTMLElement>("[data-i18n]")) {
