@@ -67,7 +67,7 @@ test("loads the real branded Options Page with trusted project links", async ({ 
   await expect(sourceLink).toHaveAttribute("rel", "noopener noreferrer");
 
   const brandStyles = await page.evaluate(() => {
-    const styles = getComputedStyle(document.documentElement);
+    const styles = globalThis.getComputedStyle(globalThis.document.documentElement);
     return {
       main: styles.getPropertyValue("--brand-main").trim().toLowerCase(),
       auxiliary: styles.getPropertyValue("--brand-aux").trim().toLowerCase(),
