@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
+import type { MediaTimeRanges } from "./MediaSeekableRange";
 import {
   formatMediaTime,
   formatTimelineTimeDisplay,
   getMediaTimelineState,
   getNextTimeDisplayMode,
-  seekTimelineTo,
-  type TimelineRanges
+  seekTimelineTo
 } from "./MediaTimeline";
 
-function ranges(entries: ReadonlyArray<readonly [number, number]>): TimelineRanges {
+function ranges(entries: ReadonlyArray<readonly [number, number]>): MediaTimeRanges {
   return {
     length: entries.length,
     start: (index) => entries[index]?.[0] ?? Number.NaN,
@@ -28,7 +28,13 @@ describe("getMediaTimelineState", () => {
   });
 
   it("uses the seekable range containing current playback", () => {
-    expect(getMediaTimelineState({ currentTime: 25, duration: 100, seekable: ranges([[0, 10], [20, 40]]) })).toEqual({
+    expect(
+      getMediaTimelineState({
+        currentTime: 25,
+        duration: 100,
+        seekable: ranges([[0, 10], [20, 40]])
+      })
+    ).toEqual({
       start: 20,
       end: 40,
       safeEnd: 39.5,
@@ -37,11 +43,38 @@ describe("getMediaTimelineState", () => {
   });
 
   it("falls back to the latest valid seekable range", () => {
-    expect(getMediaTimelineState({ currentTime: 15, duration: 100, seekable: ranges([[0, 10], [20, 40]]) })?.start).toBe(20);
+    expect(
+      getMediaTimelineState({
+        currentTime: 15,
+        duration: 100,
+        seekable: ranges([[0, 10], [20, 40]])
+      })?.start
+    ).toBe(20);
+  });
+
+  it("ignores invalid and zero-length ranges for the timeline", () => {
+    expect(
+      getMediaTimelineState({
+        currentTime: 25,
+        duration: Number.POSITIVE_INFINITY,
+        seekable: ranges([[20, 10], [15, 15], [20, 40]])
+      })
+    ).toEqual({
+      start: 20,
+      end: 40,
+      safeEnd: 39.5,
+      current: 25
+    });
   });
 
   it("returns null when no timeline can be determined", () => {
-    expect(getMediaTimelineState({ currentTime: 0, duration: Number.POSITIVE_INFINITY, seekable: ranges([]) })).toBeNull();
+    expect(
+      getMediaTimelineState({
+        currentTime: 0,
+        duration: Number.POSITIVE_INFINITY,
+        seekable: ranges([])
+      })
+    ).toBeNull();
   });
 });
 

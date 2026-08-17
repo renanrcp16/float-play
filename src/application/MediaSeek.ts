@@ -1,21 +1,17 @@
-export const DEFAULT_SEEK_SECONDS = 5;
-const LIVE_EDGE_GUARD_SECONDS = 0.5;
+import {
+  findContainingSeekableRange,
+  getSafeSeekableEnd,
+  readSeekableRanges,
+  type MediaSeekableRange,
+  type MediaTimeRanges
+} from "./MediaSeekableRange";
 
-export interface SeekableRanges {
-  readonly length: number;
-  start(index: number): number;
-  end(index: number): number;
-}
+export const DEFAULT_SEEK_SECONDS = 5;
 
 export interface SeekMedia {
   currentTime: number;
   readonly duration: number;
-  readonly seekable: SeekableRanges;
-}
-
-interface SeekRange {
-  readonly start: number;
-  readonly end: number;
+  readonly seekable: MediaTimeRanges;
 }
 
 export function seekBy(media: SeekMedia, deltaSeconds: number): boolean {
@@ -32,7 +28,7 @@ export function seekBy(media: SeekMedia, deltaSeconds: number): boolean {
 export function calculateSeekTarget(
   currentTime: number,
   deltaSeconds: number,
-  seekable: SeekableRanges,
+  seekable: MediaTimeRanges,
   duration: number
 ): number | null {
   if (!Number.isFinite(currentTime) || !Number.isFinite(deltaSeconds) || deltaSeconds === 0) {
@@ -40,16 +36,16 @@ export function calculateSeekTarget(
   }
 
   const requestedTime = currentTime + deltaSeconds;
-  const ranges = readSeekRanges(seekable);
+  const ranges = readSeekableRanges(seekable);
 
   if (ranges.length > 0) {
-    const activeRange = findContainingRange(currentTime, ranges);
+    const activeRange = findContainingSeekableRange(currentTime, ranges);
 
     if (activeRange !== null) {
       return clampWithinRange(requestedTime, deltaSeconds, activeRange);
     }
 
-    const requestedRange = findContainingRange(requestedTime, ranges);
+    const requestedRange = findContainingSeekableRange(requestedTime, ranges);
 
     if (requestedRange !== null) {
       return clampWithinRange(requestedTime, deltaSeconds, requestedRange);
@@ -64,7 +60,7 @@ export function calculateSeekTarget(
       const range = ranges[index];
 
       if (range !== undefined && range.end < currentTime) {
-        return getGuardedRangeEnd(range);
+        return getSafeSeekableEnd(range);
       }
     }
 
@@ -78,40 +74,13 @@ export function calculateSeekTarget(
   return null;
 }
 
-function readSeekRanges(seekable: SeekableRanges): SeekRange[] {
-  const ranges: SeekRange[] = [];
-
-  for (let index = 0; index < seekable.length; index += 1) {
-    const start = seekable.start(index);
-    const end = seekable.end(index);
-
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
-      continue;
-    }
-
-    ranges.push({ start, end });
-  }
-
-  return ranges;
-}
-
-function findContainingRange(time: number, ranges: readonly SeekRange[]): SeekRange | null {
-  return ranges.find((range) => time >= range.start && time <= range.end) ?? null;
-}
-
-function clampWithinRange(requestedTime: number, deltaSeconds: number, range: SeekRange): number {
-  const maximum = deltaSeconds > 0 ? getGuardedRangeEnd(range) : range.end;
+function clampWithinRange(
+  requestedTime: number,
+  deltaSeconds: number,
+  range: MediaSeekableRange
+): number {
+  const maximum = deltaSeconds > 0 ? getSafeSeekableEnd(range) : range.end;
   return clamp(requestedTime, range.start, maximum);
-}
-
-function getGuardedRangeEnd(range: SeekRange): number {
-  const rangeLength = range.end - range.start;
-
-  if (rangeLength <= LIVE_EDGE_GUARD_SECONDS) {
-    return range.end;
-  }
-
-  return range.end - LIVE_EDGE_GUARD_SECONDS;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {

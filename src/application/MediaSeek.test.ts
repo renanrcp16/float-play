@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { calculateSeekTarget, seekBy, type SeekableRanges } from "./MediaSeek";
+import { calculateSeekTarget, seekBy } from "./MediaSeek";
+import type { MediaTimeRanges } from "./MediaSeekableRange";
 
-function createRanges(entries: ReadonlyArray<readonly [number, number]>): SeekableRanges {
+function createRanges(entries: ReadonlyArray<readonly [number, number]>): MediaTimeRanges {
   return {
     length: entries.length,
     start: (index) => {
@@ -49,6 +50,17 @@ describe("calculateSeekTarget", () => {
 
   it("uses the previous valid range conservatively when seeking backward from a gap", () => {
     expect(calculateSeekTarget(15, -1, createRanges([[0, 10], [20, 30]]), 30)).toBe(9.5);
+  });
+
+  it("ignores invalid ranges before selecting a safe target", () => {
+    expect(
+      calculateSeekTarget(
+        25,
+        10,
+        createRanges([[20, 10], [20, 40]]),
+        Number.POSITIVE_INFINITY
+      )
+    ).toBe(35);
   });
 
   it("falls back to finite duration when no seekable range exists", () => {
