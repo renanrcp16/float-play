@@ -15,9 +15,10 @@ The v1 release manifest is intentionally allowlisted. `pnpm verify:release` must
 The approved v1 contract currently requires:
 
 - Manifest V3;
-- minimum Chrome version 116;
+- minimum Chrome version 130 so the supported baseline includes the complete reviewed Document Picture-in-Picture option set used by FloatPlay;
 - the single explicit permission `storage`;
-- no `host_permissions`, `optional_permissions`, `optional_host_permissions`, `externally_connectable`, or sandbox pages;
+- no `host_permissions`, `optional_permissions`, `optional_host_permissions`, or sandbox pages;
+- an explicit `externally_connectable` policy with an empty extension-ID allowlist and no web-page match patterns, so external extension/page messaging is closed by manifest policy;
 - exactly two YouTube content scripts on the approved `youtube.com` origins, with the approved script files, execution worlds, and `run_at` values;
 - the service worker `service-worker.js`;
 - the full-page Options Page `options.html`;
@@ -25,7 +26,7 @@ The approved v1 contract currently requires:
 - an explicit extension-page Content Security Policy of `default-src 'self'`;
 - the approved extension icon set and locale metadata.
 
-The verifier also requires `dist/manifest.json` to match the source manifest exactly. Adding a new manifest key, permission, host scope, execution world, content script, web-accessible resource, or other capability therefore requires an intentional update to both the manifest and release contract.
+The verifier also requires `dist/manifest.json` to match the source manifest exactly. Adding a new manifest key, permission, host scope, external connection allowance, execution world, content script, web-accessible resource, or other capability therefore requires an intentional update to both the manifest and release contract.
 
 Production build output and the Chrome Web Store ZIP must not contain source maps. The Vite production entries disable source-map generation, `verify:release` rejects `.map` files in `dist/`, and the ZIP packager independently rejects `.map` entries.
 
@@ -82,7 +83,7 @@ pnpm test:e2e
 A passing E2E suite confirms the deterministic extension-owned browser flows covered by `e2e/README.md`; it does not waive the live Chrome/YouTube smoke requirement.
 
 8. Run the relevant real Chrome/YouTube smoke-test matrix from `docs/TESTING.md`. Record Chrome version, operating system, tested commit, other YouTube-modifying extensions, FloatPlay console errors, and results.
-9. Review the production manifest and confirm the release security contract above still represents the intended product. Any new capability requires review before the verifier allowlist is changed.
+9. Review the production manifest and confirm the release security contract above still represents the intended product, including the Chrome 130 baseline and explicit closed external-messaging policy. Any new capability requires review before the verifier allowlist is changed.
 10. Confirm the dependency graph and Dependabot alerts remain enabled for the repository, enable Dependabot security updates where supported, and review any current security alerts. Confirm package-version automation has not been expanded beyond GitHub's documented pnpm compatibility.
 11. Review `docs/WEB_STORE.md` and `docs/PRIVACY.md` against the current implementation and current Chrome Web Store policy before submission.
 12. From the exact commit intended for upload, create the release package:
@@ -133,9 +134,9 @@ Before upload, inspect the ZIP and confirm at minimum:
 
 The release candidate should continue to request only the access required by implemented v1 behavior.
 
-Current expected access is documented in `docs/WEB_STORE.md`. Any new permission, host scope, data handling, analytics, telemetry, remote code, backend dependency, externally connectable surface, sandbox, or additional web-accessible resource requires a fresh product/security review before release.
+Current expected access is documented in `docs/WEB_STORE.md`. Any new permission, host scope, data handling, analytics, telemetry, remote code, backend dependency, external connection allowance, sandbox, or additional web-accessible resource requires a fresh product/security review before release.
 
-The explicit extension-page CSP is part of this review. It must remain compatible with packaged local resources and must not be relaxed to permit remote executable code.
+The explicit extension-page CSP and closed external-messaging policy are part of this review. They must remain compatible with packaged local resources and internal extension behavior and must not be relaxed to permit remote executable code or unreviewed external messaging.
 
 ## Final release gate
 
@@ -150,7 +151,7 @@ Do not upload a release candidate until all of the following are true:
 - the generated ZIP has been inspected and contains no source maps or unexpected files;
 - dependency graph and Dependabot alerts are enabled, supported security-update automation is enabled, and current repository security alerts have been reviewed;
 - permission and privacy disclosures match the shipped manifest and runtime behavior;
-- the explicit CSP and Manifest allowlist match the reviewed v1 architecture;
+- the Chrome 130 minimum, explicit CSP, explicit external-messaging policy, and Manifest allowlist match the reviewed v1 architecture;
 - listing copy matches implemented functionality;
 - required store images and public URLs are ready;
 - the privacy policy is publicly accessible at the URL supplied to the Chrome Web Store;
