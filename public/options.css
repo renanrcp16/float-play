@@ -163,9 +163,23 @@ h1 {
   font-weight: 650;
 }
 
-.field-help {
+.field-group:has(input[aria-invalid="true"]) > label {
+  color: var(--danger);
+}
+
+.field-help,
+.field-error {
   font-size: 12px;
   line-height: 1.45;
+}
+
+.field-error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.field-error:empty {
+  display: none;
 }
 
 .input-with-unit {
@@ -187,6 +201,16 @@ h1 {
 .input-with-unit:focus-within {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+.input-with-unit:has(input[aria-invalid="true"]) {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger);
+}
+
+.input-with-unit:has(input[aria-invalid="true"]):focus-within {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 55%, transparent);
 }
 
 .input-with-unit:has(input:disabled) {
