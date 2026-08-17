@@ -1,22 +1,42 @@
 # FloatPlay
 
-FloatPlay is a Chrome extension that enhances YouTube Picture-in-Picture with better playback controls, a minimal interface, and a robust, privacy-first architecture.
+FloatPlay is a Chrome extension that enhances YouTube Picture-in-Picture with a compact Document Picture-in-Picture player, richer playback controls, and a local-first, privacy-conscious architecture.
 
 ## Status
 
-FloatPlay is currently in early development. The first milestone validates the core Document Picture-in-Picture integration before the production player UI is implemented.
+FloatPlay is in final v1.0.0 release hardening.
+
+The production player, YouTube trigger and first-use guidance, Options Page, English/Brazilian Portuguese localization, deterministic release packaging, and core Chrome/YouTube smoke coverage are implemented. Remaining pre-release work is tracked in the repository issues and release checklist; the public version must not be promoted to `1.0.0` until those gates are complete.
+
+## Highlights
+
+- Document Picture-in-Picture mini player for supported YouTube watch pages.
+- Play/Pause, configurable seeking, timeline, volume/mute, playback speed, keyboard shortcuts, and auto-hide controls.
+- Icon-only YouTube entry point with one-time onboarding guidance.
+- Full Options Page with synchronized preferences and English/Brazilian Portuguese localization.
+- No FloatPlay backend, analytics, telemetry, authentication, or unrelated host access.
+- Manifest V3 with a deliberately small permission and release-artifact surface.
 
 ## Documentation
 
 - [Product requirements](docs/PRD.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Testing](docs/TESTING.md)
+- [Release readiness](docs/RELEASE.md)
+- [Chrome Web Store preparation](docs/WEB_STORE.md)
+- [Privacy policy](docs/PRIVACY.md)
 - [Contributing](CONTRIBUTING.md)
 - [Agent instructions](AGENTS.md)
 
 ## Development
 
-Development setup, validation commands, Git workflow, and contribution requirements are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+Development setup, validation commands, CI expectations, Git workflow, and contribution requirements are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+The canonical local validation command is:
+
+```bash
+pnpm validate
+```
 
 ## License
 
