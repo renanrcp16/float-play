@@ -127,7 +127,9 @@ Dependency and Chrome permission decisions are governed by `docs/ARCHITECTURE.md
 
 A new dependency or permission must solve a concrete requirement. Do not add either speculatively. Dependency version changes must be intentional and reviewed; do not rely on broad version ranges as a substitute for the lockfiles.
 
-`.github/dependabot.yml` monitors the root dependency tree, the isolated `e2e/` dependency tree, and GitHub Actions for version updates. Repository administrators must also keep the GitHub dependency graph, Dependabot alerts, and Dependabot security updates enabled under the repository's Advanced Security settings so known vulnerable dependencies generate repository alerts and security update pull requests.
+`.github/dependabot.yml` monitors GitHub Actions for weekly version updates. The repository currently uses pnpm 11, while GitHub's documented Dependabot package-manager support currently stops at pnpm 10. Root and `e2e/` package updates must therefore remain intentionally reviewed rather than relying on a Dependabot configuration that is not documented as compatible. The CI `Dependency audit` job and `pnpm audit:dependencies` cover known high/critical advisories in both pnpm dependency trees; revisit package-version automation when GitHub documents pnpm 11 support.
+
+Repository administrators must also keep the GitHub dependency graph and Dependabot alerts enabled under the repository's Advanced Security settings. Enable Dependabot security updates where GitHub supports the repository's current dependency ecosystem; do not assume that this replaces the pnpm audit gate.
 
 ## Release preparation
 
