@@ -53,7 +53,13 @@ async function initialize(): Promise<void> {
     clearStatus(controls);
   });
 
-  controls.form.addEventListener("input", () => clearStatus(controls));
+  controls.form.addEventListener("input", (event) => {
+    if (event.target instanceof HTMLInputElement) {
+      event.target.removeAttribute("aria-invalid");
+    }
+
+    clearStatus(controls);
+  });
   controls.form.addEventListener("submit", (event) => {
     event.preventDefault();
     void saveSettings(controls);
@@ -104,6 +110,14 @@ function applySettings(controls: OptionsControls, settings: FloatPlaySettings): 
 function readFormValues(controls: OptionsControls): OptionsFormValues | null {
   applyCanonicalNumericConstraints(controls);
   updateAutoHideState(controls);
+
+  const invalidInput = findInvalidNumericInput(controls);
+
+  if (invalidInput !== null) {
+    invalidInput.setAttribute("aria-invalid", "true");
+    invalidInput.focus();
+    return null;
+  }
 
   if (!controls.form.reportValidity()) {
     return null;
@@ -175,6 +189,7 @@ async function resetSettings(controls: OptionsControls): Promise<void> {
     });
     applySettings(controls, DEFAULT_SETTINGS);
     applyCanonicalNumericConstraints(controls);
+    clearNumericInvalidState(controls);
     updateAutoHideState(controls);
     setStatus(
       controls,
@@ -194,12 +209,7 @@ async function resetSettings(controls: OptionsControls): Promise<void> {
 }
 
 function installNumericInputGuards(controls: OptionsControls): void {
-  for (const input of [
-    controls.seekBackward,
-    controls.seekForward,
-    controls.volumeStep,
-    controls.autoHideDelay
-  ]) {
+  for (const input of numericInputs(controls)) {
     input.addEventListener("keydown", (event) => {
       if (containsUnsupportedNumberNotation(event.key)) {
         event.preventDefault();
@@ -241,6 +251,42 @@ function configureNumericInput(
   input.max = formatNumber(maximum);
   input.step = formatNumber(step);
   input.required = true;
+}
+
+function findInvalidNumericInput(controls: OptionsControls): HTMLInputElement | null {
+  clearNumericInvalidState(controls);
+
+  const constraints: ReadonlyArray<readonly [HTMLInputElement, number, number]> = [
+    [controls.seekBackward, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS],
+    [controls.seekForward, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS],
+    [controls.volumeStep, MIN_VOLUME_STEP * 100, MAX_VOLUME_STEP * 100],
+    [controls.autoHideDelay, MIN_AUTO_HIDE_DELAY_MS / 1000, MAX_AUTO_HIDE_DELAY_MS / 1000]
+  ];
+
+  for (const [input, minimum, maximum] of constraints) {
+    const value = input.valueAsNumber;
+
+    if (!Number.isInteger(value) || value < minimum || value > maximum) {
+      return input;
+    }
+  }
+
+  return null;
+}
+
+function numericInputs(controls: OptionsControls): readonly HTMLInputElement[] {
+  return [
+    controls.seekBackward,
+    controls.seekForward,
+    controls.volumeStep,
+    controls.autoHideDelay
+  ];
+}
+
+function clearNumericInvalidState(controls: OptionsControls): void {
+  for (const input of numericInputs(controls)) {
+    input.removeAttribute("aria-invalid");
+  }
 }
 
 function containsUnsupportedNumberNotation(value: string): boolean {

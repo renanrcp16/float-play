@@ -165,8 +165,8 @@ test("restores canonical numeric constraints before saving", async ({
   await expect(seekBackward).toHaveAttribute("max", "600");
   await expect(seekBackward).toHaveAttribute("step", "1");
   await expect(page.locator("#form-status")).toHaveAttribute("data-tone", "error");
+  await expect(seekBackward).toHaveAttribute("aria-invalid", "true");
   await expect(seekBackward).toBeFocused();
-  expect(await seekBackward.evaluate((input) => input.validity.rangeOverflow)).toBe(true);
 
   const storedSeek = await extensionWorker.evaluate(async (key) => {
     const stored = await chrome.storage.sync.get(key);
@@ -178,7 +178,7 @@ test("restores canonical numeric constraints before saving", async ({
   await page.close();
 });
 
-test("rejects decimal values even when the DOM step is removed", async ({
+test("rejects decimal values even when input guards and DOM step are bypassed", async ({
   context,
   extensionId,
   extensionWorker
@@ -188,16 +188,18 @@ test("rejects decimal values even when the DOM step is removed", async ({
 
   await seekBackward.evaluate((input) => {
     input.removeAttribute("step");
+    input.value = "7.5";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
   });
   await expect(seekBackward).not.toHaveAttribute("step");
+  await expect(seekBackward).toHaveValue("7.5");
 
-  await seekBackward.fill("7.5");
   await page.locator("#save-button").click();
 
   await expect(seekBackward).toHaveAttribute("step", "1");
   await expect(page.locator("#form-status")).toHaveAttribute("data-tone", "error");
+  await expect(seekBackward).toHaveAttribute("aria-invalid", "true");
   await expect(seekBackward).toBeFocused();
-  expect(await seekBackward.evaluate((input) => input.validity.stepMismatch)).toBe(true);
 
   const storedSeek = await extensionWorker.evaluate(async (key) => {
     const stored = await chrome.storage.sync.get(key);
