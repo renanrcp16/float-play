@@ -27,7 +27,7 @@
     "test:e2e": "pnpm build && pnpm --dir e2e test",
     "typecheck": "tsc --noEmit",
     "validate": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "verify:release": "pnpm build && node scripts/verify-release.mjs"
+    "verify:release": "pnpm build && node scripts/verify-release.mjs && node scripts/verify-png-icons.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
