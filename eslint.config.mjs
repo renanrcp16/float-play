@@ -11,6 +11,15 @@ export default defineConfig(
     extends: [eslint.configs.recommended]
   },
   {
+    files: ["e2e/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        chrome: "readonly",
+        document: "readonly"
+      }
+    }
+  },
+  {
     files: ["src/**/*.ts"],
     extends: [eslint.configs.recommended, tseslint.configs.recommendedTypeChecked],
     languageOptions: {
