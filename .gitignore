@@ -7,3 +7,12 @@ artifacts/
 .DS_Store
 *.log
 floatplay-*.zip
+
+# Local environment and credential material
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx

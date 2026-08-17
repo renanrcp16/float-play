@@ -27,6 +27,8 @@ Use these public URLs in the Chrome Web Store dashboard:
 
 The privacy-policy URL points to the policy version tracked with the `main` branch. Keep the document synchronized with every release that changes data handling.
 
+The support URL is a public issue tracker. Users must not be asked to post personal, sensitive, account, authentication, payment, or other private information there. Privacy requests that require private information should first request a private contact channel using the maintainer contact information available from the maintainer's GitHub profile.
+
 ## Single purpose
 
 FloatPlay enhances YouTube Picture-in-Picture with a compact mini player and richer playback controls while keeping operation local-first and limited to supported YouTube watch experiences.
@@ -84,7 +86,7 @@ FloatPlay handles only data required to provide its disclosed single purpose.
 
 While the extension is active on YouTube, it reads media and page state needed for playback behavior, such as playback time, paused state, volume, mute state, playback rate, seekable ranges, active media identity, and supported-route/DOM context.
 
-This state is processed inside the browser to provide the mini player and is not retained by FloatPlay as a watch-history database.
+This state is processed inside the browser to provide the mini player. FloatPlay does not retain, build, or transmit its own database of YouTube watch history; it processes the current supported page and media state only as needed for FloatPlay features.
 
 The same-page playback bridge receives only the requested playback action and its value. That communication stays inside the active YouTube tab and is not transmitted to FloatPlay infrastructure.
 
@@ -125,7 +127,7 @@ Main features:
 - First-use guidance that points users to the FloatPlay trigger without adding permanent visible text to YouTube.
 - Continuity across supported YouTube SPA navigation and playlist progression when the browser/media lifecycle allows it.
 
-FloatPlay is designed for Google Chrome Desktop 130 or later and supported YouTube watch pages. It does not block ads, download videos, collect watch history, or require a FloatPlay account.
+FloatPlay is designed for Google Chrome Desktop 130 or later and supported YouTube watch pages. It does not block ads, download videos, or require a FloatPlay account. Current supported YouTube page and media state is processed locally only to provide FloatPlay features; FloatPlay does not retain, build, or transmit its own YouTube watch-history database.
 
 ## Store listing — Brazilian Portuguese
 
@@ -150,7 +152,7 @@ Principais recursos:
 - Orientação de primeira utilização que indica onde encontrar o botão do FloatPlay sem adicionar texto permanente ao YouTube.
 - Continuidade durante navegação SPA e avanço de playlists compatíveis quando o ciclo de vida do navegador e da mídia permitir.
 
-O FloatPlay foi projetado para Google Chrome Desktop 130 ou superior e páginas compatíveis de vídeos do YouTube. Ele não bloqueia anúncios, não baixa vídeos, não coleta histórico de reprodução e não exige uma conta FloatPlay.
+O FloatPlay foi projetado para Google Chrome Desktop 130 ou superior e páginas compatíveis de vídeos do YouTube. Ele não bloqueia anúncios, não baixa vídeos e não exige uma conta FloatPlay. O estado atual da página e da mídia compatível do YouTube é processado localmente apenas para fornecer os recursos do FloatPlay; o FloatPlay não mantém, cria nem transmite seu próprio banco de histórico de vídeos assistidos no YouTube.
 
 ## Store asset inventory
 
@@ -198,7 +200,7 @@ Immediately before submission, verify that:
 - the Chrome 130 baseline, approved manifest allowlist, explicit CSP, and explicit closed external-messaging policy match the reviewed v1 security posture;
 - privacy disclosures describe all data handling, including local media/page processing, Chrome storage sync, the device-local onboarding flag, and the same-tab playback synchronization bridge;
 - the public privacy-policy URL works;
-- the support URL works;
+- the support URL works and public support guidance does not ask users to disclose private information;
 - listing text and screenshots match the submitted version;
 - no unsupported claims, rankings, badges, or comparative marketing have been added;
 - the ZIP contains `manifest.json` at its root and contains no source maps or unexpected repository artifacts.
