@@ -43,11 +43,12 @@
                   max="600"
                   step="1"
                   required
-                  aria-describedby="seek-backward-help"
+                  aria-describedby="seek-backward-help seek-backward-error"
                 />
                 <span class="field-unit" data-i18n="optionsSecondsUnit">seconds</span>
               </div>
               <p id="seek-backward-help" class="field-help" data-i18n="optionsSeekBackwardDescription">Used when you go back from the player or press Left Arrow.</p>
+              <p id="seek-backward-error" class="field-error" aria-live="polite"></p>
             </div>
 
             <div class="field-group">
@@ -62,11 +63,12 @@
                   max="600"
                   step="1"
                   required
-                  aria-describedby="seek-forward-help"
+                  aria-describedby="seek-forward-help seek-forward-error"
                 />
                 <span class="field-unit" data-i18n="optionsSecondsUnit">seconds</span>
               </div>
               <p id="seek-forward-help" class="field-help" data-i18n="optionsSeekForwardDescription">Used when you go forward from the player or press Right Arrow.</p>
+              <p id="seek-forward-error" class="field-error" aria-live="polite"></p>
             </div>
 
             <div class="field-group">
@@ -81,11 +83,12 @@
                   max="100"
                   step="1"
                   required
-                  aria-describedby="volume-step-help"
+                  aria-describedby="volume-step-help volume-step-error"
                 />
                 <span class="field-unit">%</span>
               </div>
               <p id="volume-step-help" class="field-help" data-i18n="optionsVolumeStepDescription">How much the volume changes at a time with the wheel or Up/Down Arrow.</p>
+              <p id="volume-step-error" class="field-error" aria-live="polite"></p>
             </div>
           </div>
         </section>
@@ -117,11 +120,12 @@
                   max="60"
                   step="1"
                   required
-                  aria-describedby="auto-hide-delay-help"
+                  aria-describedby="auto-hide-delay-help auto-hide-delay-error"
                 />
                 <span class="field-unit" data-i18n="optionsSecondsUnit">seconds</span>
               </div>
               <p id="auto-hide-delay-help" class="field-help" data-i18n="optionsAutoHideDelayDescription">Time without interaction before the controls disappear.</p>
+              <p id="auto-hide-delay-error" class="field-error" aria-live="polite"></p>
             </div>
           </div>
         </section>
