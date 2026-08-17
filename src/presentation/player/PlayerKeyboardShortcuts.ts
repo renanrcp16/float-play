@@ -5,12 +5,12 @@ import {
 import { togglePlayback } from "../../application/MediaPlayback";
 import { seekBy } from "../../application/MediaSeek";
 import { adjustVolume, setMediaVolume } from "../../application/MediaVolume";
+import type { VolumeMirror } from "../../application/MediaVolume";
 import {
   setMediaPlaybackRate,
   type PlaybackRateMirror
 } from "../../application/PlaybackSpeed";
 import { getDisplayedVolume, resolveVolumeInput } from "../../application/VolumeSemantics";
-import type { VolumeMirror } from "../../application/VolumeController";
 import type { Logger } from "../../shared/Logger";
 import { isInteractiveElementTarget } from "../InteractiveElement";
 
