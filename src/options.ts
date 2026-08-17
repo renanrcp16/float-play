@@ -78,6 +78,10 @@ async function initialize(): Promise<void> {
 
     clearStatus(controls);
   });
+  controls.saveButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    void saveSettings(controls);
+  });
   controls.form.addEventListener("submit", (event) => {
     event.preventDefault();
     void saveSettings(controls);
