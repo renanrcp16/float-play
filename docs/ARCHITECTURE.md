@@ -89,6 +89,8 @@ The MAIN-world bridge exists only because YouTube maintains player state in its 
 
 The bridge is a typed source file under `src/infrastructure/youtube/` and is built into `youtube-player-main.js`. It is not an untracked public JavaScript artifact.
 
+`YouTubePlayerBridgeProtocol.ts` is the single source of truth for the bridge channel, the three message shapes, outgoing message normalization, and incoming message parsing. Both the isolated-world adapter and the MAIN-world build entry compile against this same protocol module so their accepted/sent contract cannot drift independently.
+
 The bridge:
 
 - listens only for same-window, same-origin `window.postMessage` events;
@@ -284,7 +286,7 @@ A presentation framework should be introduced only if future complexity creates 
 
 Testing is layered:
 
-- unit tests for deterministic calculations, normalization, and playback rules;
+- unit tests for deterministic calculations, normalization, protocol parsing, and playback rules;
 - browser E2E for extension-owned deterministic surfaces;
 - real Chrome/YouTube smoke tests for live YouTube DOM, MAIN-world synchronization, Document PiP lifecycle, SPA navigation, playlists, live streams, and other browser-owned behavior.
 

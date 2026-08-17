@@ -1,3 +1,10 @@
+import {
+  createMutedBridgeMessage,
+  createPlaybackRateBridgeMessage,
+  createVolumeBridgeMessage,
+  type YouTubePlayerBridgeMessage
+} from "./YouTubePlayerBridgeProtocol";
+
 interface PageLocation {
   readonly hostname: string;
   readonly pathname: string;
@@ -6,14 +13,6 @@ interface PageLocation {
 export interface YouTubeTriggerAnchor {
   readonly parent: HTMLElement;
   readonly after: ChildNode;
-}
-
-interface YouTubePlayerMessage {
-  readonly channel: "floatplay:youtube-player";
-  readonly type: "set-volume" | "set-muted" | "set-playback-rate";
-  readonly volume?: number;
-  readonly muted?: boolean;
-  readonly playbackRate?: number;
 }
 
 interface ViewportRect {
@@ -63,38 +62,26 @@ export class YouTubeAdapter {
   }
 
   public setVolume(volume: number): void {
-    if (!Number.isFinite(volume)) {
-      return;
-    }
+    const message = createVolumeBridgeMessage(volume);
 
-    this.postPlayerMessage({
-      channel: "floatplay:youtube-player",
-      type: "set-volume",
-      volume: Math.min(1, Math.max(0, volume))
-    });
+    if (message !== null) {
+      this.postPlayerMessage(message);
+    }
   }
 
   public setMuted(muted: boolean): void {
-    this.postPlayerMessage({
-      channel: "floatplay:youtube-player",
-      type: "set-muted",
-      muted
-    });
+    this.postPlayerMessage(createMutedBridgeMessage(muted));
   }
 
   public setPlaybackRate(playbackRate: number): void {
-    if (!Number.isFinite(playbackRate) || playbackRate <= 0) {
-      return;
-    }
+    const message = createPlaybackRateBridgeMessage(playbackRate);
 
-    this.postPlayerMessage({
-      channel: "floatplay:youtube-player",
-      type: "set-playback-rate",
-      playbackRate
-    });
+    if (message !== null) {
+      this.postPlayerMessage(message);
+    }
   }
 
-  private postPlayerMessage(message: YouTubePlayerMessage): void {
+  private postPlayerMessage(message: YouTubePlayerBridgeMessage): void {
     window.postMessage(message, window.location.origin);
   }
 
