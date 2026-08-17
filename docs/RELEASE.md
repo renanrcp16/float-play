@@ -29,27 +29,59 @@ The verifier also requires `dist/manifest.json` to match the source manifest exa
 
 Production build output and the Chrome Web Store ZIP must not contain source maps. The Vite production entries disable source-map generation, `verify:release` rejects `.map` files in `dist/`, and the ZIP packager independently rejects `.map` entries.
 
+## CI and dependency security
+
+Pull requests targeting `main` and pushes to `main` are checked by `.github/workflows/ci.yml`.
+
+The workflow provides three independent signals:
+
+- `Validate` runs the canonical project gate and release-manifest verifier using the committed root lockfile.
+- `Dependency audit` audits both the root and isolated `e2e/` dependency trees for known high or critical vulnerabilities.
+- `Browser E2E` installs Playwright Chromium on the GitHub runner and executes the deterministic extension-owned E2E suite using both committed lockfiles.
+
+CI uses `--frozen-lockfile` and must never rewrite dependency resolution as part of validation.
+
+`.github/dependabot.yml` monitors GitHub Actions for weekly version updates. FloatPlay currently uses pnpm 11, while GitHub's documented Dependabot package-manager support currently stops at pnpm 10. Root and `e2e/` package version updates therefore remain intentionally reviewed rather than relying on an unsupported Dependabot configuration. Revisit this boundary when GitHub documents pnpm 11 support.
+
+Repository administrators must keep the GitHub dependency graph and Dependabot alerts enabled under repository Advanced Security settings. Enable Dependabot security updates where GitHub supports the repository's current dependency ecosystem. These repository-level settings are part of the release security posture even though they are not stored in the Git tree, and they do not replace the pnpm audit gate.
+
+Immediately before a release candidate is packaged, run the explicit dependency audit locally as well:
+
+```bash
+pnpm audit:dependencies
+```
+
+A high or critical advisory must be resolved or explicitly reviewed before release. Do not suppress an advisory merely to make the gate pass.
+
 ## Release candidate checklist
 
 1. Start from an up-to-date `main` branch with a clean working tree.
 2. Confirm the intended version in both `package.json` and `public/manifest.json`.
 3. Install dependencies from the committed lockfiles.
-4. Run the deterministic project gate:
+4. Confirm the latest CI run for the exact candidate commit is green for Validate, Dependency audit, and Browser E2E.
+5. Run the deterministic project gate locally:
 
 ```bash
 pnpm validate
 ```
 
-5. Run the browser-level extension-owned E2E suite:
+6. Run the dependency security audit:
+
+```bash
+pnpm audit:dependencies
+```
+
+7. Run the browser-level extension-owned E2E suite:
 
 ```bash
 pnpm test:e2e
 ```
 
-6. Run the relevant real Chrome/YouTube smoke-test matrix from `docs/TESTING.md`. Record Chrome version, operating system, tested commit, other YouTube-modifying extensions, FloatPlay console errors, and results.
-7. Review the production manifest and confirm the release security contract above still represents the intended product. Any new capability requires review before the verifier allowlist is changed.
-8. Review `docs/WEB_STORE.md` and `docs/PRIVACY.md` against the current implementation and current Chrome Web Store policy before submission.
-9. From the exact commit intended for upload, create the release package:
+8. Run the relevant real Chrome/YouTube smoke-test matrix from `docs/TESTING.md`. Record Chrome version, operating system, tested commit, other YouTube-modifying extensions, FloatPlay console errors, and results.
+9. Review the production manifest and confirm the release security contract above still represents the intended product. Any new capability requires review before the verifier allowlist is changed.
+10. Confirm the dependency graph and Dependabot alerts remain enabled for the repository, enable Dependabot security updates where supported, and review any current security alerts. Confirm package-version automation has not been expanded beyond GitHub's documented pnpm compatibility.
+11. Review `docs/WEB_STORE.md` and `docs/PRIVACY.md` against the current implementation and current Chrome Web Store policy before submission.
+12. From the exact commit intended for upload, create the release package:
 
 ```bash
 pnpm package:release
@@ -57,7 +89,7 @@ pnpm package:release
 
 This command first runs `pnpm verify:release`, which rebuilds `dist/`, verifies package/manifest version synchronization, asserts the complete approved v1 manifest security allowlist, confirms source and built manifests match, rejects production source maps, and confirms that manifest-referenced extension files and required locales exist. It then creates a deterministic `floatplay-<version>.zip` archive from the verified `dist/` contents.
 
-10. Inspect the generated ZIP before upload.
+13. Inspect the generated ZIP before upload.
 
 ## Create the Chrome Web Store ZIP
 
@@ -105,11 +137,14 @@ The explicit extension-page CSP is part of this review. It must remain compatibl
 
 Do not upload a release candidate until all of the following are true:
 
+- CI is green for the exact candidate commit;
 - `pnpm validate` passes;
+- `pnpm audit:dependencies` reports no unresolved high or critical advisory;
 - `pnpm test:e2e` passes;
 - `pnpm package:release` completes successfully, including the embedded manifest/security verification;
 - required real Chrome/YouTube smoke tests pass;
 - the generated ZIP has been inspected and contains no source maps or unexpected files;
+- dependency graph and Dependabot alerts are enabled, supported security-update automation is enabled, and current repository security alerts have been reviewed;
 - permission and privacy disclosures match the shipped manifest and runtime behavior;
 - the explicit CSP and Manifest allowlist match the reviewed v1 architecture;
 - listing copy matches implemented functionality;

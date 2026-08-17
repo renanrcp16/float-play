@@ -30,7 +30,7 @@ Install dependencies with:
 pnpm install
 ```
 
-The generated `pnpm-lock.yaml` is part of the repository's reproducibility contract and must be committed. Do not delete or regenerate the lockfile merely to bypass dependency or policy failures; investigate the underlying cause instead.
+The generated `pnpm-lock.yaml` is part of the repository's reproducibility contract and must be committed. The isolated `e2e/pnpm-lock.yaml` is equally authoritative for the Playwright package. Do not delete or regenerate either lockfile merely to bypass dependency or policy failures; investigate the underlying cause instead.
 
 ## Development workflow
 
@@ -75,6 +75,22 @@ pnpm validate
 
 It runs linting, TypeScript type checking, automated tests, and the production build.
 
+GitHub Actions runs automated gates on pull requests targeting `main` and pushes to `main`:
+
+- `Validate` installs the root dependencies with `--frozen-lockfile`, runs `pnpm validate`, and runs `pnpm verify:release`.
+- `Dependency audit` installs both locked dependency trees and runs `pnpm audit:dependencies`, failing for known high or critical advisories.
+- `Browser E2E` installs the root and isolated E2E lockfiles, installs Playwright Chromium with its Linux dependencies, and runs `pnpm test:e2e`.
+
+CI uses Node.js 22.12.0 and Corepack so the pnpm version is resolved from the repository's `packageManager` field rather than silently selecting a different package manager version.
+
+To reproduce the dependency security check locally, run:
+
+```bash
+pnpm audit:dependencies
+```
+
+An audit failure must be investigated rather than bypassed. If an advisory does not affect FloatPlay in its actual build/runtime context, document the reasoning before adding any explicit exception.
+
 Follow `docs/TESTING.md` for browser-level and real YouTube validation when the change affects extension behavior, media lifecycle, or YouTube integration.
 
 Do not mark a validation item as complete when it was not executed. If an environment prevents a required check from running, document that limitation explicitly in the pull request.
@@ -109,7 +125,11 @@ A significant decision that introduces or replaces a long-term architectural cho
 
 Dependency and Chrome permission decisions are governed by `docs/ARCHITECTURE.md` and the product security requirements in `docs/PRD.md`.
 
-A new dependency or permission must solve a concrete requirement. Do not add either speculatively. Dependency version changes must be intentional and reviewed; do not rely on broad version ranges as a substitute for the lockfile.
+A new dependency or permission must solve a concrete requirement. Do not add either speculatively. Dependency version changes must be intentional and reviewed; do not rely on broad version ranges as a substitute for the lockfiles.
+
+`.github/dependabot.yml` monitors GitHub Actions for weekly version updates. The repository currently uses pnpm 11, while GitHub's documented Dependabot package-manager support currently stops at pnpm 10. Root and `e2e/` package updates must therefore remain intentionally reviewed rather than relying on a Dependabot configuration that is not documented as compatible. The CI `Dependency audit` job and `pnpm audit:dependencies` cover known high/critical advisories in both pnpm dependency trees; revisit package-version automation when GitHub documents pnpm 11 support.
+
+Repository administrators must also keep the GitHub dependency graph and Dependabot alerts enabled under the repository's Advanced Security settings. Enable Dependabot security updates where GitHub supports the repository's current dependency ecosystem; do not assume that this replaces the pnpm audit gate.
 
 ## Release preparation
 
