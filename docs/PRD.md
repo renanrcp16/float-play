@@ -592,7 +592,7 @@ FloatPlay v1.0.0 is ready only when:
 - Keyboard navigation and accessible names are complete.
 - Reduced-motion behavior is respected.
 - English and Brazilian Portuguese localization are complete.
-- Settings persistence and schema migration behavior are covered.
+- Settings persistence is covered, and any schema migration introduced by a future release has explicit automated coverage.
 - First-use onboarding is discoverable, dismissible, and persists only its local seen flag.
 - Lint passes.
 - Typecheck passes.

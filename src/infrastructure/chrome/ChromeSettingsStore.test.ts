@@ -32,31 +32,11 @@ function createMemoryStorage(initial: Record<string, unknown> = {}): ChromeStora
 }
 
 describe("ChromeSettingsStore", () => {
-  test("loads and normalizes the legacy settings object", async () => {
+  test("loads and normalizes the canonical v1 field-level settings", async () => {
     const storage = createMemoryStorage({
-      settings: {
-        schemaVersion: SETTINGS_SCHEMA_VERSION,
-        seekBackwardSeconds: 15,
-        autoHideEnabled: false
-      }
-    });
-    const store = new ChromeSettingsStore(createLogger(), storage);
-
-    await expect(store.load()).resolves.toEqual({
-      ...DEFAULT_SETTINGS,
-      seekBackwardSeconds: 15,
-      autoHideEnabled: false
-    });
-  });
-
-  test("prefers independently persisted v1 fields while retaining legacy fallbacks", async () => {
-    const storage = createMemoryStorage({
-      settings: {
-        ...DEFAULT_SETTINGS,
-        seekBackwardSeconds: 15,
-        timeDisplayMode: "elapsed"
-      },
       "settings.v1.schemaVersion": SETTINGS_SCHEMA_VERSION,
+      "settings.v1.seekBackwardSeconds": 15,
+      "settings.v1.autoHideEnabled": false,
       "settings.v1.timeDisplayMode": "remaining"
     });
     const store = new ChromeSettingsStore(createLogger(), storage);
@@ -64,8 +44,42 @@ describe("ChromeSettingsStore", () => {
     await expect(store.load()).resolves.toEqual({
       ...DEFAULT_SETTINGS,
       seekBackwardSeconds: 15,
+      autoHideEnabled: false,
       timeDisplayMode: "remaining"
     });
+  });
+
+  test("ignores the pre-v1 legacy settings object", async () => {
+    const storage: ChromeStorageArea = {
+      get: vi.fn((keys: string | string[]) => {
+        const requestedKeys = Array.isArray(keys) ? keys : [keys];
+        expect(requestedKeys).not.toContain("settings");
+        return Promise.resolve({});
+      }),
+      set: vi.fn(() => Promise.resolve())
+    };
+    const store = new ChromeSettingsStore(createLogger(), storage);
+
+    await expect(store.load()).resolves.toEqual(DEFAULT_SETTINGS);
+  });
+
+  test("uses defaults when the v1 schema version is missing", async () => {
+    const storage = createMemoryStorage({
+      "settings.v1.seekBackwardSeconds": 15
+    });
+    const store = new ChromeSettingsStore(createLogger(), storage);
+
+    await expect(store.load()).resolves.toEqual(DEFAULT_SETTINGS);
+  });
+
+  test("uses defaults for an unsupported persisted schema version", async () => {
+    const storage = createMemoryStorage({
+      "settings.v1.schemaVersion": SETTINGS_SCHEMA_VERSION + 1,
+      "settings.v1.seekBackwardSeconds": 15
+    });
+    const store = new ChromeSettingsStore(createLogger(), storage);
+
+    await expect(store.load()).resolves.toEqual(DEFAULT_SETTINGS);
   });
 
   test("falls back to defaults when sync storage is unavailable", async () => {
@@ -105,9 +119,7 @@ describe("ChromeSettingsStore", () => {
   });
 
   test("preserves independent preferences across interleaved updates", async () => {
-    const storage = createMemoryStorage({
-      settings: DEFAULT_SETTINGS
-    });
+    const storage = createMemoryStorage();
     const store = new ChromeSettingsStore(createLogger(), storage);
 
     await Promise.all([
