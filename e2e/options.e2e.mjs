@@ -54,6 +54,11 @@ test("loads the real branded Options Page with trusted project links", async ({ 
   await expect(page.locator("#seek-backward")).toHaveAttribute("max", "600");
   await expect(page.locator("#seek-backward")).toHaveAttribute("step", "1");
   await expect(page.locator("#seek-backward")).toHaveAttribute("inputmode", "numeric");
+  await expect(page.locator("#seek-backward")).toHaveAttribute(
+    "aria-describedby",
+    "seek-backward-help seek-backward-error"
+  );
+  await expect(page.locator("#seek-backward-error")).toBeHidden();
   await expect(page.locator("#seek-forward")).toHaveValue("5");
   await expect(page.locator("#seek-forward")).toHaveAttribute("step", "1");
   await expect(page.locator("#volume-step")).toHaveValue("5");
@@ -143,13 +148,14 @@ test("persists supported settings and restores defaults", async ({ context, exte
   await thirdOpen.page.close();
 });
 
-test("restores canonical numeric constraints before saving", async ({
+test("shows actionable inline feedback for invalid numeric settings", async ({
   context,
   extensionId,
   extensionWorker
 }) => {
   const { page, errors } = await openOptionsPage(context, extensionId);
   const seekBackward = page.locator("#seek-backward");
+  const seekBackwardError = page.locator("#seek-backward-error");
 
   await seekBackward.evaluate((input) => {
     input.removeAttribute("max");
@@ -158,7 +164,7 @@ test("restores canonical numeric constraints before saving", async ({
   await expect(seekBackward).not.toHaveAttribute("max");
   await expect(seekBackward).not.toHaveAttribute("step");
 
-  await seekBackward.fill("100000");
+  await seekBackward.fill("1000");
   await page.locator("#save-button").click();
 
   await expect(seekBackward).toHaveAttribute("min", "1");
@@ -167,13 +173,19 @@ test("restores canonical numeric constraints before saving", async ({
   await expect(page.locator("#form-status")).toHaveAttribute("data-tone", "error");
   await expect(seekBackward).toHaveAttribute("aria-invalid", "true");
   await expect(seekBackward).toBeFocused();
+  await expect(seekBackwardError).toBeVisible();
+  await expect(seekBackwardError).toHaveText("Use a whole number from 1 to 600 seconds.");
 
   const storedSeek = await extensionWorker.evaluate(async (key) => {
     const stored = await chrome.storage.sync.get(key);
     return stored[key];
   }, SEEK_BACKWARD_KEY);
 
-  expect(storedSeek).not.toBe(100000);
+  expect(storedSeek).not.toBe(1000);
+
+  await seekBackward.fill("100");
+  await expect(seekBackward).not.toHaveAttribute("aria-invalid");
+  await expect(seekBackwardError).toBeHidden();
   expect(errors).toEqual([]);
   await page.close();
 });
@@ -185,6 +197,7 @@ test("rejects decimal values even when input guards and DOM step are bypassed", 
 }) => {
   const { page, errors } = await openOptionsPage(context, extensionId);
   const seekBackward = page.locator("#seek-backward");
+  const seekBackwardError = page.locator("#seek-backward-error");
 
   await seekBackward.evaluate((input) => {
     input.removeAttribute("step");
@@ -200,6 +213,7 @@ test("rejects decimal values even when input guards and DOM step are bypassed", 
   await expect(page.locator("#form-status")).toHaveAttribute("data-tone", "error");
   await expect(seekBackward).toHaveAttribute("aria-invalid", "true");
   await expect(seekBackward).toBeFocused();
+  await expect(seekBackwardError).toHaveText("Use a whole number from 1 to 600 seconds.");
 
   const storedSeek = await extensionWorker.evaluate(async (key) => {
     const stored = await chrome.storage.sync.get(key);

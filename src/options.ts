@@ -21,13 +21,26 @@ import { ConsoleLogger } from "./shared/Logger";
 interface OptionsControls {
   readonly form: HTMLFormElement;
   readonly seekBackward: HTMLInputElement;
+  readonly seekBackwardError: HTMLParagraphElement;
   readonly seekForward: HTMLInputElement;
+  readonly seekForwardError: HTMLParagraphElement;
   readonly volumeStep: HTMLInputElement;
+  readonly volumeStepError: HTMLParagraphElement;
   readonly autoHideEnabled: HTMLInputElement;
   readonly autoHideDelay: HTMLInputElement;
+  readonly autoHideDelayError: HTMLParagraphElement;
   readonly saveButton: HTMLButtonElement;
   readonly resetButton: HTMLButtonElement;
   readonly status: HTMLParagraphElement;
+}
+
+interface NumericFieldConstraint {
+  readonly input: HTMLInputElement;
+  readonly error: HTMLParagraphElement;
+  readonly minimum: number;
+  readonly maximum: number;
+  readonly messageKey: string;
+  readonly fallbackMessage: string;
 }
 
 const logger = new ConsoleLogger(false);
@@ -50,12 +63,17 @@ async function initialize(): Promise<void> {
 
   controls.autoHideEnabled.addEventListener("change", () => {
     updateAutoHideState(controls);
+
+    if (!controls.autoHideEnabled.checked) {
+      clearNumericFieldError(controls.autoHideDelay, controls.autoHideDelayError);
+    }
+
     clearStatus(controls);
   });
 
   controls.form.addEventListener("input", (event) => {
     if (event.target instanceof HTMLInputElement) {
-      event.target.removeAttribute("aria-invalid");
+      refreshNumericFieldError(controls, event.target);
     }
 
     clearStatus(controls);
@@ -88,10 +106,14 @@ function readControls(): OptionsControls {
   return {
     form: requireElement<HTMLFormElement>("settings-form"),
     seekBackward: requireElement<HTMLInputElement>("seek-backward"),
+    seekBackwardError: requireElement<HTMLParagraphElement>("seek-backward-error"),
     seekForward: requireElement<HTMLInputElement>("seek-forward"),
+    seekForwardError: requireElement<HTMLParagraphElement>("seek-forward-error"),
     volumeStep: requireElement<HTMLInputElement>("volume-step"),
+    volumeStepError: requireElement<HTMLParagraphElement>("volume-step-error"),
     autoHideEnabled: requireElement<HTMLInputElement>("auto-hide-enabled"),
     autoHideDelay: requireElement<HTMLInputElement>("auto-hide-delay"),
+    autoHideDelayError: requireElement<HTMLParagraphElement>("auto-hide-delay-error"),
     saveButton: requireElement<HTMLButtonElement>("save-button"),
     resetButton: requireElement<HTMLButtonElement>("reset-button"),
     status: requireElement<HTMLParagraphElement>("form-status")
@@ -111,10 +133,9 @@ function readFormValues(controls: OptionsControls): OptionsFormValues | null {
   applyCanonicalNumericConstraints(controls);
   updateAutoHideState(controls);
 
-  const invalidInput = findInvalidNumericInput(controls);
+  const invalidInput = validateNumericInputs(controls);
 
   if (invalidInput !== null) {
-    invalidInput.setAttribute("aria-invalid", "true");
     invalidInput.focus();
     return null;
   }
@@ -159,6 +180,7 @@ async function saveSettings(controls: OptionsControls): Promise<void> {
 
   try {
     await store.update(patch);
+    clearNumericInvalidState(controls);
     setStatus(
       controls,
       i18n.getMessage("optionsSaved", "Settings saved. Reload open YouTube tabs to apply them."),
@@ -209,7 +231,9 @@ async function resetSettings(controls: OptionsControls): Promise<void> {
 }
 
 function installNumericInputGuards(controls: OptionsControls): void {
-  for (const input of numericInputs(controls)) {
+  for (const constraint of numericFieldConstraints(controls)) {
+    const input = constraint.input;
+
     input.addEventListener("keydown", (event) => {
       if (containsUnsupportedNumberNotation(event.key)) {
         event.preventDefault();
@@ -220,6 +244,10 @@ function installNumericInputGuards(controls: OptionsControls): void {
       if (event.data !== null && containsUnsupportedNumberNotation(event.data)) {
         event.preventDefault();
       }
+    });
+
+    input.addEventListener("change", () => {
+      validateNumericField(constraint);
     });
   }
 }
@@ -253,39 +281,99 @@ function configureNumericInput(
   input.required = true;
 }
 
-function findInvalidNumericInput(controls: OptionsControls): HTMLInputElement | null {
-  clearNumericInvalidState(controls);
+function validateNumericInputs(controls: OptionsControls): HTMLInputElement | null {
+  let firstInvalid: HTMLInputElement | null = null;
 
-  const constraints: ReadonlyArray<readonly [HTMLInputElement, number, number]> = [
-    [controls.seekBackward, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS],
-    [controls.seekForward, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS],
-    [controls.volumeStep, MIN_VOLUME_STEP * 100, MAX_VOLUME_STEP * 100],
-    [controls.autoHideDelay, MIN_AUTO_HIDE_DELAY_MS / 1000, MAX_AUTO_HIDE_DELAY_MS / 1000]
-  ];
+  for (const constraint of numericFieldConstraints(controls)) {
+    if (constraint.input.disabled) {
+      clearNumericFieldError(constraint.input, constraint.error);
+      continue;
+    }
 
-  for (const [input, minimum, maximum] of constraints) {
-    const value = input.valueAsNumber;
+    const isValid = validateNumericField(constraint);
 
-    if (!Number.isInteger(value) || value < minimum || value > maximum) {
-      return input;
+    if (!isValid && firstInvalid === null) {
+      firstInvalid = constraint.input;
     }
   }
 
-  return null;
+  return firstInvalid;
 }
 
-function numericInputs(controls: OptionsControls): readonly HTMLInputElement[] {
+function validateNumericField(constraint: NumericFieldConstraint): boolean {
+  const value = constraint.input.valueAsNumber;
+  const isValid =
+    Number.isInteger(value) && value >= constraint.minimum && value <= constraint.maximum;
+
+  if (isValid) {
+    clearNumericFieldError(constraint.input, constraint.error);
+    return true;
+  }
+
+  constraint.input.setAttribute("aria-invalid", "true");
+  constraint.error.textContent = i18n.getMessage(constraint.messageKey, constraint.fallbackMessage);
+  return false;
+}
+
+function refreshNumericFieldError(controls: OptionsControls, input: HTMLInputElement): void {
+  const constraint = numericFieldConstraints(controls).find((candidate) => candidate.input === input);
+
+  if (constraint === undefined) {
+    return;
+  }
+
+  if (!input.hasAttribute("aria-invalid") && constraint.error.textContent === "") {
+    return;
+  }
+
+  validateNumericField(constraint);
+}
+
+function numericFieldConstraints(controls: OptionsControls): readonly NumericFieldConstraint[] {
   return [
-    controls.seekBackward,
-    controls.seekForward,
-    controls.volumeStep,
-    controls.autoHideDelay
+    {
+      input: controls.seekBackward,
+      error: controls.seekBackwardError,
+      minimum: MIN_SEEK_SECONDS,
+      maximum: MAX_SEEK_SECONDS,
+      messageKey: "optionsSeekSecondsError",
+      fallbackMessage: "Use a whole number from 1 to 600 seconds."
+    },
+    {
+      input: controls.seekForward,
+      error: controls.seekForwardError,
+      minimum: MIN_SEEK_SECONDS,
+      maximum: MAX_SEEK_SECONDS,
+      messageKey: "optionsSeekSecondsError",
+      fallbackMessage: "Use a whole number from 1 to 600 seconds."
+    },
+    {
+      input: controls.volumeStep,
+      error: controls.volumeStepError,
+      minimum: MIN_VOLUME_STEP * 100,
+      maximum: MAX_VOLUME_STEP * 100,
+      messageKey: "optionsVolumeStepError",
+      fallbackMessage: "Use a whole number from 1% to 100%."
+    },
+    {
+      input: controls.autoHideDelay,
+      error: controls.autoHideDelayError,
+      minimum: MIN_AUTO_HIDE_DELAY_MS / 1000,
+      maximum: MAX_AUTO_HIDE_DELAY_MS / 1000,
+      messageKey: "optionsAutoHideDelayError",
+      fallbackMessage: "Use a whole number from 0 to 60 seconds."
+    }
   ];
 }
 
+function clearNumericFieldError(input: HTMLInputElement, error: HTMLParagraphElement): void {
+  input.removeAttribute("aria-invalid");
+  error.textContent = "";
+}
+
 function clearNumericInvalidState(controls: OptionsControls): void {
-  for (const input of numericInputs(controls)) {
-    input.removeAttribute("aria-invalid");
+  for (const constraint of numericFieldConstraints(controls)) {
+    clearNumericFieldError(constraint.input, constraint.error);
   }
 }
 
