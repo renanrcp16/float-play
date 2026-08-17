@@ -2,7 +2,9 @@
 
 Thank you for helping improve FloatPlay. Contributions are welcome through issues and pull requests.
 
-This document is the canonical source for the repository's development workflow and contribution process. Product behavior belongs in `docs/PRD.md`, architectural constraints belong in `docs/ARCHITECTURE.md`, test strategy and browser smoke procedures belong in `docs/TESTING.md`, and release/store preparation belongs in `docs/RELEASE.md` and `docs/WEB_STORE.md`.
+Potential security vulnerabilities are the exception: do not disclose them through public issues or pull requests. Follow `.github/SECURITY.md` and use the repository's private vulnerability-reporting channel.
+
+This document is the canonical source for the repository's development workflow and contribution process. Product behavior belongs in `docs/PRD.md`, architectural constraints belong in `docs/ARCHITECTURE.md`, test strategy and browser smoke procedures belong in `docs/TESTING.md`, release/store preparation belongs in `docs/RELEASE.md` and `docs/WEB_STORE.md`, and vulnerability-reporting policy belongs in `.github/SECURITY.md`.
 
 ## Contribution license
 
@@ -38,7 +40,7 @@ Meaningful changes should start from an issue that describes the goal, scope, an
 
 External contributors normally work from a fork and open a pull request back to this repository. Maintainers may create short-lived branches directly in the repository.
 
-Do not develop directly on `main`.
+Do not develop directly on `main`. Repository settings should enforce pull-request-based changes and prevent force pushes to `main`; required CI checks should be enforced once the complete workflow can run reliably within the repository's Actions quota.
 
 Use these branch prefixes:
 
@@ -146,6 +148,7 @@ Keep project rules single-sourced:
 - `docs/RELEASE.md` — release candidate and packaging checklist.
 - `docs/WEB_STORE.md` — Chrome Web Store metadata, disclosure, and asset preparation.
 - `docs/PRIVACY.md` — source draft for the public privacy policy.
+- `.github/SECURITY.md` — vulnerability reporting and supported security versions.
 - `CONTRIBUTING.md` — contribution and development workflow.
 - `AGENTS.md` — coding-agent entry point.
 - `LICENSE` — license terms.
