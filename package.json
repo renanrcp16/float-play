@@ -10,6 +10,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "audit:dependencies": "pnpm audit --audit-level=high && pnpm --dir e2e audit --audit-level=high",
     "build": "vite build && vite build --config vite.options.config.mjs && vite build --config vite.service-worker.config.mjs && vite build --config vite.youtube-player.config.mjs",
     "build:options": "vite build --config vite.options.config.mjs",
     "build:service-worker": "vite build --config vite.service-worker.config.mjs",
