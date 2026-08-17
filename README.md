@@ -4,9 +4,9 @@ FloatPlay is a Chrome extension that enhances YouTube Picture-in-Picture with a 
 
 ## Status
 
-FloatPlay is in final v1.0.0 release hardening.
+FloatPlay is in final v1.0.0 release-candidate validation.
 
-The production player, YouTube trigger and first-use guidance, Options Page, English/Brazilian Portuguese localization, deterministic release packaging, and core Chrome/YouTube smoke coverage are implemented. Remaining pre-release work is tracked in the repository issues and release checklist; the public version must not be promoted to `1.0.0` until those gates are complete.
+The production player, YouTube trigger and first-use guidance, Options Page, English/Brazilian Portuguese localization, deterministic release packaging, and core Chrome/YouTube smoke coverage are implemented. The repository may carry `1.0.0` metadata while the exact release candidate is being validated; that metadata does not authorize public release. Chrome Web Store publication must wait until the exact-candidate CI, local gates, real Chrome/YouTube smoke test, package inspection, repository-governance checks, and store review checklist are complete.
 
 ## Highlights
 
