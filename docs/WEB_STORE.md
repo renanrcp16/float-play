@@ -1,11 +1,11 @@
 # FloatPlay Chrome Web Store Draft
 
-This document prepares Chrome Web Store metadata and reviewer-facing explanations from the currently implemented FloatPlay v1 behavior. Re-check the Chrome Web Store dashboard and policies immediately before submission because store requirements can change independently of this repository.
+This document prepares Chrome Web Store metadata and reviewer-facing explanations for the FloatPlay v1 release candidate. Re-check the Chrome Web Store dashboard and current policies immediately before submission because store requirements can change independently of this repository.
 
 ## Current package identity
 
 - Name: FloatPlay
-- Development version: `0.1.0`
+- Release candidate version: `1.0.0`
 - Manifest: Manifest V3
 - Default locale: English
 - Additional locale: Brazilian Portuguese
@@ -16,7 +16,7 @@ This document prepares Chrome Web Store metadata and reviewer-facing explanation
 - External messaging: explicitly closed with an empty `externally_connectable.ids` allowlist and no web-page match patterns
 - Web-accessible resource exposure: only `brand/icon.svg` on the approved YouTube origins
 
-Do not change the public release version to `1.0.0` until the v1 Definition of Done is complete.
+The `1.0.0` metadata identifies the exact release candidate to validate. It does not authorize Chrome Web Store publication. Submission/publication must wait until the release gate in `docs/RELEASE.md` passes on the exact merged candidate SHA.
 
 ## Public release links
 
@@ -25,9 +25,11 @@ Use these public URLs in the Chrome Web Store dashboard:
 - Privacy policy: `https://github.com/renanrcp16/float-play/blob/main/docs/PRIVACY.md`
 - Support: `https://github.com/renanrcp16/float-play/issues`
 
-The privacy-policy URL points to the policy version tracked with the `main` branch. Keep the document synchronized with every release that changes data handling.
+The privacy-policy URL points to the policy tracked with `main` and must remain synchronized with every release that changes data handling.
 
-The support URL is a public issue tracker. Users must not be asked to post personal, sensitive, account, authentication, payment, or other private information there. Privacy requests that require private information should first request a private contact channel using the maintainer contact information available from the maintainer's GitHub profile.
+The support URL is a public issue tracker. Users must not be asked to post personal, sensitive, account, authentication, payment, or other private information there. A privacy request that requires private information should first request a private contact channel using maintainer contact information available from the maintainer's GitHub profile.
+
+Immediately before submission, confirm both URLs are publicly reachable from the Chrome Web Store dashboard. A store-side URL validation failure blocks submission even if the repository content itself is correct.
 
 ## Single purpose
 
@@ -39,7 +41,7 @@ FloatPlay enhances YouTube Picture-in-Picture with a compact mini player and ric
 
 FloatPlay uses Chrome extension storage to persist user preferences such as backward and forward seek intervals, volume adjustment step, automatic control hiding, auto-hide delay, and elapsed/remaining time display preference. It also stores one device-local boolean flag recording that the first-use trigger coachmark has already been seen.
 
-The implementation uses `chrome.storage.sync` when available for user-selected player preferences so Chrome may synchronize those preferences through the user's Chrome account according to the user's browser settings. The first-use coachmark flag uses `chrome.storage.local` and is not a watch-history or analytics record. FloatPlay does not operate a backend that receives either the preferences or onboarding state.
+User-selected player preferences use `chrome.storage.sync` when available, so Chrome may synchronize those preferences through the user's Chrome account according to browser settings. The first-use coachmark flag uses `chrome.storage.local`. It is product UI state, not a watch-history or analytics record. FloatPlay does not operate a backend that receives either preferences or onboarding state.
 
 ### YouTube content-script access
 
@@ -52,19 +54,19 @@ FloatPlay injects content scripts only on YouTube origins needed by the product.
 - support YouTube SPA navigation and playlist progression;
 - provide the FloatPlay trigger, first-use trigger guidance, and the approved origin-surface playback interaction.
 
-FloatPlay uses an isolated content script for extension logic plus one narrow MAIN-world bridge on the same approved YouTube origins. Playback state changes are applied to the active `HTMLVideoElement` first. The MAIN-world bridge is used only to mirror FloatPlay volume, mute, and playback-rate changes into YouTube's own player state when the corresponding page method exists. The bridge accepts only those three validated same-page message actions and has no Chrome storage/runtime access, backend access, analytics, or identifiers.
+FloatPlay uses an isolated content script for extension logic plus one narrow MAIN-world bridge on the same approved YouTube origins. Playback state changes are applied to the active `HTMLVideoElement` first. The MAIN-world bridge is used only to mirror FloatPlay volume, mute, and playback-rate changes into YouTube's own player state when the corresponding page method exists. The bridge accepts only those validated same-page playback actions and has no Chrome storage/runtime access, backend access, analytics, or user identifiers.
 
 FloatPlay does not request access to unrelated websites.
 
 ## Release security posture
 
-The production Manifest is treated as an explicit v1 security allowlist rather than an open-ended configuration file.
+The production Manifest is an explicit v1 security allowlist rather than an open-ended configuration file.
 
-The release verifier requires the approved Manifest V3 structure and fails if the extension gains an unreviewed manifest key or changes security-sensitive values such as permissions, host scope, external connection allowances, content-script files/worlds/timing, background worker, CSP, or web-accessible resources.
+The release verifier fails if the extension gains an unreviewed manifest key or changes security-sensitive values such as permissions, host scope, external connection allowances, content-script files/worlds/timing, background worker, CSP, or web-accessible resources.
 
-The current package intentionally has:
+The v1 package intentionally has:
 
-- Chrome 130 as the minimum supported version so the declared baseline includes the complete reviewed Document Picture-in-Picture option set used by FloatPlay;
+- Chrome 130 as its minimum supported version;
 - no `host_permissions`;
 - no optional permissions or optional host permissions;
 - an explicit `externally_connectable` policy with no allowed extension IDs and no allowed web-page matches;
@@ -74,7 +76,7 @@ The current package intentionally has:
 - an explicit `default-src 'self'` CSP for extension pages and the service worker;
 - no production source maps in `dist/` or the Chrome Web Store ZIP.
 
-The release ZIP is generated only from the verified `dist/` tree. The packager preserves deterministic ordering, places the manifest at the archive root, rejects unsafe paths and `.map` entries, and verifies that archive entries match `dist/` exactly.
+The release ZIP is generated only from verified `dist/`. The packager preserves deterministic ordering, places the manifest at the archive root, rejects unsafe paths and `.map` entries, verifies packaged PNG icons, and checks that archive entries match `dist` exactly.
 
 Any future expansion of this security surface requires an intentional source change, verifier allowlist change, documentation update, and fresh security/privacy review before release.
 
@@ -84,7 +86,7 @@ FloatPlay handles only data required to provide its disclosed single purpose.
 
 ### Transient media/page state
 
-While the extension is active on YouTube, it reads media and page state needed for playback behavior, such as playback time, paused state, volume, mute state, playback rate, seekable ranges, active media identity, and supported-route/DOM context.
+While active on YouTube, FloatPlay reads current media and page state needed for playback behavior, such as playback time, paused state, volume, mute state, playback rate, seekable ranges, active media identity, and supported-route/DOM context.
 
 This state is processed inside the browser to provide the mini player. FloatPlay does not retain, build, or transmit its own database of YouTube watch history; it processes the current supported page and media state only as needed for FloatPlay features.
 
@@ -94,9 +96,11 @@ The same-page playback bridge receives only the requested playback action and it
 
 User-selected FloatPlay settings are stored with Chrome extension storage. When Chrome sync is enabled, Chrome may synchronize those settings as part of the browser's own sync infrastructure.
 
+Supported v1 Options Page ranges are 0.1–600 seconds for backward/forward seeking, 1–100% for volume adjustment step, and 0–60 seconds for auto-hide delay. The approved defaults remain 5 seconds backward, 5 seconds forward, 5% volume adjustment, and a 1-second auto-hide delay.
+
 ### Local onboarding state
 
-After the user opens FloatPlay from its YouTube trigger or dismisses the first-use coachmark, FloatPlay stores one `true`/`false`-style seen state in local Chrome extension storage so the tip is not repeatedly shown. The stored flag does not include video identifiers, URLs, timestamps, analytics identifiers, or browsing history.
+After the user opens FloatPlay from its YouTube trigger or dismisses the first-use coachmark, FloatPlay stores one boolean seen state in local Chrome extension storage so the tip is not repeatedly shown. The flag does not include video identifiers, URLs, timestamps, analytics identifiers, or browsing history.
 
 ### What FloatPlay does not do
 
@@ -154,42 +158,31 @@ Principais recursos:
 
 O FloatPlay foi projetado para Google Chrome Desktop 130 ou superior e páginas compatíveis de vídeos do YouTube. Ele não bloqueia anúncios, não baixa vídeos e não exige uma conta FloatPlay. O estado atual da página e da mídia compatível do YouTube é processado localmente apenas para fornecer os recursos do FloatPlay; o FloatPlay não mantém, cria nem transmite seu próprio banco de histórico de vídeos assistidos no YouTube.
 
-## Store asset inventory
+## Store assets
 
-### Already present in the extension package
-
-- Branded extension icons at 16, 32, 48, and 128 pixels.
-- The 128x128 store/installation icon uses the approved FloatPlay artwork with normalized transparent padding for Chrome Web Store visual weight.
-- Localized extension name and short description in English and Brazilian Portuguese.
-
-### Screenshot workflow
-
-Generate a real 1280x800 English Options Page screenshot candidate from the built extension with:
+The extension package contains branded 16, 32, 48, and 128 pixel icons, including the verified 128x128 installation/store artwork. The Options Page screenshot workflow remains available through:
 
 ```bash
 pnpm capture:store-screenshot
 ```
 
-The resulting file is written to `artifacts/web-store/options-page-en-1280x800.png`. The `artifacts/` directory is ignored by Git so the candidate can be reviewed before it is selected for upload. The capture uses the actual built Options Page in Playwright Chromium rather than a mock or generated product image.
+Real YouTube/FloatPlay PiP screenshots remain manual assets because live YouTube and Document Picture-in-Picture are intentionally outside the deterministic browser automation boundary.
 
-A real YouTube/FloatPlay PiP screenshot remains a separate manual asset because live YouTube and Document Picture-in-Picture are intentionally outside the deterministic browser automation boundary.
+Dashboard screenshots and promotional artwork must show the actual current product experience and must not advertise unsupported behavior. Before submission, verify that the selected principal PiP screenshot, Options Page screenshot, store icon, and required promotional tile still match the `1.0.0` candidate.
 
-### Remaining before submission
+## Remaining before submission
 
-- Select the generated 1280x800 Options Page screenshot for upload, or capture an additional current real PiP/YouTube screenshot if it represents the core experience more clearly.
-- Set final category, language/listing localization, distribution visibility, and regions in the developer dashboard.
-- Complete the Privacy practices disclosure and Limited Use certification so they match `docs/PRIVACY.md` and the shipped behavior, including local YouTube media processing and the same-tab playback synchronization bridge.
-- Run the final real Chrome/YouTube smoke-test matrix from `docs/TESTING.md` against the exact release candidate using Chrome 130 or later.
-- Run `pnpm package:release` on the exact upload commit and inspect the resulting ZIP for the approved manifest/CSP/external-messaging policy and absence of source maps.
+Before clicking Submit for Review:
 
-### Recommended / promotional assets
-
-- Additional screenshots showing the PiP player and Options Page, up to the current store limit.
-- Small promotional tile at 440x280.
-- Marquee image at 1400x560 if FloatPlay should be eligible for marquee promotion.
-- Locale-specific screenshots if separate English and Brazilian Portuguese visuals materially improve the listing.
-
-Screenshots must show the actual current product experience and must not advertise unsupported behavior.
+- make sure the English and pt-BR dashboard listing copy matches the text in this document, especially the precise watch-history/local-processing wording;
+- confirm category, localization, public visibility, all-regions distribution, and free pricing remain correct;
+- confirm Privacy practices and Limited Use disclosures still match `docs/PRIVACY.md` and the shipped behavior;
+- confirm the public privacy-policy and support URLs are accepted by the dashboard;
+- confirm the active `Protect main` ruleset requires `Validate`, `Dependency audit`, and `Browser E2E`;
+- run the exact-candidate CI/local gates and final real Chrome/YouTube smoke from `docs/RELEASE.md` and issue #53;
+- include a natural YouTube advertising transition in the final real smoke when available and confirm FloatPlay neither blocks nor skips the ad;
+- run `pnpm package:release` on the exact final candidate and inspect `floatplay-1.0.0.zip`;
+- upload only the ZIP produced from the exact validated candidate.
 
 ## Final dashboard review
 
@@ -197,10 +190,10 @@ Immediately before submission, verify that:
 
 - the single-purpose statement matches the shipped extension;
 - permission and site-access justifications match `manifest.json`;
-- the Chrome 130 baseline, approved manifest allowlist, explicit CSP, and explicit closed external-messaging policy match the reviewed v1 security posture;
+- the Chrome 130 baseline, approved manifest allowlist, explicit CSP, and closed external-messaging policy match the reviewed v1 security posture;
 - privacy disclosures describe all data handling, including local media/page processing, Chrome storage sync, the device-local onboarding flag, and the same-tab playback synchronization bridge;
 - the public privacy-policy URL works;
 - the support URL works and public support guidance does not ask users to disclose private information;
-- listing text and screenshots match the submitted version;
+- listing text and screenshots match version `1.0.0`;
 - no unsupported claims, rankings, badges, or comparative marketing have been added;
-- the ZIP contains `manifest.json` at its root and contains no source maps or unexpected repository artifacts.
+- the uploaded ZIP contains `manifest.json` at its root, reports version `1.0.0`, and contains no source maps or unexpected repository artifacts.
