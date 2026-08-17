@@ -5,6 +5,16 @@ import { chromium, expect, test as base } from "@playwright/test";
 const e2eDirectory = path.dirname(fileURLToPath(import.meta.url));
 const extensionPath = path.resolve(e2eDirectory, "..", "dist");
 
+async function resolveExtensionServiceWorker(context) {
+  let [serviceWorker] = context.serviceWorkers();
+
+  if (serviceWorker === undefined) {
+    serviceWorker = await context.waitForEvent("serviceworker");
+  }
+
+  return serviceWorker;
+}
+
 export const test = base.extend({
   context: async ({ browserName }, use) => {
     if (browserName !== "chromium") {
@@ -23,14 +33,12 @@ export const test = base.extend({
     await context.close();
   },
 
-  extensionId: async ({ context }, use) => {
-    let [serviceWorker] = context.serviceWorkers();
+  extensionWorker: async ({ context }, use) => {
+    await use(await resolveExtensionServiceWorker(context));
+  },
 
-    if (serviceWorker === undefined) {
-      serviceWorker = await context.waitForEvent("serviceworker");
-    }
-
-    const extensionId = serviceWorker.url().split("/")[2];
+  extensionId: async ({ extensionWorker }, use) => {
+    const extensionId = extensionWorker.url().split("/")[2];
 
     if (extensionId === undefined || extensionId.length === 0) {
       throw new Error("Unable to determine the loaded FloatPlay extension id.");
