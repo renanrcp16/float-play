@@ -8,7 +8,6 @@ import {
 import type { Logger } from "../../shared/Logger";
 import type { ChromeStorageArea } from "./ChromeStorageArea";
 
-const LEGACY_SETTINGS_STORAGE_KEY = "settings";
 const SETTINGS_STORAGE_KEYS = {
   schemaVersion: "settings.v1.schemaVersion",
   seekBackwardSeconds: "settings.v1.seekBackwardSeconds",
@@ -18,10 +17,7 @@ const SETTINGS_STORAGE_KEYS = {
   autoHideDelayMs: "settings.v1.autoHideDelayMs",
   timeDisplayMode: "settings.v1.timeDisplayMode"
 } as const satisfies Record<keyof FloatPlaySettings, string>;
-const SETTINGS_STORAGE_READ_KEYS = [
-  LEGACY_SETTINGS_STORAGE_KEY,
-  ...Object.values(SETTINGS_STORAGE_KEYS)
-];
+const SETTINGS_STORAGE_READ_KEYS = Object.values(SETTINGS_STORAGE_KEYS);
 
 type GlobalWithChromeStorage = typeof globalThis & {
   chrome?: {
@@ -45,29 +41,19 @@ export class ChromeSettingsStore {
 
     try {
       const stored = await this.storageArea.get(SETTINGS_STORAGE_READ_KEYS);
-      const legacySettings = normalizeSettings(stored[LEGACY_SETTINGS_STORAGE_KEY]);
-      const storedSchemaVersion = stored[SETTINGS_STORAGE_KEYS.schemaVersion];
 
-      if (
-        storedSchemaVersion !== undefined &&
-        storedSchemaVersion !== SETTINGS_SCHEMA_VERSION
-      ) {
-        return legacySettings;
+      if (stored[SETTINGS_STORAGE_KEYS.schemaVersion] !== SETTINGS_SCHEMA_VERSION) {
+        return { ...DEFAULT_SETTINGS };
       }
 
       return normalizeSettings({
         schemaVersion: SETTINGS_SCHEMA_VERSION,
-        seekBackwardSeconds:
-          stored[SETTINGS_STORAGE_KEYS.seekBackwardSeconds] ?? legacySettings.seekBackwardSeconds,
-        seekForwardSeconds:
-          stored[SETTINGS_STORAGE_KEYS.seekForwardSeconds] ?? legacySettings.seekForwardSeconds,
-        volumeStep: stored[SETTINGS_STORAGE_KEYS.volumeStep] ?? legacySettings.volumeStep,
-        autoHideEnabled:
-          stored[SETTINGS_STORAGE_KEYS.autoHideEnabled] ?? legacySettings.autoHideEnabled,
-        autoHideDelayMs:
-          stored[SETTINGS_STORAGE_KEYS.autoHideDelayMs] ?? legacySettings.autoHideDelayMs,
-        timeDisplayMode:
-          stored[SETTINGS_STORAGE_KEYS.timeDisplayMode] ?? legacySettings.timeDisplayMode
+        seekBackwardSeconds: stored[SETTINGS_STORAGE_KEYS.seekBackwardSeconds],
+        seekForwardSeconds: stored[SETTINGS_STORAGE_KEYS.seekForwardSeconds],
+        volumeStep: stored[SETTINGS_STORAGE_KEYS.volumeStep],
+        autoHideEnabled: stored[SETTINGS_STORAGE_KEYS.autoHideEnabled],
+        autoHideDelayMs: stored[SETTINGS_STORAGE_KEYS.autoHideDelayMs],
+        timeDisplayMode: stored[SETTINGS_STORAGE_KEYS.timeDisplayMode]
       });
     } catch (error) {
       this.logger.error("Unable to load FloatPlay settings; using defaults.", error);
