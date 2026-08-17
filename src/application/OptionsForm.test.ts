@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_SETTINGS } from "./Settings";
+import { DEFAULT_SETTINGS, MAX_AUTO_HIDE_DELAY_MS, MAX_SEEK_SECONDS } from "./Settings";
 import { optionsFormValuesToSettingsPatch, settingsToOptionsFormValues } from "./OptionsForm";
 
 describe("options form conversions", () => {
@@ -42,6 +42,16 @@ describe("options form conversions", () => {
       volumeStepPercent: 101,
       autoHideEnabled: true,
       autoHideDelaySeconds: -1
+    })).toBeNull();
+  });
+
+  it("rejects finite values above the supported seek and auto-hide limits", () => {
+    expect(optionsFormValuesToSettingsPatch({
+      seekBackwardSeconds: MAX_SEEK_SECONDS + 0.1,
+      seekForwardSeconds: 10,
+      volumeStepPercent: 5,
+      autoHideEnabled: true,
+      autoHideDelaySeconds: MAX_AUTO_HIDE_DELAY_MS / 1000 + 0.1
     })).toBeNull();
   });
 });
