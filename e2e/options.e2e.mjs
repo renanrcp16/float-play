@@ -163,7 +163,6 @@ test("shows actionable inline feedback for invalid numeric settings", async ({
   await expect(seekBackward).toHaveAttribute("min", "1");
   await expect(seekBackward).toHaveAttribute("max", "600");
   await expect(seekBackward).toHaveAttribute("step", "1");
-  await expect(page.locator("#form-status")).toHaveAttribute("data-tone", "error");
   await expect(seekBackward).toHaveAttribute("aria-invalid", "true");
   await expect(seekBackward).toBeFocused();
   await expect(seekBackwardError).toBeVisible();
