@@ -1,0 +1,51 @@
+name: Feature request
+description: Suggest a focused improvement that fits FloatPlay's product direction.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. FloatPlay intentionally keeps a narrow scope around YouTube Document Picture-in-Picture and its controls.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What user problem or limitation would this address?
+      placeholder: Describe the problem before proposing the implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the user-facing behavior you would like to see.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe workarounds or alternative approaches you considered.
+  - type: textarea
+    id: scope
+    attributes:
+      label: Why this fits FloatPlay
+      description: Explain how this stays focused on the mini-player experience rather than expanding into unrelated YouTube modification.
+    validations:
+      required: true
+  - type: textarea
+    id: security-privacy
+    attributes:
+      label: Security, privacy, or permission impact
+      description: Note whether the proposal would require new permissions, host access, network requests, dependencies, analytics, telemetry, or stored data. Write "None" when applicable.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues for the same or a closely related request.
+          required: true
+        - label: This request does not disclose a security vulnerability.
+          required: true
