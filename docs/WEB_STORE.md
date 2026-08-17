@@ -96,7 +96,7 @@ The same-page playback bridge receives only the requested playback action and it
 
 User-selected FloatPlay settings are stored with Chrome extension storage. When Chrome sync is enabled, Chrome may synchronize those settings as part of the browser's own sync infrastructure.
 
-Supported v1 Options Page ranges are 0.1–600 seconds for backward/forward seeking, 1–100% for volume adjustment step, and 0–60 seconds for auto-hide delay. The approved defaults remain 5 seconds backward, 5 seconds forward, 5% volume adjustment, and a 1-second auto-hide delay.
+Supported v1 Options Page ranges are 1–600 seconds for backward/forward seeking, 1–100% for volume adjustment step, and 0–60 seconds for auto-hide delay. The approved defaults remain 5 seconds backward, 5 seconds forward, 5% volume adjustment, and a 1-second auto-hide delay.
 
 ### Local onboarding state
 
