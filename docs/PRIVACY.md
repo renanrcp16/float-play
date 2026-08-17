@@ -1,6 +1,6 @@
 # FloatPlay Privacy Policy
 
-Last updated: 2026-08-16
+Last updated: 2026-08-17
 
 This policy describes the current FloatPlay data-handling behavior for the version distributed through the Chrome Web Store. It must remain synchronized with the shipped extension and Chrome Web Store privacy disclosures.
 
@@ -21,7 +21,7 @@ While FloatPlay is active on a supported YouTube page, the extension reads infor
 - the active media element and its lifecycle;
 - supported-route and DOM context needed to attach, move, restore, and reconcile the player safely.
 
-This information is processed inside the browser for the active feature. FloatPlay does not maintain its own watch-history database.
+This information is processed inside the browser for the active feature. FloatPlay does not retain, build, or transmit its own database of YouTube watch history. It processes the current supported page and media state only as needed to provide FloatPlay features.
 
 Playback state changes initiated by FloatPlay are applied to the active `HTMLVideoElement` as the primary media path. For volume, mute, and playback-rate compatibility with YouTube's own player state, FloatPlay also sends a narrow same-page message to a MAIN-world bridge running in the same YouTube tab. That bridge accepts only the three supported playback-state actions and invokes the corresponding YouTube player method when that method exists. The bridge does not read Chrome extension storage, access FloatPlay privileged APIs, send network requests, or receive URLs, video identifiers, account identifiers, analytics identifiers, or other user data from FloatPlay.
 
@@ -64,7 +64,7 @@ FloatPlay is designed to comply with the Chrome Web Store User Data Policy, incl
 
 ## Retention and user control
 
-Transient YouTube media/page state is used while needed for the active feature and is not retained by FloatPlay as viewing history.
+Transient YouTube media/page state is used while needed for the active feature and is not retained by FloatPlay as a viewing-history database.
 
 Persisted FloatPlay preferences remain in Chrome extension storage until they are changed, reset, cleared through browser data controls, or otherwise removed by Chrome or extension uninstall behavior.
 
@@ -84,6 +84,8 @@ If FloatPlay's data-handling practices change, this policy and the Chrome Web St
 
 ## Contact and support
 
-Questions, privacy requests, bug reports, and support requests can be submitted through the public FloatPlay GitHub Issues page:
+General questions, bug reports, and support requests can be submitted through the public FloatPlay GitHub Issues page:
 
 https://github.com/renanrcp16/float-play/issues
+
+Do not include personal, sensitive, account, authentication, payment, or other private information in a public GitHub issue. If a privacy request requires sharing information that should not be public, use the contact information available from the maintainer's GitHub profile to request a private communication channel before sharing that information.
