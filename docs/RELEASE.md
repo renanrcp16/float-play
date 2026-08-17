@@ -41,7 +41,9 @@ The workflow provides three independent signals:
 
 CI uses `--frozen-lockfile` and must never rewrite dependency resolution as part of validation.
 
-`.github/dependabot.yml` monitors dependency version updates for the root package, `e2e/`, and GitHub Actions. Repository administrators must also keep the GitHub dependency graph, Dependabot alerts, and Dependabot security updates enabled under repository Advanced Security settings. These repository-level settings are part of the release security posture even though they are not stored in the Git tree.
+`.github/dependabot.yml` monitors GitHub Actions for weekly version updates. FloatPlay currently uses pnpm 11, while GitHub's documented Dependabot package-manager support currently stops at pnpm 10. Root and `e2e/` package version updates therefore remain intentionally reviewed rather than relying on an unsupported Dependabot configuration. Revisit this boundary when GitHub documents pnpm 11 support.
+
+Repository administrators must keep the GitHub dependency graph and Dependabot alerts enabled under repository Advanced Security settings. Enable Dependabot security updates where GitHub supports the repository's current dependency ecosystem. These repository-level settings are part of the release security posture even though they are not stored in the Git tree, and they do not replace the pnpm audit gate.
 
 Immediately before a release candidate is packaged, run the explicit dependency audit locally as well:
 
@@ -77,7 +79,7 @@ pnpm test:e2e
 
 8. Run the relevant real Chrome/YouTube smoke-test matrix from `docs/TESTING.md`. Record Chrome version, operating system, tested commit, other YouTube-modifying extensions, FloatPlay console errors, and results.
 9. Review the production manifest and confirm the release security contract above still represents the intended product. Any new capability requires review before the verifier allowlist is changed.
-10. Confirm the dependency graph, Dependabot alerts, and Dependabot security updates remain enabled for the repository and review any open security alerts.
+10. Confirm the dependency graph and Dependabot alerts remain enabled for the repository, enable Dependabot security updates where supported, and review any current security alerts. Confirm package-version automation has not been expanded beyond GitHub's documented pnpm compatibility.
 11. Review `docs/WEB_STORE.md` and `docs/PRIVACY.md` against the current implementation and current Chrome Web Store policy before submission.
 12. From the exact commit intended for upload, create the release package:
 
@@ -142,7 +144,7 @@ Do not upload a release candidate until all of the following are true:
 - `pnpm package:release` completes successfully, including the embedded manifest/security verification;
 - required real Chrome/YouTube smoke tests pass;
 - the generated ZIP has been inspected and contains no source maps or unexpected files;
-- dependency graph, Dependabot alerts, and Dependabot security updates are enabled and current repository security alerts have been reviewed;
+- dependency graph and Dependabot alerts are enabled, supported security-update automation is enabled, and current repository security alerts have been reviewed;
 - permission and privacy disclosures match the shipped manifest and runtime behavior;
 - the explicit CSP and Manifest allowlist match the reviewed v1 architecture;
 - listing copy matches implemented functionality;
