@@ -1,21 +1,4 @@
-const PLAYER_CHANNEL = "floatplay:youtube-player";
-
-type PlayerMessage =
-  | {
-      readonly channel: typeof PLAYER_CHANNEL;
-      readonly type: "set-volume";
-      readonly volume: number;
-    }
-  | {
-      readonly channel: typeof PLAYER_CHANNEL;
-      readonly type: "set-muted";
-      readonly muted: boolean;
-    }
-  | {
-      readonly channel: typeof PLAYER_CHANNEL;
-      readonly type: "set-playback-rate";
-      readonly playbackRate: number;
-    };
+import { parseYouTubePlayerBridgeMessage } from "./YouTubePlayerBridgeProtocol";
 
 interface YouTubePlayerElement extends HTMLElement {
   setVolume?(volumePercent: number): void;
@@ -29,7 +12,7 @@ window.addEventListener("message", (event) => {
     return;
   }
 
-  const message = parsePlayerMessage(event.data);
+  const message = parseYouTubePlayerBridgeMessage(event.data);
 
   if (message === null) {
     return;
@@ -56,44 +39,3 @@ window.addEventListener("message", (event) => {
       player.setPlaybackRate?.(message.playbackRate);
   }
 });
-
-function parsePlayerMessage(value: unknown): PlayerMessage | null {
-  if (!isRecord(value) || value.channel !== PLAYER_CHANNEL || typeof value.type !== "string") {
-    return null;
-  }
-
-  switch (value.type) {
-    case "set-volume":
-      return typeof value.volume === "number" && Number.isFinite(value.volume)
-        ? {
-            channel: PLAYER_CHANNEL,
-            type: "set-volume",
-            volume: Math.min(1, Math.max(0, value.volume))
-          }
-        : null;
-    case "set-muted":
-      return typeof value.muted === "boolean"
-        ? {
-            channel: PLAYER_CHANNEL,
-            type: "set-muted",
-            muted: value.muted
-          }
-        : null;
-    case "set-playback-rate":
-      return typeof value.playbackRate === "number" &&
-        Number.isFinite(value.playbackRate) &&
-        value.playbackRate > 0
-        ? {
-            channel: PLAYER_CHANNEL,
-            type: "set-playback-rate",
-            playbackRate: value.playbackRate
-          }
-        : null;
-    default:
-      return null;
-  }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
