@@ -10,7 +10,7 @@ import { PlayerShell } from "../presentation/player/PlayerShell";
 import type { PlayerPlaybackLabels } from "../presentation/player/PlayerShell";
 import { VolumeControl } from "../presentation/player/VolumeControl";
 import type { VolumeControlLabels } from "../presentation/player/VolumeControl";
-import { SpikeTrigger } from "../presentation/spike/SpikeTrigger";
+import { FloatPlayTrigger } from "../presentation/trigger/FloatPlayTrigger";
 import type { Logger } from "../shared/Logger";
 
 interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
@@ -26,7 +26,7 @@ interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
 export class FloatPlayController {
   private readonly lifecycle = new AbortController();
   private readonly observer: MutationObserver;
-  private readonly trigger: SpikeTrigger;
+  private readonly trigger: FloatPlayTrigger;
   private reconcileFrame: number | null = null;
   private playerShell: PlayerShell | null = null;
   private originSurface: OriginPlaybackSurface | null = null;
@@ -46,7 +46,7 @@ export class FloatPlayController {
     private readonly logger: Logger
   ) {
     this.triggerCoachmarkPending = triggerCoachmarkInitiallyVisible;
-    this.trigger = new SpikeTrigger({
+    this.trigger = new FloatPlayTrigger({
       label: this.labels.triggerOpen,
       iconUrl: triggerIconUrl,
       coachmarkLabel: this.labels.triggerCoachmark,

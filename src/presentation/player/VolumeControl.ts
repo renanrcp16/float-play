@@ -1,5 +1,5 @@
-import type { VolumeMirror } from "../../application/VolumeController";
 import { adjustVolume, setMediaVolume } from "../../application/MediaVolume";
+import type { VolumeMirror } from "../../application/MediaVolume";
 import { getDisplayedVolume, resolveVolumeInput } from "../../application/VolumeSemantics";
 import type { Logger } from "../../shared/Logger";
 

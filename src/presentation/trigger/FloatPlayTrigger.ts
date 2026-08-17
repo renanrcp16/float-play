@@ -1,6 +1,6 @@
 const COACHMARK_COPY_ID = "floatplay-trigger-coachmark-copy";
 
-interface SpikeTriggerOptions {
+interface FloatPlayTriggerOptions {
   readonly label: string;
   readonly iconUrl: string;
   readonly coachmarkLabel: string;
@@ -16,7 +16,7 @@ export interface TriggerInlineAnchor {
 
 type TriggerPlacement = "inline" | "fallback";
 
-export class SpikeTrigger {
+export class FloatPlayTrigger {
   private readonly lifecycle = new AbortController();
   private readonly host: HTMLDivElement;
   private readonly button: HTMLButtonElement;
@@ -24,9 +24,9 @@ export class SpikeTrigger {
   private placement: TriggerPlacement = "fallback";
   private visible = false;
 
-  public constructor(options: SpikeTriggerOptions) {
+  public constructor(options: FloatPlayTriggerOptions) {
     this.host = document.createElement("div");
-    this.host.dataset.floatplay = "spike-trigger";
+    this.host.dataset.floatplay = "trigger";
     this.host.dataset.placement = this.placement;
 
     const shadowRoot = this.host.attachShadow({ mode: "closed" });

@@ -37,14 +37,14 @@ export interface DocumentPipSession {
   readonly signal: AbortSignal;
 }
 
-export class DocumentPipUnavailableError extends Error {
+class DocumentPipUnavailableError extends Error {
   public constructor() {
     super("Document Picture-in-Picture is unavailable in this browser context.");
     this.name = "DocumentPipUnavailableError";
   }
 }
 
-export class MediaRestoreError extends Error {
+class MediaRestoreError extends Error {
   public constructor() {
     super("The media element could not be restored to a safe original DOM location.");
     this.name = "MediaRestoreError";
@@ -135,10 +135,6 @@ export class DocumentPipManager {
     }
 
     return this.toPublicSession(session);
-  }
-
-  public close(): void {
-    this.session?.pipWindow.close();
   }
 
   public dispose(): void {

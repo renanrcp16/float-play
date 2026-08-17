@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import type { Logger } from "../../shared/Logger";
 import { ChromeOnboardingStore } from "./ChromeOnboardingStore";
-import type { OnboardingStorageArea } from "./ChromeOnboardingStore";
+import type { ChromeStorageArea } from "./ChromeStorageArea";
 
 function createLogger() {
   return {
@@ -13,7 +13,7 @@ function createLogger() {
 
 describe("ChromeOnboardingStore", () => {
   test("treats a missing flag as unseen", async () => {
-    const storage: OnboardingStorageArea = {
+    const storage: ChromeStorageArea = {
       get: vi.fn(() => Promise.resolve({})),
       set: vi.fn(() => Promise.resolve())
     };
@@ -23,7 +23,7 @@ describe("ChromeOnboardingStore", () => {
   });
 
   test("loads the persisted seen flag", async () => {
-    const storage: OnboardingStorageArea = {
+    const storage: ChromeStorageArea = {
       get: vi.fn(() => Promise.resolve({ triggerCoachmarkSeen: true })),
       set: vi.fn(() => Promise.resolve())
     };
@@ -42,7 +42,7 @@ describe("ChromeOnboardingStore", () => {
 
   test("skips onboarding when loading the flag fails", async () => {
     const logger = createLogger();
-    const storage: OnboardingStorageArea = {
+    const storage: ChromeStorageArea = {
       get: vi.fn(() => Promise.reject(new Error("storage failure"))),
       set: vi.fn(() => Promise.resolve())
     };
@@ -54,7 +54,7 @@ describe("ChromeOnboardingStore", () => {
 
   test("marks the trigger coachmark as seen", async () => {
     const set = vi.fn(() => Promise.resolve());
-    const storage: OnboardingStorageArea = {
+    const storage: ChromeStorageArea = {
       get: vi.fn(() => Promise.resolve({})),
       set
     };
@@ -67,7 +67,7 @@ describe("ChromeOnboardingStore", () => {
 
   test("does not reject when persisting the seen flag fails", async () => {
     const logger = createLogger();
-    const storage: OnboardingStorageArea = {
+    const storage: ChromeStorageArea = {
       get: vi.fn(() => Promise.resolve({})),
       set: vi.fn(() => Promise.reject(new Error("storage failure")))
     };

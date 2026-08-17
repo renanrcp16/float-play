@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import { DEFAULT_SETTINGS, SETTINGS_SCHEMA_VERSION } from "../../application/Settings";
 import type { Logger } from "../../shared/Logger";
 import { ChromeSettingsStore } from "./ChromeSettingsStore";
-import type { SettingsStorageArea } from "./ChromeSettingsStore";
+import type { ChromeStorageArea } from "./ChromeStorageArea";
 
 function createLogger() {
   return {
@@ -14,7 +14,7 @@ function createLogger() {
 
 describe("ChromeSettingsStore", () => {
   test("loads and normalizes settings from sync storage", async () => {
-    const storage: SettingsStorageArea = {
+    const storage: ChromeStorageArea = {
       get: vi.fn(() =>
         Promise.resolve({
           settings: {
@@ -46,7 +46,7 @@ describe("ChromeSettingsStore", () => {
 
   test("falls back to defaults when loading fails", async () => {
     const logger = createLogger();
-    const storage: SettingsStorageArea = {
+    const storage: ChromeStorageArea = {
       get: vi.fn(() => Promise.reject(new Error("storage failure"))),
       set: vi.fn(() => Promise.resolve())
     };
@@ -58,7 +58,7 @@ describe("ChromeSettingsStore", () => {
 
   test("saves normalized settings under the versioned settings key", async () => {
     const set = vi.fn(() => Promise.resolve());
-    const storage: SettingsStorageArea = {
+    const storage: ChromeStorageArea = {
       get: vi.fn(() => Promise.resolve({})),
       set
     };
