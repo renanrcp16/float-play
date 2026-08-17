@@ -497,7 +497,9 @@ Integration tests must cover communication between player controls and media beh
 
 ### NFR-032 — End-to-end coverage
 
-Critical extension flows must gain browser-level end-to-end coverage before v1.0.0.
+Critical extension-owned flows must have deterministic browser-level end-to-end coverage before v1.0.0 using the built extension rather than mocked implementation internals.
+
+Synthetic browser fixtures may validate extension-owned behavior such as Options Page persistence, trigger reconciliation, and onboarding persistence, but they must not be presented as proof of live YouTube DOM compatibility or Document Picture-in-Picture lifecycle behavior.
 
 ### NFR-033 — Real YouTube smoke tests
 
