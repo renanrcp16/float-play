@@ -1,7 +1,4 @@
-import {
-  SETTINGS_SCHEMA_VERSION,
-  type FloatPlaySettings
-} from "./Settings";
+import type { FloatPlaySettings, FloatPlaySettingsPatch } from "./Settings";
 
 export interface OptionsFormValues {
   readonly seekBackwardSeconds: number;
@@ -21,10 +18,9 @@ export function settingsToOptionsFormValues(settings: FloatPlaySettings): Option
   };
 }
 
-export function optionsFormValuesToSettings(
-  values: OptionsFormValues,
-  currentSettings: FloatPlaySettings
-): FloatPlaySettings | null {
+export function optionsFormValuesToSettingsPatch(
+  values: OptionsFormValues
+): FloatPlaySettingsPatch | null {
   if (
     !isPositiveFinite(values.seekBackwardSeconds) ||
     !isPositiveFinite(values.seekForwardSeconds) ||
@@ -35,8 +31,6 @@ export function optionsFormValuesToSettings(
   }
 
   return {
-    ...currentSettings,
-    schemaVersion: SETTINGS_SCHEMA_VERSION,
     seekBackwardSeconds: values.seekBackwardSeconds,
     seekForwardSeconds: values.seekForwardSeconds,
     volumeStep: values.volumeStepPercent / 100,

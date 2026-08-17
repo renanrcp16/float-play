@@ -12,27 +12,59 @@ function createLogger() {
   } satisfies Logger;
 }
 
-describe("ChromeSettingsStore", () => {
-  test("loads and normalizes settings from sync storage", async () => {
-    const storage: ChromeStorageArea = {
-      get: vi.fn(() =>
-        Promise.resolve({
-          settings: {
-            schemaVersion: SETTINGS_SCHEMA_VERSION,
-            seekBackwardSeconds: 15,
-            autoHideEnabled: false
-          }
-        })
-      ),
-      set: vi.fn(() => Promise.resolve())
-    };
+function createMemoryStorage(initial: Record<string, unknown> = {}): ChromeStorageArea {
+  const values: Record<string, unknown> = { ...initial };
 
+  return {
+    get: vi.fn((keys: string | string[]) => {
+      const requestedKeys = Array.isArray(keys) ? keys : [keys];
+      return Promise.resolve(Object.fromEntries(
+        requestedKeys
+          .filter((key) => key in values)
+          .map((key) => [key, values[key]])
+      ));
+    }),
+    set: vi.fn((items: Record<string, unknown>) => {
+      Object.assign(values, items);
+      return Promise.resolve();
+    })
+  };
+}
+
+describe("ChromeSettingsStore", () => {
+  test("loads and normalizes the legacy settings object", async () => {
+    const storage = createMemoryStorage({
+      settings: {
+        schemaVersion: SETTINGS_SCHEMA_VERSION,
+        seekBackwardSeconds: 15,
+        autoHideEnabled: false
+      }
+    });
     const store = new ChromeSettingsStore(createLogger(), storage);
 
     await expect(store.load()).resolves.toEqual({
       ...DEFAULT_SETTINGS,
       seekBackwardSeconds: 15,
       autoHideEnabled: false
+    });
+  });
+
+  test("prefers independently persisted v1 fields while retaining legacy fallbacks", async () => {
+    const storage = createMemoryStorage({
+      settings: {
+        ...DEFAULT_SETTINGS,
+        seekBackwardSeconds: 15,
+        timeDisplayMode: "elapsed"
+      },
+      "settings.v1.schemaVersion": SETTINGS_SCHEMA_VERSION,
+      "settings.v1.timeDisplayMode": "remaining"
+    });
+    const store = new ChromeSettingsStore(createLogger(), storage);
+
+    await expect(store.load()).resolves.toEqual({
+      ...DEFAULT_SETTINGS,
+      seekBackwardSeconds: 15,
+      timeDisplayMode: "remaining"
     });
   });
 
@@ -56,7 +88,7 @@ describe("ChromeSettingsStore", () => {
     expect(logger.error).toHaveBeenCalledOnce();
   });
 
-  test("saves normalized settings under the versioned settings key", async () => {
+  test("writes only the requested preference and schema version", async () => {
     const set = vi.fn(() => Promise.resolve());
     const storage: ChromeStorageArea = {
       get: vi.fn(() => Promise.resolve({})),
@@ -64,16 +96,29 @@ describe("ChromeSettingsStore", () => {
     };
     const store = new ChromeSettingsStore(createLogger(), storage);
 
-    await store.save({
-      ...DEFAULT_SETTINGS,
-      seekForwardSeconds: 20
-    });
+    await store.update({ timeDisplayMode: "remaining" });
 
     expect(set).toHaveBeenCalledWith({
-      settings: {
-        ...DEFAULT_SETTINGS,
-        seekForwardSeconds: 20
-      }
+      "settings.v1.schemaVersion": SETTINGS_SCHEMA_VERSION,
+      "settings.v1.timeDisplayMode": "remaining"
+    });
+  });
+
+  test("preserves independent preferences across interleaved updates", async () => {
+    const storage = createMemoryStorage({
+      settings: DEFAULT_SETTINGS
+    });
+    const store = new ChromeSettingsStore(createLogger(), storage);
+
+    await Promise.all([
+      store.update({ timeDisplayMode: "remaining" }),
+      store.update({ seekForwardSeconds: 20 })
+    ]);
+
+    await expect(store.load()).resolves.toEqual({
+      ...DEFAULT_SETTINGS,
+      seekForwardSeconds: 20,
+      timeDisplayMode: "remaining"
     });
   });
 });

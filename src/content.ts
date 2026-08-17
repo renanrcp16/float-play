@@ -88,16 +88,7 @@ async function persistTimeDisplayMode(
   mode: TimeDisplayMode
 ): Promise<void> {
   try {
-    const latestSettings = await settingsStore.load();
-
-    if (latestSettings.timeDisplayMode === mode) {
-      return;
-    }
-
-    await settingsStore.save({
-      ...latestSettings,
-      timeDisplayMode: mode
-    });
+    await settingsStore.update({ timeDisplayMode: mode });
   } catch (error) {
     logger.error("Unable to persist the FloatPlay time display preference.", error);
   }

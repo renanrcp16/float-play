@@ -1,5 +1,5 @@
 import {
-  optionsFormValuesToSettings,
+  optionsFormValuesToSettingsPatch,
   settingsToOptionsFormValues,
   type OptionsFormValues
 } from "./application/OptionsForm";
@@ -116,22 +116,21 @@ async function saveSettings(controls: OptionsControls): Promise<void> {
     return;
   }
 
+  const patch = optionsFormValuesToSettingsPatch(values);
+
+  if (patch === null) {
+    setStatus(
+      controls,
+      i18n.getMessage("optionsInvalidForm", "Check the highlighted settings before saving."),
+      "error"
+    );
+    return;
+  }
+
   setBusy(controls, true);
 
   try {
-    const currentSettings = await store.load();
-    const settings = optionsFormValuesToSettings(values, currentSettings);
-
-    if (settings === null) {
-      setStatus(
-        controls,
-        i18n.getMessage("optionsInvalidForm", "Check the highlighted settings before saving."),
-        "error"
-      );
-      return;
-    }
-
-    await store.save(settings);
+    await store.update(patch);
     setStatus(
       controls,
       i18n.getMessage("optionsSaved", "Settings saved. Reload open YouTube tabs to apply them."),
@@ -153,14 +152,14 @@ async function resetSettings(controls: OptionsControls): Promise<void> {
   setBusy(controls, true);
 
   try {
-    const currentSettings = await store.load();
-    const settings = {
-      ...DEFAULT_SETTINGS,
-      timeDisplayMode: currentSettings.timeDisplayMode
-    };
-
-    await store.save(settings);
-    applySettings(controls, settings);
+    await store.update({
+      seekBackwardSeconds: DEFAULT_SETTINGS.seekBackwardSeconds,
+      seekForwardSeconds: DEFAULT_SETTINGS.seekForwardSeconds,
+      volumeStep: DEFAULT_SETTINGS.volumeStep,
+      autoHideEnabled: DEFAULT_SETTINGS.autoHideEnabled,
+      autoHideDelayMs: DEFAULT_SETTINGS.autoHideDelayMs
+    });
+    applySettings(controls, DEFAULT_SETTINGS);
     updateAutoHideState(controls);
     setStatus(
       controls,

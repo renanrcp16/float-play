@@ -29,6 +29,7 @@ The suite verifies that:
 - current default settings are rendered;
 - supported settings persist through `chrome.storage.sync` when the Options Page is reopened;
 - `Restore defaults` persists the approved defaults again;
+- Options Page Save and Restore defaults do not overwrite the player-owned `timeDisplayMode` preference;
 - the built `content.js` inserts the real icon-only FloatPlay trigger on a deterministic synthetic `/watch` page with the minimal supported DOM/media conditions;
 - first-use coachmark state is read from and persisted to the real extension `chrome.storage.local` area;
 - explicit coachmark dismissal remains persisted after a page reload;
