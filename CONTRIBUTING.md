@@ -22,7 +22,7 @@ Follow the repository language requirement defined in `docs/PRD.md`. Repository-
 
 ## Development requirements
 
-- Node.js 22.12 or newer.
+- Node.js 22.13 or newer.
 - pnpm version declared by the `packageManager` field in `package.json`.
 - Google Chrome desktop for extension smoke testing.
 
@@ -83,7 +83,7 @@ GitHub Actions runs automated gates on pull requests targeting `main` and pushes
 - `Dependency audit` installs both locked dependency trees and runs `pnpm audit:dependencies`, failing for known high or critical advisories.
 - `Browser E2E` installs the root and isolated E2E lockfiles, installs Playwright Chromium with its Linux dependencies, and runs `pnpm test:e2e`.
 
-CI uses Node.js 22.12.0 and an explicitly pinned Corepack release before enabling Corepack. pnpm is then resolved from the repository's `packageManager` field rather than silently selecting a different package-manager version. Pinning the CI Corepack bootstrap avoids relying on a potentially stale Corepack build bundled with the Node.js runner while preserving package-manager signature verification.
+CI uses Node.js 22.13.0 and an explicitly pinned Corepack release before enabling Corepack. pnpm is then resolved from the repository's `packageManager` field rather than silently selecting a different package-manager version. Pinning the CI Corepack bootstrap avoids relying on a potentially stale Corepack build bundled with the Node.js runner while preserving package-manager signature verification.
 
 To reproduce the dependency security check locally, run:
 
