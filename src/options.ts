@@ -3,7 +3,16 @@ import {
   settingsToOptionsFormValues,
   type OptionsFormValues
 } from "./application/OptionsForm";
-import { DEFAULT_SETTINGS, type FloatPlaySettings } from "./application/Settings";
+import {
+  DEFAULT_SETTINGS,
+  MAX_AUTO_HIDE_DELAY_MS,
+  MAX_SEEK_SECONDS,
+  MAX_VOLUME_STEP,
+  MIN_AUTO_HIDE_DELAY_MS,
+  MIN_SEEK_SECONDS,
+  MIN_VOLUME_STEP,
+  type FloatPlaySettings
+} from "./application/Settings";
 import { resolveSupportedLocale } from "./application/SupportedLocale";
 import { ChromeI18n } from "./infrastructure/chrome/ChromeI18n";
 import { ChromeSettingsStore } from "./infrastructure/chrome/ChromeSettingsStore";
@@ -35,6 +44,7 @@ async function initialize(): Promise<void> {
   const settings = await store.load();
 
   applySettings(controls, settings);
+  applyCanonicalNumericConstraints(controls);
   updateAutoHideState(controls);
   installNumericInputGuards(controls);
 
@@ -92,6 +102,9 @@ function applySettings(controls: OptionsControls, settings: FloatPlaySettings): 
 }
 
 function readFormValues(controls: OptionsControls): OptionsFormValues | null {
+  applyCanonicalNumericConstraints(controls);
+  updateAutoHideState(controls);
+
   if (!controls.form.reportValidity()) {
     return null;
   }
@@ -161,6 +174,7 @@ async function resetSettings(controls: OptionsControls): Promise<void> {
       autoHideDelayMs: DEFAULT_SETTINGS.autoHideDelayMs
     });
     applySettings(controls, DEFAULT_SETTINGS);
+    applyCanonicalNumericConstraints(controls);
     updateAutoHideState(controls);
     setStatus(
       controls,
@@ -198,6 +212,35 @@ function installNumericInputGuards(controls: OptionsControls): void {
       }
     });
   }
+}
+
+function applyCanonicalNumericConstraints(controls: OptionsControls): void {
+  configureNumericInput(controls.seekBackward, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS, 0.1);
+  configureNumericInput(controls.seekForward, MIN_SEEK_SECONDS, MAX_SEEK_SECONDS, 0.1);
+  configureNumericInput(controls.volumeStep, MIN_VOLUME_STEP * 100, MAX_VOLUME_STEP * 100, 1);
+  configureNumericInput(
+    controls.autoHideDelay,
+    MIN_AUTO_HIDE_DELAY_MS / 1000,
+    MAX_AUTO_HIDE_DELAY_MS / 1000,
+    0.1
+  );
+
+  controls.seekBackward.disabled = false;
+  controls.seekForward.disabled = false;
+  controls.volumeStep.disabled = false;
+}
+
+function configureNumericInput(
+  input: HTMLInputElement,
+  minimum: number,
+  maximum: number,
+  step: number
+): void {
+  input.type = "number";
+  input.min = formatNumber(minimum);
+  input.max = formatNumber(maximum);
+  input.step = formatNumber(step);
+  input.required = true;
 }
 
 function containsUnsupportedNumberNotation(value: string): boolean {

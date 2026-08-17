@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures.mjs";
 
 const SETTINGS_SCHEMA_VERSION_KEY = "settings.v1.schemaVersion";
+const SEEK_BACKWARD_KEY = "settings.v1.seekBackwardSeconds";
 const TIME_DISPLAY_MODE_KEY = "settings.v1.timeDisplayMode";
 
 async function openOptionsPage(context, extensionId) {
@@ -131,6 +132,37 @@ test("persists supported settings and restores defaults", async ({ context, exte
   await expect(thirdOpen.page.locator("#auto-hide-delay")).toHaveValue("1");
   expect(thirdOpen.errors).toEqual([]);
   await thirdOpen.page.close();
+});
+
+test("restores canonical numeric constraints before saving", async ({
+  context,
+  extensionId,
+  extensionWorker
+}) => {
+  const { page, errors } = await openOptionsPage(context, extensionId);
+  const seekBackward = page.locator("#seek-backward");
+
+  await seekBackward.evaluate((input) => {
+    input.removeAttribute("max");
+  });
+  await expect(seekBackward).not.toHaveAttribute("max");
+
+  await seekBackward.fill("100000");
+  await page.locator("#save-button").click();
+
+  await expect(seekBackward).toHaveAttribute("max", "600");
+  await expect(page.locator("#form-status")).toHaveAttribute("data-tone", "error");
+  await expect(seekBackward).toBeFocused();
+  expect(await seekBackward.evaluate((input) => input.validity.rangeOverflow)).toBe(true);
+
+  const storedSeek = await extensionWorker.evaluate(async (key) => {
+    const stored = await chrome.storage.sync.get(key);
+    return stored[key];
+  }, SEEK_BACKWARD_KEY);
+
+  expect(storedSeek).not.toBe(100000);
+  expect(errors).toEqual([]);
+  await page.close();
 });
 
 test("does not overwrite the player-owned time display preference", async ({
