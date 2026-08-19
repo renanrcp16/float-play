@@ -2,37 +2,41 @@ import { describe, expect, test } from "vitest";
 import {
   AUDIO_ONLY_COMPACT_HEIGHT,
   AUDIO_ONLY_COMPACT_WIDTH,
+  AUDIO_ONLY_MENU_HEIGHT,
   calculateViewportResizeDelta,
-  resolveAudioOnlyViewport
+  resolveAudioOnlyViewportSize
 } from "./AudioOnlyPresentation";
 
 describe("Audio-only presentation sizing", () => {
-  test("compacts both dimensions without enlarging an already smaller window", () => {
-    expect(resolveAudioOnlyViewport(480, 270)).toEqual({
+  test("uses the compact viewport while controls are visible", () => {
+    expect(resolveAudioOnlyViewportSize(false)).toEqual({
       width: AUDIO_ONLY_COMPACT_WIDTH,
       height: AUDIO_ONLY_COMPACT_HEIGHT
-    });
-    expect(resolveAudioOnlyViewport(220, 100)).toEqual({
-      width: 220,
-      height: 100
     });
   });
 
-  test("falls back to compact dimensions for invalid viewport measurements", () => {
-    expect(resolveAudioOnlyViewport(0, Number.NaN)).toEqual({
+  test("temporarily expands vertically while the overflow menu is open", () => {
+    expect(resolveAudioOnlyViewportSize(true)).toEqual({
       width: AUDIO_ONLY_COMPACT_WIDTH,
-      height: AUDIO_ONLY_COMPACT_HEIGHT
+      height: AUDIO_ONLY_MENU_HEIGHT
+    });
+  });
+
+  test("calculates the exact delta needed to move between compact and menu sizes", () => {
+    expect(calculateViewportResizeDelta(250, 80, 250, 180)).toEqual({
+      width: 0,
+      height: 100
+    });
+    expect(calculateViewportResizeDelta(250, 180, 250, 80)).toEqual({
+      width: 0,
+      height: -100
     });
   });
 
   test("calculates the exact delta needed to restore a previous video viewport", () => {
-    expect(calculateViewportResizeDelta(250, 120, 480, 270)).toEqual({
+    expect(calculateViewportResizeDelta(250, 80, 480, 270)).toEqual({
       width: 230,
-      height: 150
-    });
-    expect(calculateViewportResizeDelta(220, 100, 480, 270)).toEqual({
-      width: 260,
-      height: 170
+      height: 190
     });
   });
 });
