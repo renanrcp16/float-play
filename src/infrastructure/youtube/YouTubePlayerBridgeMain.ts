@@ -60,6 +60,5 @@ export function syncYouTubeMusicVolumeUi(
   for (const slider of sliders) {
     slider.value = percent;
     slider.setAttribute("aria-valuenow", percent.toString());
-    slider.dispatchEvent(new Event("change", { bubbles: true }));
   }
 }
