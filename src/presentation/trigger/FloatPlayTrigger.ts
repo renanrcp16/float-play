@@ -13,6 +13,7 @@ export interface TriggerInlineAnchor {
   readonly parent: HTMLElement;
   readonly reference: ChildNode;
   readonly position: "before" | "after";
+  readonly compact?: boolean;
 }
 
 type TriggerPlacement = "inline" | "fallback";
@@ -287,7 +288,7 @@ export class FloatPlayTrigger {
       zIndex: "1",
       flex: "0 0 auto",
       alignSelf: "center",
-      marginInline: "8px 4px"
+      marginInline: anchor.compact === true ? "0 2px 0 0" : "8px 4px"
     });
 
     this.applyVisibility();
