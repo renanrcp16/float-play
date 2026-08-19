@@ -10,6 +10,8 @@ interface PageLocation {
   readonly pathname: string;
 }
 
+export type YouTubeSurface = "youtube-watch" | "youtube-music";
+
 export interface YouTubeTriggerAnchor {
   readonly parent: HTMLElement;
   readonly after: ChildNode;
@@ -24,12 +26,18 @@ interface ViewportRect {
 
 export class YouTubeAdapter {
   public isSupportedPage(location: PageLocation = window.location): boolean {
-    const isYouTubeHost = location.hostname === "www.youtube.com" || location.hostname === "youtube.com";
+    return classifyYouTubeSurface(location) !== null;
+  }
 
-    return isYouTubeHost && location.pathname === "/watch";
+  public isAudioOnlyRequired(location: PageLocation = window.location): boolean {
+    return classifyYouTubeSurface(location) === "youtube-music";
   }
 
   public findTriggerAnchor(root: ParentNode = document): YouTubeTriggerAnchor | null {
+    if (this.isAudioOnlyRequired()) {
+      return this.findMusicTriggerAnchor(root);
+    }
+
     const metadata = root.querySelector("ytd-watch-metadata");
     const owner = metadata?.querySelector("#owner");
     const subscriptionArea = owner?.querySelector(
@@ -48,17 +56,24 @@ export class YouTubeAdapter {
   }
 
   public findActiveMedia(root: ParentNode = document): HTMLVideoElement | null {
-    if (!this.isSupportedPage()) {
+    const surface = classifyYouTubeSurface(window.location);
+
+    if (surface === null) {
       return null;
     }
 
-    const candidates = Array.from(root.querySelectorAll("video"))
-      .filter((video): video is HTMLVideoElement => video instanceof HTMLVideoElement)
+    const candidates = Array.from(root.querySelectorAll("video")).filter(
+      (video): video is HTMLVideoElement => video instanceof HTMLVideoElement && video.isConnected
+    );
+
+    if (surface === "youtube-music") {
+      return this.findMusicMedia(candidates);
+    }
+
+    return candidates
       .map((video) => ({ video, area: this.getVisibleArea(video) }))
       .filter(({ area }) => area > 0)
-      .sort((left, right) => right.area - left.area);
-
-    return candidates[0]?.video ?? null;
+      .sort((left, right) => right.area - left.area)[0]?.video ?? null;
   }
 
   public setVolume(volume: number): void {
@@ -79,6 +94,41 @@ export class YouTubeAdapter {
     if (message !== null) {
       this.postPlayerMessage(message);
     }
+  }
+
+  private findMusicTriggerAnchor(root: ParentNode): YouTubeTriggerAnchor | null {
+    const playerBar = root.querySelector("ytmusic-player-bar");
+    const rightControls = playerBar?.querySelector<HTMLElement>("#right-controls");
+    const volumeTarget = rightControls?.querySelector<HTMLElement>(
+      "#volume-slider, .volume-slider, .expand-volume-slider"
+    );
+
+    if (rightControls === null || rightControls === undefined || volumeTarget === null || volumeTarget === undefined) {
+      return null;
+    }
+
+    const volumeControl = findDirectChildContaining(rightControls, volumeTarget);
+    const previousSibling = volumeControl?.previousSibling ?? null;
+
+    if (volumeControl === null || previousSibling === null) {
+      return null;
+    }
+
+    return {
+      parent: rightControls,
+      after: previousSibling
+    };
+  }
+
+  private findMusicMedia(candidates: readonly HTMLVideoElement[]): HTMLVideoElement | null {
+    const preferred = candidates.find((video) => video.closest("#movie_player") !== null);
+
+    if (preferred !== undefined) {
+      return preferred;
+    }
+
+    const active = candidates.find((video) => !video.ended && (video.readyState > 0 || video.currentSrc.length > 0));
+    return active ?? candidates[0] ?? null;
   }
 
   private postPlayerMessage(message: YouTubePlayerBridgeMessage): void {
@@ -109,6 +159,28 @@ export class YouTubeAdapter {
 
     return calculateViewportIntersectionArea(rect, window.innerWidth, window.innerHeight);
   }
+}
+
+export function classifyYouTubeSurface(location: PageLocation): YouTubeSurface | null {
+  if (location.hostname === "music.youtube.com") {
+    return "youtube-music";
+  }
+
+  const isYouTubeHost = location.hostname === "www.youtube.com" || location.hostname === "youtube.com";
+  return isYouTubeHost && location.pathname === "/watch" ? "youtube-watch" : null;
+}
+
+export function findDirectChildContaining(
+  parent: HTMLElement,
+  descendant: HTMLElement
+): HTMLElement | null {
+  let current: HTMLElement | null = descendant;
+
+  while (current !== null && current.parentElement !== parent) {
+    current = current.parentElement;
+  }
+
+  return current?.parentElement === parent ? current : null;
 }
 
 export function calculateViewportIntersectionArea(
