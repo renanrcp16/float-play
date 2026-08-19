@@ -11,10 +11,12 @@ interface PageLocation {
 }
 
 export type YouTubeSurface = "youtube-watch" | "youtube-music";
+export type TriggerAnchorPosition = "before" | "after";
 
 export interface YouTubeTriggerAnchor {
   readonly parent: HTMLElement;
-  readonly after: ChildNode;
+  readonly reference: ChildNode;
+  readonly position: TriggerAnchorPosition;
 }
 
 interface ViewportRect {
@@ -51,7 +53,8 @@ export class YouTubeAdapter {
 
     return {
       parent,
-      after: subscriptionArea
+      reference: subscriptionArea,
+      position: "after"
     };
   }
 
@@ -108,15 +111,15 @@ export class YouTubeAdapter {
     }
 
     const volumeControl = findDirectChildContaining(rightControls, volumeTarget);
-    const previousSibling = volumeControl?.previousSibling ?? null;
 
-    if (volumeControl === null || previousSibling === null) {
+    if (volumeControl === null) {
       return null;
     }
 
     return {
       parent: rightControls,
-      after: previousSibling
+      reference: volumeControl,
+      position: "before"
     };
   }
 
