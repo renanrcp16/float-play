@@ -2,8 +2,6 @@ import type { Logger } from "../../shared/Logger";
 
 export const AUDIO_ONLY_COMPACT_WIDTH = 250;
 export const AUDIO_ONLY_COMPACT_HEIGHT = 80;
-export const AUDIO_ONLY_MENU_WIDTH = 320;
-export const AUDIO_ONLY_MENU_HEIGHT = 250;
 export const AUDIO_ONLY_CLASS = "floatplay-audio-only";
 
 export interface ViewportSize {
@@ -13,7 +11,6 @@ export interface ViewportSize {
 
 export class AudioOnlyPresentation {
   private enabled = false;
-  private menuOpen = false;
   private videoViewport: ViewportSize | null = null;
   private style: HTMLStyleElement | null = null;
 
@@ -37,43 +34,29 @@ export class AudioOnlyPresentation {
       this.installStyles();
       shell?.classList.add(AUDIO_ONLY_CLASS);
       this.enabled = true;
-      this.resizeToAudioTarget();
+      this.resizeTo(
+        resolveAudioOnlyViewportSize(),
+        "Unable to resize the Picture-in-Picture window for Audio-only mode."
+      );
       return;
     }
 
     shell?.classList.remove(AUDIO_ONLY_CLASS);
+    shell?.removeAttribute("data-floatplay-overflow-open");
     this.enabled = false;
     this.restoreVideoViewport();
     this.style?.remove();
     this.style = null;
   }
 
-  public setMenuOpen(open: boolean): void {
-    if (this.menuOpen === open) {
-      return;
-    }
-
-    this.menuOpen = open;
-
-    if (this.enabled) {
-      this.resizeToAudioTarget();
-    }
-  }
-
   public dispose(): void {
-    this.playerWindow.document
-      .querySelector<HTMLElement>(".floatplay-player-shell")
-      ?.classList.remove(AUDIO_ONLY_CLASS);
+    const shell = this.playerWindow.document.querySelector<HTMLElement>(".floatplay-player-shell");
+    shell?.classList.remove(AUDIO_ONLY_CLASS);
+    shell?.removeAttribute("data-floatplay-overflow-open");
     this.style?.remove();
     this.style = null;
     this.videoViewport = null;
     this.enabled = false;
-    this.menuOpen = false;
-  }
-
-  private resizeToAudioTarget(): void {
-    const target = resolveAudioOnlyViewportSize(this.menuOpen);
-    this.resizeTo(target, "Unable to resize the Picture-in-Picture window for Audio-only mode.");
   }
 
   private restoreVideoViewport(): void {
@@ -125,16 +108,11 @@ export class AudioOnlyPresentation {
   }
 }
 
-export function resolveAudioOnlyViewportSize(menuOpen: boolean): ViewportSize {
-  return menuOpen
-    ? {
-        width: AUDIO_ONLY_MENU_WIDTH,
-        height: AUDIO_ONLY_MENU_HEIGHT
-      }
-    : {
-        width: AUDIO_ONLY_COMPACT_WIDTH,
-        height: AUDIO_ONLY_COMPACT_HEIGHT
-      };
+export function resolveAudioOnlyViewportSize(): ViewportSize {
+  return {
+    width: AUDIO_ONLY_COMPACT_WIDTH,
+    height: AUDIO_ONLY_COMPACT_HEIGHT
+  };
 }
 
 export function calculateViewportResizeDelta(
