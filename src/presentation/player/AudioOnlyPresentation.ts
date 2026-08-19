@@ -1,6 +1,7 @@
 import type { Logger } from "../../shared/Logger";
 
-export const AUDIO_ONLY_COMPACT_HEIGHT = 160;
+export const AUDIO_ONLY_COMPACT_WIDTH = 250;
+export const AUDIO_ONLY_COMPACT_HEIGHT = 120;
 export const AUDIO_ONLY_CLASS = "floatplay-audio-only";
 
 interface ViewportSize {
@@ -54,15 +55,23 @@ export class AudioOnlyPresentation {
   }
 
   private resizeToAudioOnly(): void {
-    const targetHeight = resolveAudioOnlyHeight(this.playerWindow.innerHeight);
-    const deltaHeight = targetHeight - this.playerWindow.innerHeight;
+    const target = resolveAudioOnlyViewport(
+      this.playerWindow.innerWidth,
+      this.playerWindow.innerHeight
+    );
+    const delta = calculateViewportResizeDelta(
+      this.playerWindow.innerWidth,
+      this.playerWindow.innerHeight,
+      target.width,
+      target.height
+    );
 
-    if (deltaHeight === 0) {
+    if (delta.width === 0 && delta.height === 0) {
       return;
     }
 
     try {
-      this.playerWindow.resizeBy(0, deltaHeight);
+      this.playerWindow.resizeBy(delta.width, delta.height);
     } catch (error) {
       this.logger.error("Unable to compact the Picture-in-Picture window for Audio-only mode.", error);
     }
@@ -115,12 +124,11 @@ export class AudioOnlyPresentation {
   }
 }
 
-export function resolveAudioOnlyHeight(currentHeight: number): number {
-  if (!Number.isFinite(currentHeight) || currentHeight <= 0) {
-    return AUDIO_ONLY_COMPACT_HEIGHT;
-  }
-
-  return Math.min(currentHeight, AUDIO_ONLY_COMPACT_HEIGHT);
+export function resolveAudioOnlyViewport(currentWidth: number, currentHeight: number): ViewportSize {
+  return {
+    width: resolveCompactDimension(currentWidth, AUDIO_ONLY_COMPACT_WIDTH),
+    height: resolveCompactDimension(currentHeight, AUDIO_ONLY_COMPACT_HEIGHT)
+  };
 }
 
 export function calculateViewportResizeDelta(
@@ -133,4 +141,12 @@ export function calculateViewportResizeDelta(
     width: Math.round(targetWidth - currentWidth),
     height: Math.round(targetHeight - currentHeight)
   };
+}
+
+function resolveCompactDimension(current: number, compact: number): number {
+  if (!Number.isFinite(current) || current <= 0) {
+    return compact;
+  }
+
+  return Math.min(current, compact);
 }
