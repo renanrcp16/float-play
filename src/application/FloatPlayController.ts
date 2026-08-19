@@ -212,7 +212,6 @@ export class FloatPlayController {
       this.logger
     );
     const audioOnlyPresentation = new AudioOnlyPresentation(
-      session.media,
       session.pipWindow,
       this.logger
     );
