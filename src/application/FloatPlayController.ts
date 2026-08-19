@@ -3,6 +3,7 @@ import type { FloatPlaySettings, TimeDisplayMode } from "./Settings";
 import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
 import type { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
 import { OriginPlaybackSurface } from "../presentation/player/OriginPlaybackSurface";
+import { PipPlaybackSurface } from "../presentation/player/PipPlaybackSurface";
 import { PlayerControlsVisibility } from "../presentation/player/PlayerControlsVisibility";
 import { PlayerKeyboardShortcuts } from "../presentation/player/PlayerKeyboardShortcuts";
 import { PlayerOverflow } from "../presentation/player/PlayerOverflow";
@@ -30,6 +31,7 @@ export class FloatPlayController {
   private reconcileFrame: number | null = null;
   private playerShell: PlayerShell | null = null;
   private originSurface: OriginPlaybackSurface | null = null;
+  private pipPlaybackSurface: PipPlaybackSurface | null = null;
   private triggerCoachmarkPending: boolean;
   private busy = false;
 
@@ -252,6 +254,12 @@ export class FloatPlayController {
       session.signal,
       this.logger
     );
+    const pipPlaybackSurface = new PipPlaybackSurface(
+      session.media,
+      this.settings.pipVideoClickTogglesPlayback,
+      session.signal,
+      this.logger
+    );
 
     playerShell.mount();
     volumeControl.mount();
@@ -259,9 +267,11 @@ export class FloatPlayController {
     keyboardShortcuts.mount();
     controlsVisibility.mount();
     originSurface.mount();
+    pipPlaybackSurface.mount();
 
     this.playerShell = playerShell;
     this.originSurface = originSurface;
+    this.pipPlaybackSurface = pipPlaybackSurface;
 
     session.signal.addEventListener(
       "abort",
@@ -272,6 +282,10 @@ export class FloatPlayController {
 
         if (this.originSurface === originSurface) {
           this.originSurface = null;
+        }
+
+        if (this.pipPlaybackSurface === pipPlaybackSurface) {
+          this.pipPlaybackSurface = null;
         }
 
         this.scheduleReconcile();
@@ -295,7 +309,9 @@ export class FloatPlayController {
   private disposePresentation(): void {
     this.playerShell?.dispose();
     this.originSurface?.dispose();
+    this.pipPlaybackSurface?.dispose();
     this.playerShell = null;
     this.originSurface = null;
+    this.pipPlaybackSurface = null;
   }
 }
