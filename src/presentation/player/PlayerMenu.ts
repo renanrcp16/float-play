@@ -1,4 +1,6 @@
 const OVERFLOW_PANEL_ID = "floatplay-overflow-panel";
+const AUDIO_ONLY_CLASS = "floatplay-audio-only";
+const OVERFLOW_OPEN_ATTRIBUTE = "data-floatplay-overflow-open";
 
 export class PlayerMenu {
   private panel: HTMLDivElement | null = null;
@@ -8,8 +10,7 @@ export class PlayerMenu {
     private readonly document: Document,
     private readonly signal: AbortSignal,
     private readonly label: string,
-    private readonly items: readonly HTMLElement[],
-    private readonly onOpenChange: (open: boolean) => void = () => {}
+    private readonly items: readonly HTMLElement[]
   ) {}
 
   public create(): HTMLDivElement {
@@ -70,6 +71,14 @@ export class PlayerMenu {
       { signal: this.signal }
     );
 
+    this.signal.addEventListener(
+      "abort",
+      () => {
+        this.getPlayerShell()?.removeAttribute(OVERFLOW_OPEN_ATTRIBUTE);
+      },
+      { once: true }
+    );
+
     root.append(trigger, panel);
     this.trigger = trigger;
     this.panel = panel;
@@ -93,7 +102,11 @@ export class PlayerMenu {
       return;
     }
 
-    this.onOpenChange(true);
+    const shell = this.getPlayerShell();
+    if (shell?.classList.contains(AUDIO_ONLY_CLASS) === true) {
+      shell.setAttribute(OVERFLOW_OPEN_ATTRIBUTE, "true");
+    }
+
     this.panel.hidden = false;
     this.trigger.setAttribute("aria-expanded", "true");
     this.panel.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
@@ -106,11 +119,15 @@ export class PlayerMenu {
 
     this.panel.hidden = true;
     this.trigger.setAttribute("aria-expanded", "false");
-    this.onOpenChange(false);
+    this.getPlayerShell()?.removeAttribute(OVERFLOW_OPEN_ATTRIBUTE);
 
     if (restoreFocus && this.trigger.isConnected) {
       this.trigger.focus();
     }
+  }
+
+  private getPlayerShell(): HTMLElement | null {
+    return this.document.querySelector<HTMLElement>(".floatplay-player-shell");
   }
 
   private createTriggerIcon(): SVGSVGElement {
@@ -142,7 +159,8 @@ export class PlayerMenu {
     style.dataset.floatplay = "overflow-menu-styles";
     style.textContent = `
       .floatplay-overflow-menu { position: absolute; right: 12px; bottom: 12px; z-index: 3; pointer-events: auto; }
-      .floatplay-overflow-panel { position: absolute; right: 0; bottom: 36px; width: max-content; min-width: 190px; max-width: min(260px, calc(100vw - 24px)); max-height: min(200px, calc(100vh - 60px)); overflow-y: auto; overscroll-behavior: contain; padding: 6px; border: 1px solid rgb(255 255 255 / 12%); border-radius: 10px; box-sizing: border-box; background: rgb(18 18 18 / 96%); box-shadow: 0 8px 24px rgb(0 0 0 / 35%); }
+      .floatplay-overflow-panel { position: absolute; right: 0; bottom: 36px; width: max-content; min-width: 190px; max-width: min(260px, calc(100vw - 24px)); max-height: min(240px, calc(100vh - 84px)); overflow-y: auto; overscroll-behavior: contain; padding: 6px; border: 1px solid rgb(255 255 255 / 12%); border-radius: 10px; box-sizing: border-box; background: rgb(18 18 18 / 96%); box-shadow: 0 8px 24px rgb(0 0 0 / 35%); pointer-events: auto; }
+      .floatplay-overflow-panel[hidden] { display: none !important; }
       .floatplay-overflow-menu-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 8px 10px; border: 0; border-radius: 8px; box-sizing: border-box; color: #fff; background: transparent; cursor: pointer; text-align: left; }
       .floatplay-overflow-menu-item[hidden] { display: none; }
       .floatplay-overflow-menu-item:hover { background: rgb(255 255 255 / 10%); }
@@ -150,6 +168,78 @@ export class PlayerMenu {
       .floatplay-overflow-menu-item:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
       .floatplay-overflow-menu-item-icon { display: block; flex: none; pointer-events: none; }
       .floatplay-overflow-menu-item-label { min-width: 0; overflow: hidden; color: inherit; font: 500 12px/1.3 system-ui, sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-menu {
+        z-index: 6;
+      }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-panel {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1px;
+        width: 100vw;
+        min-width: 0;
+        max-width: none;
+        height: 100vh;
+        max-height: none;
+        overflow: hidden;
+        padding: 4px 36px 4px 6px;
+        border: 0;
+        border-radius: 0;
+        background: rgb(18 18 18 / 99%);
+        box-shadow: none;
+      }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-trigger {
+        position: fixed;
+        right: 4px;
+        bottom: 4px;
+        z-index: 7;
+        background: rgb(255 255 255 / 10%);
+      }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-menu-item {
+        min-height: 24px;
+        height: 24px;
+        gap: 7px;
+        padding: 3px 7px;
+        border-radius: 6px;
+      }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-menu-item-icon {
+        width: 14px;
+        height: 14px;
+      }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-menu-item-label,
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-speed-current {
+        font-size: 11px;
+      }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-speed-chevron {
+        font-size: 15px;
+      }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-speed-presets {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 2px;
+        padding: 2px 0 0;
+      }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-speed-preset {
+        min-height: 22px;
+        height: 22px;
+        padding: 2px;
+        font-size: 10px;
+        text-align: center;
+      }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-panel:has(.floatplay-speed-trigger[aria-expanded="true"]) > :not(.floatplay-speed-menu) {
+        display: none;
+      }
     `;
     this.document.head.append(style);
   }
