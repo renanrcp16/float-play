@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateViewportIntersectionArea,
+  classifyYouTubeSurface,
+  findDirectChildContaining,
   YouTubeAdapter
 } from "./YouTubeAdapter";
 
@@ -25,20 +27,41 @@ describe("YouTubeAdapter.isSupportedPage", () => {
     ).toBe(true);
   });
 
+  it("supports YouTube Music player routes", () => {
+    expect(
+      adapter.isSupportedPage({
+        hostname: "music.youtube.com",
+        pathname: "/watch"
+      })
+    ).toBe(true);
+    expect(
+      adapter.isSupportedPage({
+        hostname: "music.youtube.com",
+        pathname: "/browse/MPREb_example"
+      })
+    ).toBe(true);
+  });
+
+  it("requires Audio-only on YouTube Music", () => {
+    expect(
+      adapter.isAudioOnlyRequired({
+        hostname: "music.youtube.com",
+        pathname: "/"
+      })
+    ).toBe(true);
+    expect(
+      adapter.isAudioOnlyRequired({
+        hostname: "www.youtube.com",
+        pathname: "/watch"
+      })
+    ).toBe(false);
+  });
+
   it("rejects YouTube Shorts", () => {
     expect(
       adapter.isSupportedPage({
         hostname: "www.youtube.com",
         pathname: "/shorts/example"
-      })
-    ).toBe(false);
-  });
-
-  it("rejects YouTube Music", () => {
-    expect(
-      adapter.isSupportedPage({
-        hostname: "music.youtube.com",
-        pathname: "/watch"
       })
     ).toBe(false);
   });
@@ -50,6 +73,42 @@ describe("YouTubeAdapter.isSupportedPage", () => {
         pathname: "/watch"
       })
     ).toBe(false);
+    expect(
+      adapter.isSupportedPage({
+        hostname: "music.youtube.com.example.com",
+        pathname: "/watch"
+      })
+    ).toBe(false);
+  });
+});
+
+describe("classifyYouTubeSurface", () => {
+  it("distinguishes regular watch pages from YouTube Music", () => {
+    expect(classifyYouTubeSurface({ hostname: "www.youtube.com", pathname: "/watch" })).toBe(
+      "youtube-watch"
+    );
+    expect(classifyYouTubeSurface({ hostname: "music.youtube.com", pathname: "/playlist" })).toBe(
+      "youtube-music"
+    );
+  });
+});
+
+describe("findDirectChildContaining", () => {
+  it("returns the direct control group that contains a nested volume slider", () => {
+    const parent = {} as HTMLElement;
+    const group = { parentElement: parent } as HTMLElement;
+    const nested = { parentElement: group } as HTMLElement;
+
+    expect(findDirectChildContaining(parent, nested)).toBe(group);
+  });
+
+  it("returns null when the descendant does not belong to the parent", () => {
+    const parent = {} as HTMLElement;
+    const otherParent = {} as HTMLElement;
+    const nested = { parentElement: otherParent } as HTMLElement;
+    (otherParent as { parentElement?: HTMLElement | null }).parentElement = null;
+
+    expect(findDirectChildContaining(parent, nested)).toBeNull();
   });
 });
 
