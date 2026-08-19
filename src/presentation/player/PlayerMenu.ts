@@ -46,7 +46,7 @@ export class PlayerMenu {
           this.close(true);
         }
       },
-      { signal: this.signal, capture: true }
+      { signal: this.signal }
     );
 
     this.document.addEventListener(
