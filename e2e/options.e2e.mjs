@@ -63,6 +63,7 @@ test("loads the real branded Options Page with trusted project links", async ({ 
   await expect(page.locator("#seek-forward")).toHaveAttribute("step", "1");
   await expect(page.locator("#volume-step")).toHaveValue("5");
   await expect(page.locator("#volume-step")).toHaveAttribute("step", "1");
+  await expect(page.locator("#pip-video-click-playback")).not.toBeChecked();
   await expect(page.locator("#auto-hide-enabled")).toBeChecked();
   await expect(page.locator("#auto-hide-delay")).toHaveValue("1");
   await expect(page.locator("#auto-hide-delay")).toHaveAttribute("min", "0");
@@ -111,6 +112,7 @@ test("persists supported settings and restores defaults", async ({ context, exte
   await page.locator("#seek-backward").fill("7");
   await page.locator("#seek-forward").fill("8");
   await page.locator("#volume-step").fill("12");
+  await page.locator("#pip-video-click-playback").check();
   await page.locator("#auto-hide-delay").fill("3");
   await page.locator("#auto-hide-enabled").uncheck();
   await page.locator("#save-button").click();
@@ -124,6 +126,7 @@ test("persists supported settings and restores defaults", async ({ context, exte
   await expect(reopenedPage.locator("#seek-backward")).toHaveValue("7");
   await expect(reopenedPage.locator("#seek-forward")).toHaveValue("8");
   await expect(reopenedPage.locator("#volume-step")).toHaveValue("12");
+  await expect(reopenedPage.locator("#pip-video-click-playback")).toBeChecked();
   await expect(reopenedPage.locator("#auto-hide-enabled")).not.toBeChecked();
   await expect(reopenedPage.locator("#auto-hide-delay")).toHaveValue("3");
   await expect(reopenedPage.locator("#auto-hide-delay")).toBeDisabled();
@@ -133,6 +136,7 @@ test("persists supported settings and restores defaults", async ({ context, exte
   await expect(reopenedPage.locator("#seek-backward")).toHaveValue("5");
   await expect(reopenedPage.locator("#seek-forward")).toHaveValue("5");
   await expect(reopenedPage.locator("#volume-step")).toHaveValue("5");
+  await expect(reopenedPage.locator("#pip-video-click-playback")).not.toBeChecked();
   await expect(reopenedPage.locator("#auto-hide-enabled")).toBeChecked();
   await expect(reopenedPage.locator("#auto-hide-delay")).toHaveValue("1");
   await expect(reopenedPage.locator("#auto-hide-delay")).toBeEnabled();
@@ -143,6 +147,7 @@ test("persists supported settings and restores defaults", async ({ context, exte
 
   await expect(thirdOpen.page.locator("#seek-backward")).toHaveValue("5");
   await expect(thirdOpen.page.locator("#seek-forward")).toHaveValue("5");
+  await expect(thirdOpen.page.locator("#pip-video-click-playback")).not.toBeChecked();
   await expect(thirdOpen.page.locator("#auto-hide-delay")).toHaveValue("1");
   expect(thirdOpen.errors).toEqual([]);
   await thirdOpen.page.close();

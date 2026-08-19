@@ -9,13 +9,15 @@ describe("options form conversions", () => {
       ...DEFAULT_SETTINGS,
       volumeStep: 0.1,
       autoHideDelayMs: 2000,
-      timeDisplayMode: "remaining"
+      timeDisplayMode: "remaining",
+      pipVideoClickTogglesPlayback: true
     })).toEqual({
       seekBackwardSeconds: 5,
       seekForwardSeconds: 5,
       volumeStepPercent: 10,
       autoHideEnabled: true,
-      autoHideDelaySeconds: 2
+      autoHideDelaySeconds: 2,
+      pipVideoClickTogglesPlayback: true
     });
   });
 
@@ -25,13 +27,15 @@ describe("options form conversions", () => {
       seekForwardSeconds: 13,
       volumeStepPercent: 10,
       autoHideEnabled: false,
-      autoHideDelaySeconds: 2
+      autoHideDelaySeconds: 2,
+      pipVideoClickTogglesPlayback: true
     })).toEqual({
       seekBackwardSeconds: 7,
       seekForwardSeconds: 13,
       volumeStep: 0.1,
       autoHideEnabled: false,
-      autoHideDelayMs: 2000
+      autoHideDelayMs: 2000,
+      pipVideoClickTogglesPlayback: true
     });
   });
 
@@ -41,7 +45,8 @@ describe("options form conversions", () => {
       seekForwardSeconds: 10,
       volumeStepPercent: 101,
       autoHideEnabled: true,
-      autoHideDelaySeconds: -1
+      autoHideDelaySeconds: -1,
+      pipVideoClickTogglesPlayback: false
     })).toBeNull();
   });
 
@@ -51,7 +56,8 @@ describe("options form conversions", () => {
       seekForwardSeconds: 10,
       volumeStepPercent: 5,
       autoHideEnabled: true,
-      autoHideDelaySeconds: 1
+      autoHideDelaySeconds: 1,
+      pipVideoClickTogglesPlayback: false
     })).toBeNull();
 
     expect(optionsFormValuesToSettingsPatch({
@@ -59,7 +65,8 @@ describe("options form conversions", () => {
       seekForwardSeconds: 10,
       volumeStepPercent: 5.5,
       autoHideEnabled: true,
-      autoHideDelaySeconds: 1
+      autoHideDelaySeconds: 1,
+      pipVideoClickTogglesPlayback: false
     })).toBeNull();
 
     expect(optionsFormValuesToSettingsPatch({
@@ -67,7 +74,8 @@ describe("options form conversions", () => {
       seekForwardSeconds: 10,
       volumeStepPercent: 5,
       autoHideEnabled: true,
-      autoHideDelaySeconds: 1.5
+      autoHideDelaySeconds: 1.5,
+      pipVideoClickTogglesPlayback: false
     })).toBeNull();
   });
 
@@ -77,7 +85,8 @@ describe("options form conversions", () => {
       seekForwardSeconds: 10,
       volumeStepPercent: 5,
       autoHideEnabled: true,
-      autoHideDelaySeconds: MAX_AUTO_HIDE_DELAY_MS / 1000 + 1
+      autoHideDelaySeconds: MAX_AUTO_HIDE_DELAY_MS / 1000 + 1,
+      pipVideoClickTogglesPlayback: false
     })).toBeNull();
   });
 });

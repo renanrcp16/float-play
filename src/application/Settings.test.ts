@@ -12,11 +12,12 @@ import {
 } from "./Settings";
 
 describe("settings normalization", () => {
-  test("uses the approved v1 defaults when no compatible settings are stored", () => {
+  test("uses the approved defaults when no compatible settings are stored", () => {
     expect(DEFAULT_SETTINGS).toMatchObject({
       seekBackwardSeconds: 5,
       seekForwardSeconds: 5,
-      autoHideDelayMs: 1000
+      autoHideDelayMs: 1000,
+      pipVideoClickTogglesPlayback: false
     });
     expect(normalizeSettings(undefined)).toEqual(DEFAULT_SETTINGS);
     expect(normalizeSettings({ schemaVersion: 2, seekBackwardSeconds: 30 })).toEqual(DEFAULT_SETTINGS);
@@ -31,7 +32,8 @@ describe("settings normalization", () => {
         volumeStep: 0.1,
         autoHideEnabled: false,
         autoHideDelayMs: 3000,
-        timeDisplayMode: "remaining"
+        timeDisplayMode: "remaining",
+        pipVideoClickTogglesPlayback: true
       })
     ).toEqual({
       ...DEFAULT_SETTINGS,
@@ -40,7 +42,8 @@ describe("settings normalization", () => {
       volumeStep: 0.1,
       autoHideEnabled: false,
       autoHideDelayMs: 3000,
-      timeDisplayMode: "remaining"
+      timeDisplayMode: "remaining",
+      pipVideoClickTogglesPlayback: true
     });
   });
 
@@ -53,7 +56,8 @@ describe("settings normalization", () => {
         volumeStep: 1.5,
         autoHideEnabled: "yes",
         autoHideDelayMs: -1,
-        timeDisplayMode: "unknown"
+        timeDisplayMode: "unknown",
+        pipVideoClickTogglesPlayback: "yes"
       })
     ).toEqual(DEFAULT_SETTINGS);
   });

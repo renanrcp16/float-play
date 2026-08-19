@@ -15,6 +15,7 @@ export interface OptionsFormValues {
   readonly volumeStepPercent: number;
   readonly autoHideEnabled: boolean;
   readonly autoHideDelaySeconds: number;
+  readonly pipVideoClickTogglesPlayback: boolean;
 }
 
 export function settingsToOptionsFormValues(settings: FloatPlaySettings): OptionsFormValues {
@@ -23,7 +24,8 @@ export function settingsToOptionsFormValues(settings: FloatPlaySettings): Option
     seekForwardSeconds: settings.seekForwardSeconds,
     volumeStepPercent: settings.volumeStep * 100,
     autoHideEnabled: settings.autoHideEnabled,
-    autoHideDelaySeconds: settings.autoHideDelayMs / 1000
+    autoHideDelaySeconds: settings.autoHideDelayMs / 1000,
+    pipVideoClickTogglesPlayback: settings.pipVideoClickTogglesPlayback
   };
 }
 
@@ -52,7 +54,8 @@ export function optionsFormValuesToSettingsPatch(
     seekForwardSeconds: values.seekForwardSeconds,
     volumeStep: values.volumeStepPercent / 100,
     autoHideEnabled: values.autoHideEnabled,
-    autoHideDelayMs: values.autoHideDelaySeconds * 1000
+    autoHideDelayMs: values.autoHideDelaySeconds * 1000,
+    pipVideoClickTogglesPlayback: values.pipVideoClickTogglesPlayback
   };
 }
 

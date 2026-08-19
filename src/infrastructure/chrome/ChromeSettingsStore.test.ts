@@ -37,7 +37,8 @@ describe("ChromeSettingsStore", () => {
       "settings.v1.schemaVersion": SETTINGS_SCHEMA_VERSION,
       "settings.v1.seekBackwardSeconds": 15,
       "settings.v1.autoHideEnabled": false,
-      "settings.v1.timeDisplayMode": "remaining"
+      "settings.v1.timeDisplayMode": "remaining",
+      "settings.v1.pipVideoClickTogglesPlayback": true
     });
     const store = new ChromeSettingsStore(createLogger(), storage);
 
@@ -45,7 +46,8 @@ describe("ChromeSettingsStore", () => {
       ...DEFAULT_SETTINGS,
       seekBackwardSeconds: 15,
       autoHideEnabled: false,
-      timeDisplayMode: "remaining"
+      timeDisplayMode: "remaining",
+      pipVideoClickTogglesPlayback: true
     });
   });
 
@@ -110,11 +112,11 @@ describe("ChromeSettingsStore", () => {
     };
     const store = new ChromeSettingsStore(createLogger(), storage);
 
-    await store.update({ timeDisplayMode: "remaining" });
+    await store.update({ pipVideoClickTogglesPlayback: true });
 
     expect(set).toHaveBeenCalledWith({
       "settings.v1.schemaVersion": SETTINGS_SCHEMA_VERSION,
-      "settings.v1.timeDisplayMode": "remaining"
+      "settings.v1.pipVideoClickTogglesPlayback": true
     });
   });
 
@@ -124,13 +126,15 @@ describe("ChromeSettingsStore", () => {
 
     await Promise.all([
       store.update({ timeDisplayMode: "remaining" }),
-      store.update({ seekForwardSeconds: 20 })
+      store.update({ seekForwardSeconds: 20 }),
+      store.update({ pipVideoClickTogglesPlayback: true })
     ]);
 
     await expect(store.load()).resolves.toEqual({
       ...DEFAULT_SETTINGS,
       seekForwardSeconds: 20,
-      timeDisplayMode: "remaining"
+      timeDisplayMode: "remaining",
+      pipVideoClickTogglesPlayback: true
     });
   });
 });
