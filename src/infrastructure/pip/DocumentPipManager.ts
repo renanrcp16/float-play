@@ -25,11 +25,11 @@ interface MediaOrigin {
 }
 
 interface PipSession {
-  readonly media: HTMLVideoElement;
+  media: HTMLVideoElement;
   readonly pipWindow: Window;
-  readonly origin: MediaOrigin;
+  origin: MediaOrigin;
   readonly lifecycle: AbortController;
-  readonly videoViewportSize: PipViewportSize;
+  videoViewportSize: PipViewportSize;
 }
 
 export interface PipViewportSize {
@@ -72,6 +72,10 @@ export class DocumentPipManager {
     return this.session !== null;
   }
 
+  public getMedia(): HTMLVideoElement | null {
+    return this.session?.media ?? null;
+  }
+
   public async open(
     media: HTMLVideoElement,
     preferredInitialSize?: PipViewportSize
@@ -93,9 +97,7 @@ export class DocumentPipManager {
     }
 
     const nextSibling = media.nextSibling;
-    const mediaWidth = media.videoWidth > 0 ? media.videoWidth : media.clientWidth;
-    const mediaHeight = media.videoHeight > 0 ? media.videoHeight : media.clientHeight;
-    const videoViewportSize = calculateInitialPipSize(mediaWidth, mediaHeight);
+    const videoViewportSize = this.calculateVideoViewportSize(media);
     const initialSize = preferredInitialSize ?? videoViewportSize;
     const pipWindow = await api.requestWindow({
       width: initialSize.width,
@@ -150,6 +152,57 @@ export class DocumentPipManager {
     return this.toPublicSession(session);
   }
 
+  public replaceMedia(media: HTMLVideoElement): DocumentPipSession | null {
+    const session = this.session;
+
+    if (session === null) {
+      return null;
+    }
+
+    if (session.media === media) {
+      return this.toPublicSession(session);
+    }
+
+    const parent = media.parentElement;
+
+    if (!media.isConnected || parent === null) {
+      throw new Error("The replacement media element is no longer connected to the page.");
+    }
+
+    const nextSibling = media.nextSibling;
+    const placeholder = document.createComment("floatplay-media-origin");
+    const nextOrigin: MediaOrigin = {
+      placeholder,
+      parent,
+      nextSibling
+    };
+    const previousMedia = session.media;
+    const previousOrigin = session.origin;
+    const nextViewportSize = this.calculateVideoViewportSize(media);
+
+    parent.insertBefore(placeholder, media);
+
+    try {
+      session.pipWindow.document.body.append(media);
+    } catch (error) {
+      placeholder.replaceWith(media);
+      throw error;
+    }
+
+    try {
+      this.restoreMedia(previousMedia, previousOrigin);
+    } catch (error) {
+      this.logger.error("Failed to restore the previous media while switching tracks.", error);
+    }
+
+    session.media = media;
+    session.origin = nextOrigin;
+    session.videoViewportSize = nextViewportSize;
+
+    this.logger.debug("Replaced the active media inside the existing Picture-in-Picture session.");
+    return this.toPublicSession(session);
+  }
+
   public dispose(): void {
     const session = this.session;
 
@@ -169,6 +222,12 @@ export class DocumentPipManager {
     }
 
     return api;
+  }
+
+  private calculateVideoViewportSize(media: HTMLVideoElement): PipViewportSize {
+    const mediaWidth = media.videoWidth > 0 ? media.videoWidth : media.clientWidth;
+    const mediaHeight = media.videoHeight > 0 ? media.videoHeight : media.clientHeight;
+    return calculateInitialPipSize(mediaWidth, mediaHeight);
   }
 
   private preparePipDocument(document: Document): void {
@@ -215,33 +274,38 @@ export class DocumentPipManager {
     session.lifecycle.abort();
 
     try {
-      const strategy = chooseMediaRestoreStrategy(
-        session.origin.placeholder.isConnected,
-        session.origin.parent.isConnected
-      );
-
-      if (strategy === "placeholder") {
-        session.origin.placeholder.replaceWith(session.media);
-        this.logger.debug("Restored media using the original placeholder.");
-        return;
-      }
-
-      if (strategy === "parent") {
-        const sibling = session.origin.nextSibling;
-        const validSibling = sibling !== null && sibling.parentNode === session.origin.parent;
-
-        session.origin.parent.insertBefore(session.media, validSibling ? sibling : null);
-        this.logger.warn("Restored media using the original parent because the placeholder was removed.");
-        return;
-      }
-
-      throw new MediaRestoreError();
+      this.restoreMedia(session.media, session.origin);
     } catch (error) {
       this.logger.error("Failed to restore the media element safely.", error);
     } finally {
       session.origin.placeholder.remove();
       this.session = null;
     }
+  }
+
+  private restoreMedia(media: HTMLVideoElement, origin: MediaOrigin): void {
+    const strategy = chooseMediaRestoreStrategy(
+      origin.placeholder.isConnected,
+      origin.parent.isConnected
+    );
+
+    if (strategy === "placeholder") {
+      origin.placeholder.replaceWith(media);
+      this.logger.debug("Restored media using the original placeholder.");
+      return;
+    }
+
+    if (strategy === "parent") {
+      const sibling = origin.nextSibling;
+      const validSibling = sibling !== null && sibling.parentNode === origin.parent;
+
+      origin.parent.insertBefore(media, validSibling ? sibling : null);
+      origin.placeholder.remove();
+      this.logger.warn("Restored media using the original parent because the placeholder was removed.");
+      return;
+    }
+
+    throw new MediaRestoreError();
   }
 
   private toPublicSession(session: PipSession): DocumentPipSession {
