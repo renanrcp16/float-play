@@ -11,7 +11,8 @@ interface FloatPlayTriggerOptions {
 
 export interface TriggerInlineAnchor {
   readonly parent: HTMLElement;
-  readonly after: ChildNode;
+  readonly reference: ChildNode;
+  readonly position: "before" | "after";
 }
 
 type TriggerPlacement = "inline" | "fallback";
@@ -228,7 +229,7 @@ export class FloatPlayTrigger {
     if (
       anchor !== null &&
       anchor.parent.isConnected &&
-      anchor.after.parentNode === anchor.parent
+      anchor.reference.parentNode === anchor.parent
     ) {
       this.mountInline(anchor);
       return;
@@ -265,8 +266,18 @@ export class FloatPlayTrigger {
     this.placement = "inline";
     this.host.dataset.placement = this.placement;
 
-    if (this.host.parentNode !== anchor.parent || this.host.previousSibling !== anchor.after) {
-      anchor.after.after(this.host);
+    const correctlyPlaced =
+      this.host.parentNode === anchor.parent &&
+      (anchor.position === "after"
+        ? this.host.previousSibling === anchor.reference
+        : this.host.nextSibling === anchor.reference);
+
+    if (!correctlyPlaced) {
+      if (anchor.position === "after") {
+        anchor.reference.after(this.host);
+      } else {
+        anchor.reference.before(this.host);
+      }
     }
 
     Object.assign(this.host.style, {
