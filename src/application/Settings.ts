@@ -20,6 +20,7 @@ export interface FloatPlaySettings {
   readonly autoHideEnabled: boolean;
   readonly autoHideDelayMs: number;
   readonly timeDisplayMode: TimeDisplayMode;
+  readonly pipVideoClickTogglesPlayback: boolean;
 }
 
 export type FloatPlaySettingsPatch = Partial<Omit<FloatPlaySettings, "schemaVersion">>;
@@ -31,7 +32,8 @@ export const DEFAULT_SETTINGS: FloatPlaySettings = {
   volumeStep: DEFAULT_VOLUME_STEP,
   autoHideEnabled: DEFAULT_CONTROL_VISIBILITY_CONFIG.enabled,
   autoHideDelayMs: DEFAULT_CONTROL_VISIBILITY_CONFIG.delayMs,
-  timeDisplayMode: "elapsed"
+  timeDisplayMode: "elapsed",
+  pipVideoClickTogglesPlayback: false
 };
 
 export function normalizeSettings(value: unknown): FloatPlaySettings {
@@ -70,7 +72,11 @@ export function normalizeSettings(value: unknown): FloatPlaySettings {
       1000,
       DEFAULT_SETTINGS.autoHideDelayMs
     ),
-    timeDisplayMode: timeDisplayModeOr(value.timeDisplayMode, DEFAULT_SETTINGS.timeDisplayMode)
+    timeDisplayMode: timeDisplayModeOr(value.timeDisplayMode, DEFAULT_SETTINGS.timeDisplayMode),
+    pipVideoClickTogglesPlayback: booleanOr(
+      value.pipVideoClickTogglesPlayback,
+      DEFAULT_SETTINGS.pipVideoClickTogglesPlayback
+    )
   };
 }
 
