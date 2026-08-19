@@ -6,7 +6,11 @@ import { fileURLToPath } from "node:url";
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distDir = path.join(rootDir, "dist");
 
-const expectedMatches = ["https://www.youtube.com/*", "https://youtube.com/*"];
+const expectedMatches = [
+  "https://www.youtube.com/*",
+  "https://youtube.com/*",
+  "https://music.youtube.com/*"
+];
 const expectedManifestKeys = [
   "background",
   "content_scripts",
@@ -114,12 +118,12 @@ assertDeepEqual(
 assertDeepEqual(
   distManifest.content_scripts,
   expectedContentScripts,
-  "release manifest content scripts changed from the approved v1 allowlist"
+  "release manifest content scripts changed from the approved v1.1 allowlist"
 );
 assertDeepEqual(
   distManifest.web_accessible_resources,
   expectedWebAccessibleResources,
-  "release manifest web-accessible resources changed from the approved v1 allowlist"
+  "release manifest web-accessible resources changed from the approved v1.1 allowlist"
 );
 
 for (const forbiddenField of [
