@@ -10,7 +10,8 @@ export class PlayerMenu {
     private readonly document: Document,
     private readonly signal: AbortSignal,
     private readonly label: string,
-    private readonly items: readonly HTMLElement[]
+    private readonly items: readonly HTMLElement[],
+    private readonly onOpenChange: (open: boolean) => void = () => {}
   ) {}
 
   public create(): HTMLDivElement {
@@ -45,7 +46,7 @@ export class PlayerMenu {
           this.close(true);
         }
       },
-      { signal: this.signal }
+      { signal: this.signal, capture: true }
     );
 
     this.document.addEventListener(
@@ -114,6 +115,7 @@ export class PlayerMenu {
       shell.setAttribute(OVERFLOW_OPEN_ATTRIBUTE, "true");
     }
 
+    this.onOpenChange(true);
     this.panel.hidden = false;
     this.trigger.setAttribute("aria-expanded", "true");
     this.panel.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus({ preventScroll: true });
@@ -127,6 +129,7 @@ export class PlayerMenu {
     this.panel.hidden = true;
     this.trigger.setAttribute("aria-expanded", "false");
     this.getPlayerShell()?.removeAttribute(OVERFLOW_OPEN_ATTRIBUTE);
+    this.onOpenChange(false);
 
     if (restoreFocus && this.trigger.isConnected) {
       this.trigger.focus({ preventScroll: true });
@@ -193,7 +196,7 @@ export class PlayerMenu {
         height: 100%;
         max-height: none;
         overflow: hidden;
-        padding: 4px 36px 4px 6px;
+        padding: 4px 48px 4px 6px;
         border: 0;
         border-radius: 0;
         box-shadow: none;
