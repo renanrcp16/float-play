@@ -2,10 +2,16 @@ import {
   formatTimelineTimeDisplay,
   getMediaTimelineState,
   getNextTimeDisplayMode,
-  seekTimelineTo
+  seekTimelineTo,
+  type MediaTimelineState
 } from "../../application/MediaTimeline";
 import type { TimeDisplayMode } from "../../application/Settings";
 import type { Logger } from "../../shared/Logger";
+
+export interface TimelineMirror {
+  getTimelineState(media: HTMLVideoElement): MediaTimelineState | null;
+  seekTimelineTo(media: HTMLVideoElement, time: number): boolean;
+}
 
 export class TimelineControl {
   private readonly lifecycle = new AbortController();
@@ -21,7 +27,8 @@ export class TimelineControl {
     private readonly timeDisplayToggleLabel: string,
     initialDisplayMode: TimeDisplayMode,
     private readonly onDisplayModeChange: (mode: TimeDisplayMode) => void,
-    private readonly logger: Logger
+    private readonly logger: Logger,
+    private readonly timelineMirror?: TimelineMirror
   ) {
     this.displayMode = initialDisplayMode;
     sessionSignal.addEventListener("abort", () => this.dispose(), {
@@ -75,7 +82,10 @@ export class TimelineControl {
     if (input === null) return;
 
     try {
-      if (!seekTimelineTo(this.media, Number(input.value))) {
+      const target = Number(input.value);
+      const didSeek = this.timelineMirror?.seekTimelineTo(this.media, target) ?? seekTimelineTo(this.media, target);
+
+      if (!didSeek) {
         this.logger.debug("No safe timeline seek target is currently available.");
       }
     } catch (error) {
@@ -96,7 +106,7 @@ export class TimelineControl {
     const timeDisplay = this.timeDisplay;
     if (input === null || timeDisplay === null) return;
 
-    const state = getMediaTimelineState(this.media);
+    const state = this.timelineMirror?.getTimelineState(this.media) ?? getMediaTimelineState(this.media);
     if (state === null) {
       input.disabled = true;
       input.value = "0";
