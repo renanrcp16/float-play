@@ -221,11 +221,6 @@ export class PlayerMenu {
         height: 14px;
       }
 
-      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-menu-item-label,
-      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-speed-current {
-        font-size: 11px;
-      }
-
       .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-speed-chevron {
         font-size: 15px;
       }
