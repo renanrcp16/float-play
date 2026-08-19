@@ -55,6 +55,8 @@ async function bootstrap(): Promise<void> {
       speed: i18n.getMessage("speedAction", "Speed"),
       settings: i18n.getMessage("settingsAction", "Settings"),
       moreOptions: i18n.getMessage("moreOptionsAction", "More options"),
+      audioOnly: i18n.getMessage("audioOnlyAction", "Audio only"),
+      showVideo: i18n.getMessage("showVideoAction", "Show video"),
       volume: i18n.getMessage("volumeAction", "Volume"),
       mute: i18n.getMessage("muteAction", "Mute"),
       unmute: i18n.getMessage("unmuteAction", "Unmute"),
@@ -77,6 +79,9 @@ async function bootstrap(): Promise<void> {
     (mode) => {
       void persistTimeDisplayMode(settingsStore, mode);
     },
+    (enabled) => {
+      void persistAudioOnlyMode(settingsStore, enabled);
+    },
     logger
   );
 
@@ -91,6 +96,17 @@ async function persistTimeDisplayMode(
     await settingsStore.update({ timeDisplayMode: mode });
   } catch (error) {
     logger.error("Unable to persist the FloatPlay time display preference.", error);
+  }
+}
+
+async function persistAudioOnlyMode(
+  settingsStore: ChromeSettingsStore,
+  enabled: boolean
+): Promise<void> {
+  try {
+    await settingsStore.update({ audioOnlyEnabled: enabled });
+  } catch (error) {
+    logger.error("Unable to persist the FloatPlay Audio-only preference.", error);
   }
 }
 
