@@ -6,6 +6,8 @@ interface PipVideoClickState {
   readonly button: number;
 }
 
+export const PIP_VIDEO_CLICKABLE_CLASS = "floatplay-pip-video-clickable";
+
 export class PipPlaybackSurface {
   private readonly lifecycle = new AbortController();
   private mounted = false;
@@ -33,6 +35,7 @@ export class PipPlaybackSurface {
 
     this.previousCursor = this.media.style.cursor;
     this.media.style.cursor = resolvePipVideoCursor(this.enabled);
+    this.media.classList.add(PIP_VIDEO_CLICKABLE_CLASS);
 
     this.media.addEventListener(
       "click",
@@ -67,6 +70,7 @@ export class PipPlaybackSurface {
       this.previousCursor = null;
     }
 
+    this.media.classList.remove(PIP_VIDEO_CLICKABLE_CLASS);
     this.lifecycle.abort();
     this.mounted = false;
   }
