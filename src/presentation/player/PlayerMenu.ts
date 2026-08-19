@@ -108,6 +108,8 @@ export class PlayerMenu {
       return;
     }
 
+    this.resetNestedMenus();
+
     const shell = this.getPlayerShell();
     if (shell?.classList.contains(AUDIO_ONLY_CLASS) === true) {
       shell.setAttribute(OVERFLOW_OPEN_ATTRIBUTE, "true");
@@ -131,6 +133,30 @@ export class PlayerMenu {
 
     if (restoreFocus && this.trigger.isConnected) {
       this.trigger.focus({ preventScroll: true });
+    }
+  }
+
+  private resetNestedMenus(): void {
+    if (this.panel === null) {
+      return;
+    }
+
+    const expandedDisclosures = this.panel.querySelectorAll<HTMLElement>(
+      '[aria-expanded="true"][aria-controls]'
+    );
+
+    for (const disclosure of expandedDisclosures) {
+      disclosure.setAttribute("aria-expanded", "false");
+      const controlsId = disclosure.getAttribute("aria-controls");
+
+      if (controlsId === null) {
+        continue;
+      }
+
+      const controlled = this.document.getElementById(controlsId);
+      if (controlled !== null && this.panel.contains(controlled)) {
+        controlled.hidden = true;
+      }
     }
   }
 
