@@ -181,7 +181,8 @@ export class FloatPlayController {
     this.trigger.setBusy(true);
 
     try {
-      const preferredInitialSize = this.settings.audioOnlyEnabled
+      const audioOnlyEnabled = this.isAudioOnlyEnabledForCurrentPage();
+      const preferredInitialSize = audioOnlyEnabled
         ? { width: AUDIO_ONLY_COMPACT_WIDTH, height: AUDIO_ONLY_COMPACT_HEIGHT }
         : undefined;
       const session = await this.pip.open(media, preferredInitialSize);
@@ -205,6 +206,8 @@ export class FloatPlayController {
 
     this.disposePresentation();
 
+    const audioOnlyRequired = this.youtube.isAudioOnlyRequired();
+    const audioOnlyEnabled = audioOnlyRequired || this.settings.audioOnlyEnabled;
     const playerShell = new PlayerShell(
       session.media,
       session.pipWindow,
@@ -237,7 +240,8 @@ export class FloatPlayController {
         audioOnly: this.labels.audioOnly,
         showVideo: this.labels.showVideo
       },
-      this.settings.audioOnlyEnabled,
+      audioOnlyEnabled,
+      !audioOnlyRequired,
       (enabled) => this.updateAudioOnlyMode(enabled, audioOnlyPresentation),
       (open) => audioOnlyPresentation.setMenuOpen(open),
       this.logger
@@ -286,7 +290,7 @@ export class FloatPlayController {
     );
 
     playerShell.mount();
-    audioOnlyPresentation.setEnabled(this.settings.audioOnlyEnabled);
+    audioOnlyPresentation.setEnabled(audioOnlyEnabled);
     volumeControl.mount();
     playerOverflow.mount();
     keyboardShortcuts.mount();
@@ -337,6 +341,11 @@ export class FloatPlayController {
   }
 
   private updateAudioOnlyMode(enabled: boolean, presentation: AudioOnlyPresentation): void {
+    if (this.youtube.isAudioOnlyRequired()) {
+      presentation.setEnabled(true);
+      return;
+    }
+
     presentation.setEnabled(enabled);
 
     if (this.settings.audioOnlyEnabled === enabled) {
@@ -348,6 +357,10 @@ export class FloatPlayController {
       audioOnlyEnabled: enabled
     };
     this.persistAudioOnlyMode(enabled);
+  }
+
+  private isAudioOnlyEnabledForCurrentPage(): boolean {
+    return this.youtube.isAudioOnlyRequired() || this.settings.audioOnlyEnabled;
   }
 
   private disposePresentation(): void {
