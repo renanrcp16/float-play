@@ -21,6 +21,7 @@ export class PlayerOverflow {
     private readonly audioOnlyLabels: AudioOnlyLabels,
     private readonly audioOnlyEnabled: boolean,
     private readonly onAudioOnlyChange: (enabled: boolean) => void,
+    private readonly onMenuOpenChange: (open: boolean) => void,
     private readonly logger: Logger
   ) {}
 
@@ -69,7 +70,8 @@ export class PlayerOverflow {
       this.playerWindow.document,
       this.signal,
       this.moreOptionsLabel,
-      [speedItem, audioOnlyItem.element, fitItem, settingsItem]
+      [speedItem, audioOnlyItem.element, fitItem, settingsItem],
+      this.onMenuOpenChange
     ).create();
 
     row.append(menu);
