@@ -16,7 +16,8 @@ const SETTINGS_STORAGE_KEYS = {
   autoHideEnabled: "settings.v1.autoHideEnabled",
   autoHideDelayMs: "settings.v1.autoHideDelayMs",
   timeDisplayMode: "settings.v1.timeDisplayMode",
-  pipVideoClickTogglesPlayback: "settings.v1.pipVideoClickTogglesPlayback"
+  pipVideoClickTogglesPlayback: "settings.v1.pipVideoClickTogglesPlayback",
+  audioOnlyEnabled: "settings.v1.audioOnlyEnabled"
 } as const satisfies Record<keyof FloatPlaySettings, string>;
 const SETTINGS_STORAGE_READ_KEYS = Object.values(SETTINGS_STORAGE_KEYS);
 
@@ -55,7 +56,8 @@ export class ChromeSettingsStore {
         autoHideEnabled: stored[SETTINGS_STORAGE_KEYS.autoHideEnabled],
         autoHideDelayMs: stored[SETTINGS_STORAGE_KEYS.autoHideDelayMs],
         timeDisplayMode: stored[SETTINGS_STORAGE_KEYS.timeDisplayMode],
-        pipVideoClickTogglesPlayback: stored[SETTINGS_STORAGE_KEYS.pipVideoClickTogglesPlayback]
+        pipVideoClickTogglesPlayback: stored[SETTINGS_STORAGE_KEYS.pipVideoClickTogglesPlayback],
+        audioOnlyEnabled: stored[SETTINGS_STORAGE_KEYS.audioOnlyEnabled]
       });
     } catch (error) {
       this.logger.error("Unable to load FloatPlay settings; using defaults.", error);
@@ -103,6 +105,10 @@ export class ChromeSettingsStore {
 
     if (patch.pipVideoClickTogglesPlayback !== undefined) {
       items[SETTINGS_STORAGE_KEYS.pipVideoClickTogglesPlayback] = normalized.pipVideoClickTogglesPlayback;
+    }
+
+    if (patch.audioOnlyEnabled !== undefined) {
+      items[SETTINGS_STORAGE_KEYS.audioOnlyEnabled] = normalized.audioOnlyEnabled;
     }
 
     await this.storageArea.set(items);
