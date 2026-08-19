@@ -26,7 +26,8 @@
     {
       "matches": [
         "https://www.youtube.com/*",
-        "https://youtube.com/*"
+        "https://youtube.com/*",
+        "https://music.youtube.com/*"
       ],
       "js": ["youtube-player-main.js"],
       "run_at": "document_start",
@@ -35,7 +36,8 @@
     {
       "matches": [
         "https://www.youtube.com/*",
-        "https://youtube.com/*"
+        "https://youtube.com/*",
+        "https://music.youtube.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle",
@@ -47,7 +49,8 @@
       "resources": ["brand/icon.svg"],
       "matches": [
         "https://www.youtube.com/*",
-        "https://youtube.com/*"
+        "https://youtube.com/*",
+        "https://music.youtube.com/*"
       ]
     }
   ]
