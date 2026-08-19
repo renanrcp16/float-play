@@ -3,6 +3,7 @@ import {
   calculateViewportIntersectionArea,
   classifyYouTubeSurface,
   findDirectChildContaining,
+  parseYouTubeMusicTimeInfo,
   YouTubeAdapter
 } from "./YouTubeAdapter";
 
@@ -109,6 +110,30 @@ describe("findDirectChildContaining", () => {
     (otherParent as { parentElement?: HTMLElement | null }).parentElement = null;
 
     expect(findDirectChildContaining(parent, nested)).toBeNull();
+  });
+});
+
+describe("parseYouTubeMusicTimeInfo", () => {
+  it("uses the current-track times instead of cumulative media timestamps", () => {
+    expect(parseYouTubeMusicTimeInfo("2:55 / 5:02")).toEqual({
+      start: 0,
+      end: 302,
+      safeEnd: 302,
+      current: 175
+    });
+  });
+
+  it("supports hour-long tracks", () => {
+    expect(parseYouTubeMusicTimeInfo("1:02:03 / 1:30:00")).toEqual({
+      start: 0,
+      end: 5400,
+      safeEnd: 5400,
+      current: 3723
+    });
+  });
+
+  it("rejects incomplete time labels", () => {
+    expect(parseYouTubeMusicTimeInfo("2:55")).toBeNull();
   });
 });
 
