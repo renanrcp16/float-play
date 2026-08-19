@@ -249,6 +249,14 @@ h1 {
   user-select: none;
 }
 
+.playback-toggle-setting {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-subtle);
+}
+
 .visibility-setting {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(190px, 260px);
@@ -542,6 +550,7 @@ kbd {
     padding-top: 10px;
   }
 
+  .playback-toggle-setting,
   .visibility-setting {
     padding: 14px;
   }
