@@ -14,15 +14,15 @@ export interface ViewportSize {
 export class AudioOnlyPresentation {
   private enabled = false;
   private menuOpen = false;
-  private videoViewport: ViewportSize | null = null;
   private style: HTMLStyleElement | null = null;
 
   public constructor(
     private readonly playerWindow: Window,
+    private readonly videoViewport: ViewportSize,
     private readonly logger: Logger
   ) {}
 
-  public setEnabled(enabled: boolean, restoreViewport?: ViewportSize): void {
+  public setEnabled(enabled: boolean): void {
     if (this.enabled === enabled) {
       return;
     }
@@ -30,10 +30,6 @@ export class AudioOnlyPresentation {
     const shell = this.playerWindow.document.querySelector<HTMLElement>(".floatplay-player-shell");
 
     if (enabled) {
-      this.videoViewport = restoreViewport ?? {
-        width: this.playerWindow.innerWidth,
-        height: this.playerWindow.innerHeight
-      };
       this.installStyles();
       shell?.classList.add(AUDIO_ONLY_CLASS);
       this.enabled = true;
@@ -69,7 +65,6 @@ export class AudioOnlyPresentation {
     shell?.removeAttribute("data-floatplay-overflow-open");
     this.style?.remove();
     this.style = null;
-    this.videoViewport = null;
     this.enabled = false;
     this.menuOpen = false;
   }
@@ -82,12 +77,10 @@ export class AudioOnlyPresentation {
   }
 
   private restoreVideoViewport(): void {
-    const target = this.videoViewport;
-    this.videoViewport = null;
-
-    if (target !== null) {
-      this.resizeTo(target, "Unable to restore the Picture-in-Picture window from Audio-only mode.");
-    }
+    this.resizeTo(
+      this.videoViewport,
+      "Unable to restore the Picture-in-Picture window from Audio-only mode."
+    );
   }
 
   private resizeTo(target: ViewportSize, errorMessage: string): void {
