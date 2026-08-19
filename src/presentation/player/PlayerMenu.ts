@@ -51,7 +51,12 @@ export class PlayerMenu {
     this.document.addEventListener(
       "pointerdown",
       (event) => {
-        if (event.target === null || !root.contains(event.target as Node)) {
+        if (event.target === null) {
+          return;
+        }
+
+        const target = event.target as Node;
+        if (!root.contains(target) && !panel.contains(target)) {
           this.close(false);
         }
       },
@@ -75,11 +80,13 @@ export class PlayerMenu {
       "abort",
       () => {
         this.getPlayerShell()?.removeAttribute(OVERFLOW_OPEN_ATTRIBUTE);
+        panel.remove();
       },
       { once: true }
     );
 
-    root.append(trigger, panel);
+    root.append(trigger);
+    this.getPlayerShell()?.append(panel);
     this.trigger = trigger;
     this.panel = panel;
     return root;
@@ -109,7 +116,7 @@ export class PlayerMenu {
 
     this.panel.hidden = false;
     this.trigger.setAttribute("aria-expanded", "true");
-    this.panel.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
+    this.panel.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus({ preventScroll: true });
   }
 
   private close(restoreFocus: boolean): void {
@@ -122,7 +129,7 @@ export class PlayerMenu {
     this.getPlayerShell()?.removeAttribute(OVERFLOW_OPEN_ATTRIBUTE);
 
     if (restoreFocus && this.trigger.isConnected) {
-      this.trigger.focus();
+      this.trigger.focus({ preventScroll: true });
     }
   }
 
@@ -158,8 +165,8 @@ export class PlayerMenu {
     const style = this.document.createElement("style");
     style.dataset.floatplay = "overflow-menu-styles";
     style.textContent = `
-      .floatplay-overflow-menu { position: absolute; right: 12px; bottom: 12px; z-index: 3; pointer-events: auto; }
-      .floatplay-overflow-panel { position: absolute; right: 0; bottom: 36px; width: max-content; min-width: 190px; max-width: min(260px, calc(100vw - 24px)); max-height: min(240px, calc(100vh - 84px)); overflow-y: auto; overscroll-behavior: contain; padding: 6px; border: 1px solid rgb(255 255 255 / 12%); border-radius: 10px; box-sizing: border-box; background: rgb(18 18 18 / 96%); box-shadow: 0 8px 24px rgb(0 0 0 / 35%); pointer-events: auto; }
+      .floatplay-overflow-menu { position: absolute; right: 12px; bottom: 12px; z-index: 5; pointer-events: auto; }
+      .floatplay-overflow-panel { position: absolute; right: 12px; bottom: 48px; z-index: 4; width: max-content; min-width: 190px; max-width: min(260px, calc(100% - 24px)); max-height: min(240px, calc(100% - 60px)); overflow-y: auto; overscroll-behavior: contain; padding: 6px; border: 1px solid rgb(255 255 255 / 12%); border-radius: 10px; box-sizing: border-box; contain: layout paint; background: rgb(18 18 18 / 96%); box-shadow: 0 8px 24px rgb(0 0 0 / 35%); pointer-events: auto; }
       .floatplay-overflow-panel[hidden] { display: none !important; }
       .floatplay-overflow-menu-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 8px 10px; border: 0; border-radius: 8px; box-sizing: border-box; color: #fff; background: transparent; cursor: pointer; text-align: left; }
       .floatplay-overflow-menu-item[hidden] { display: none; }
@@ -170,34 +177,31 @@ export class PlayerMenu {
       .floatplay-overflow-menu-item-label { min-width: 0; overflow: hidden; color: inherit; font: 500 12px/1.3 system-ui, sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 
       .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-menu {
-        z-index: 6;
+        z-index: 7;
       }
 
-      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-panel {
-        position: fixed;
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] > .floatplay-overflow-panel {
         inset: 0;
+        z-index: 6;
         display: flex;
         flex-direction: column;
         justify-content: center;
         gap: 1px;
-        width: 100vw;
+        width: 100%;
         min-width: 0;
         max-width: none;
-        height: 100vh;
+        height: 100%;
         max-height: none;
         overflow: hidden;
         padding: 4px 36px 4px 6px;
         border: 0;
         border-radius: 0;
-        background: rgb(18 18 18 / 99%);
         box-shadow: none;
+        contain: strict;
+        background: rgb(18 18 18 / 99%);
       }
 
       .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-trigger {
-        position: fixed;
-        right: 4px;
-        bottom: 4px;
-        z-index: 7;
         background: rgb(255 255 255 / 10%);
       }
 
@@ -237,7 +241,7 @@ export class PlayerMenu {
         text-align: center;
       }
 
-      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] .floatplay-overflow-panel:has(.floatplay-speed-trigger[aria-expanded="true"]) > :not(.floatplay-speed-menu) {
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[${OVERFLOW_OPEN_ATTRIBUTE}="true"] > .floatplay-overflow-panel:has(.floatplay-speed-trigger[aria-expanded="true"]) > :not(.floatplay-speed-menu) {
         display: none;
       }
     `;
