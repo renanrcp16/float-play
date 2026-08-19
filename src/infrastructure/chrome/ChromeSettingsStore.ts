@@ -15,7 +15,8 @@ const SETTINGS_STORAGE_KEYS = {
   volumeStep: "settings.v1.volumeStep",
   autoHideEnabled: "settings.v1.autoHideEnabled",
   autoHideDelayMs: "settings.v1.autoHideDelayMs",
-  timeDisplayMode: "settings.v1.timeDisplayMode"
+  timeDisplayMode: "settings.v1.timeDisplayMode",
+  pipVideoClickTogglesPlayback: "settings.v1.pipVideoClickTogglesPlayback"
 } as const satisfies Record<keyof FloatPlaySettings, string>;
 const SETTINGS_STORAGE_READ_KEYS = Object.values(SETTINGS_STORAGE_KEYS);
 
@@ -53,7 +54,8 @@ export class ChromeSettingsStore {
         volumeStep: stored[SETTINGS_STORAGE_KEYS.volumeStep],
         autoHideEnabled: stored[SETTINGS_STORAGE_KEYS.autoHideEnabled],
         autoHideDelayMs: stored[SETTINGS_STORAGE_KEYS.autoHideDelayMs],
-        timeDisplayMode: stored[SETTINGS_STORAGE_KEYS.timeDisplayMode]
+        timeDisplayMode: stored[SETTINGS_STORAGE_KEYS.timeDisplayMode],
+        pipVideoClickTogglesPlayback: stored[SETTINGS_STORAGE_KEYS.pipVideoClickTogglesPlayback]
       });
     } catch (error) {
       this.logger.error("Unable to load FloatPlay settings; using defaults.", error);
@@ -97,6 +99,10 @@ export class ChromeSettingsStore {
 
     if (patch.timeDisplayMode !== undefined) {
       items[SETTINGS_STORAGE_KEYS.timeDisplayMode] = normalized.timeDisplayMode;
+    }
+
+    if (patch.pipVideoClickTogglesPlayback !== undefined) {
+      items[SETTINGS_STORAGE_KEYS.pipVideoClickTogglesPlayback] = normalized.pipVideoClickTogglesPlayback;
     }
 
     await this.storageArea.set(items);
