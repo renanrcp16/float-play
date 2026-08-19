@@ -26,6 +26,7 @@ interface OptionsControls {
   readonly seekForwardError: HTMLParagraphElement;
   readonly volumeStep: HTMLInputElement;
   readonly volumeStepError: HTMLParagraphElement;
+  readonly pipVideoClickTogglesPlayback: HTMLInputElement;
   readonly autoHideEnabled: HTMLInputElement;
   readonly autoHideDelay: HTMLInputElement;
   readonly autoHideDelayError: HTMLParagraphElement;
@@ -128,6 +129,7 @@ function readControls(): OptionsControls {
     seekForwardError: requireElement<HTMLParagraphElement>("seek-forward-error"),
     volumeStep: requireElement<HTMLInputElement>("volume-step"),
     volumeStepError: requireElement<HTMLParagraphElement>("volume-step-error"),
+    pipVideoClickTogglesPlayback: requireElement<HTMLInputElement>("pip-video-click-playback"),
     autoHideEnabled: requireElement<HTMLInputElement>("auto-hide-enabled"),
     autoHideDelay: requireElement<HTMLInputElement>("auto-hide-delay"),
     autoHideDelayError: requireElement<HTMLParagraphElement>("auto-hide-delay-error"),
@@ -142,6 +144,7 @@ function applySettings(controls: OptionsControls, settings: FloatPlaySettings): 
   controls.seekBackward.value = formatNumber(values.seekBackwardSeconds);
   controls.seekForward.value = formatNumber(values.seekForwardSeconds);
   controls.volumeStep.value = formatNumber(values.volumeStepPercent);
+  controls.pipVideoClickTogglesPlayback.checked = values.pipVideoClickTogglesPlayback;
   controls.autoHideEnabled.checked = values.autoHideEnabled;
   controls.autoHideDelay.value = formatNumber(values.autoHideDelaySeconds);
 }
@@ -165,6 +168,7 @@ function readFormValues(controls: OptionsControls): OptionsFormValues | null {
     seekBackwardSeconds: controls.seekBackward.valueAsNumber,
     seekForwardSeconds: controls.seekForward.valueAsNumber,
     volumeStepPercent: controls.volumeStep.valueAsNumber,
+    pipVideoClickTogglesPlayback: controls.pipVideoClickTogglesPlayback.checked,
     autoHideEnabled: controls.autoHideEnabled.checked,
     autoHideDelaySeconds: controls.autoHideDelay.valueAsNumber
   };
@@ -223,6 +227,7 @@ async function resetSettings(controls: OptionsControls): Promise<void> {
       seekBackwardSeconds: DEFAULT_SETTINGS.seekBackwardSeconds,
       seekForwardSeconds: DEFAULT_SETTINGS.seekForwardSeconds,
       volumeStep: DEFAULT_SETTINGS.volumeStep,
+      pipVideoClickTogglesPlayback: DEFAULT_SETTINGS.pipVideoClickTogglesPlayback,
       autoHideEnabled: DEFAULT_SETTINGS.autoHideEnabled,
       autoHideDelayMs: DEFAULT_SETTINGS.autoHideDelayMs
     });
