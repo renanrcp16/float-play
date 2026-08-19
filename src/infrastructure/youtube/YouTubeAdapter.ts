@@ -125,7 +125,7 @@ export class YouTubeAdapter {
     return {
       parent: rightControls,
       reference: volumeControl,
-      position: "before",
+      position: "after",
       compact: true
     };
   }
