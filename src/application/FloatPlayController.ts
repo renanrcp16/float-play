@@ -296,7 +296,8 @@ export class FloatPlayController {
         backwardSeconds: this.settings.seekBackwardSeconds,
         forwardSeconds: this.settings.seekForwardSeconds,
         timeDisplayMode: this.settings.timeDisplayMode,
-        onTimeDisplayModeChange: (mode) => this.updateTimeDisplayMode(mode)
+        onTimeDisplayModeChange: (mode) => this.updateTimeDisplayMode(mode),
+        timelineMirror: audioOnlyRequired ? this.youtube : undefined
       },
       this.logger
     );
