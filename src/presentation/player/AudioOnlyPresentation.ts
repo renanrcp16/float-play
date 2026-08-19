@@ -14,7 +14,6 @@ export class AudioOnlyPresentation {
   private style: HTMLStyleElement | null = null;
 
   public constructor(
-    private readonly media: HTMLVideoElement,
     private readonly playerWindow: Window,
     private readonly logger: Logger
   ) {}
