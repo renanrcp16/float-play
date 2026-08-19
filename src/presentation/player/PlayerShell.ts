@@ -3,6 +3,7 @@ import { togglePlayback } from "../../application/MediaPlayback";
 import type { TimeDisplayMode } from "../../application/Settings";
 import type { Logger } from "../../shared/Logger";
 import { TimelineControl } from "./TimelineControl";
+import type { TimelineMirror } from "./TimelineControl";
 
 export interface PlayerPlaybackLabels {
   readonly play: string;
@@ -18,6 +19,7 @@ export interface PlayerPlaybackConfig {
   readonly forwardSeconds: number;
   readonly timeDisplayMode: TimeDisplayMode;
   readonly onTimeDisplayModeChange: (mode: TimeDisplayMode) => void;
+  readonly timelineMirror?: TimelineMirror;
 }
 
 type NavigationDirection = "backward" | "forward";
@@ -78,7 +80,8 @@ export class PlayerShell {
       this.labels.timeDisplayToggle,
       this.config.timeDisplayMode,
       this.config.onTimeDisplayModeChange,
-      this.logger
+      this.logger,
+      this.config.timelineMirror
     );
 
     buttonRow.append(backwardButton, playbackButton, forwardButton);
