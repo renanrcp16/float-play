@@ -1,6 +1,7 @@
 const OVERFLOW_PANEL_ID = "floatplay-overflow-panel";
 const AUDIO_ONLY_CLASS = "floatplay-audio-only";
 const OVERFLOW_OPEN_ATTRIBUTE = "data-floatplay-overflow-open";
+const CLOSE_OVERFLOW_SELECTOR = '[data-floatplay-close-overflow="true"]';
 
 export class PlayerMenu {
   private panel: HTMLDivElement | null = null;
@@ -39,10 +40,7 @@ export class PlayerMenu {
     panel.addEventListener(
       "click",
       (event) => {
-        const target = event.target as { closest?: (selector: string) => Element | null } | null;
-        const closeTarget = target?.closest?.('[data-floatplay-close-overflow="true"]');
-
-        if (closeTarget !== null && closeTarget !== undefined) {
+        if (eventPathHasCloseOverflowTarget(event.composedPath())) {
           this.close(true);
         }
       },
@@ -245,4 +243,11 @@ export class PlayerMenu {
     `;
     this.document.head.append(style);
   }
+}
+
+export function eventPathHasCloseOverflowTarget(path: readonly EventTarget[]): boolean {
+  return path.some((target) => {
+    const candidate = target as { matches?: (selector: string) => boolean };
+    return candidate.matches?.(CLOSE_OVERFLOW_SELECTOR) === true;
+  });
 }
