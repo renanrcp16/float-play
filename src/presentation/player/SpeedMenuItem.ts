@@ -34,10 +34,7 @@ export function createSpeedMenuItem(
   const currentValue = document.createElement("span");
   currentValue.className = "floatplay-speed-current";
 
-  const chevron = document.createElement("span");
-  chevron.className = "floatplay-speed-chevron";
-  chevron.setAttribute("aria-hidden", "true");
-  chevron.textContent = "›";
+  const chevron = createChevronIcon(document);
 
   trigger.append(icon, labelText, currentValue, chevron);
 
@@ -153,6 +150,26 @@ function createSpeedIcon(document: Document): SVGSVGElement {
   return svg;
 }
 
+function createChevronIcon(document: Document): SVGSVGElement {
+  const namespace = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(namespace, "svg");
+  svg.classList.add("floatplay-speed-chevron");
+  svg.setAttribute("viewBox", "0 0 16 16");
+  svg.setAttribute("width", "12");
+  svg.setAttribute("height", "12");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "1.8");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+
+  const path = document.createElementNS(namespace, "path");
+  path.setAttribute("d", "m6 3.5 4.5 4.5L6 12.5");
+  svg.append(path);
+  return svg;
+}
+
 function installStyles(document: Document): void {
   if (document.querySelector('style[data-floatplay="speed-menu-styles"]') !== null) {
     return;
@@ -162,9 +179,26 @@ function installStyles(document: Document): void {
   style.dataset.floatplay = "speed-menu-styles";
   style.textContent = `
     .floatplay-speed-menu { width: 100%; }
-    .floatplay-speed-trigger { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; }
-    .floatplay-speed-current { color: rgb(255 255 255 / 72%); font: 500 12px/1 system-ui, sans-serif; }
-    .floatplay-speed-chevron { color: rgb(255 255 255 / 72%); font: 600 18px/1 system-ui, sans-serif; transform-origin: center; }
+    .floatplay-speed-trigger {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      align-items: center;
+      font: 500 12px/1.3 system-ui, sans-serif;
+    }
+    .floatplay-speed-trigger .floatplay-overflow-menu-item-label,
+    .floatplay-speed-current {
+      font: inherit;
+      line-height: inherit;
+    }
+    .floatplay-speed-current { color: rgb(255 255 255 / 72%); }
+    .floatplay-speed-chevron {
+      display: block;
+      place-self: center;
+      flex: none;
+      color: rgb(255 255 255 / 72%);
+      transform-origin: center;
+      pointer-events: none;
+    }
     .floatplay-speed-trigger[aria-expanded="true"] .floatplay-speed-chevron { transform: rotate(90deg); }
     .floatplay-speed-presets { display: grid; gap: 2px; padding: 2px 4px 6px 30px; }
     .floatplay-speed-presets[hidden] { display: none; }
