@@ -2,7 +2,8 @@ import type { Logger } from "../../shared/Logger";
 
 export const AUDIO_ONLY_COMPACT_WIDTH = 250;
 export const AUDIO_ONLY_COMPACT_HEIGHT = 80;
-export const AUDIO_ONLY_MENU_HEIGHT = 180;
+export const AUDIO_ONLY_MENU_WIDTH = 320;
+export const AUDIO_ONLY_MENU_HEIGHT = 250;
 export const AUDIO_ONLY_CLASS = "floatplay-audio-only";
 
 export interface ViewportSize {
@@ -125,10 +126,15 @@ export class AudioOnlyPresentation {
 }
 
 export function resolveAudioOnlyViewportSize(menuOpen: boolean): ViewportSize {
-  return {
-    width: AUDIO_ONLY_COMPACT_WIDTH,
-    height: menuOpen ? AUDIO_ONLY_MENU_HEIGHT : AUDIO_ONLY_COMPACT_HEIGHT
-  };
+  return menuOpen
+    ? {
+        width: AUDIO_ONLY_MENU_WIDTH,
+        height: AUDIO_ONLY_MENU_HEIGHT
+      }
+    : {
+        width: AUDIO_ONLY_COMPACT_WIDTH,
+        height: AUDIO_ONLY_COMPACT_HEIGHT
+      };
 }
 
 export function calculateViewportResizeDelta(
