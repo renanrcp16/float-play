@@ -179,9 +179,11 @@ export class FloatPlayController {
 
     if (
       candidate === null ||
+      current === null ||
       candidate === current ||
       candidate.paused ||
-      candidate.ended
+      candidate.ended ||
+      (!current.paused && !current.ended)
     ) {
       return;
     }
@@ -272,6 +274,19 @@ export class FloatPlayController {
 
     const audioOnlyRequired = this.youtube.isAudioOnlyRequired();
     const audioOnlyEnabled = audioOnlyRequired || this.settings.audioOnlyEnabled;
+
+    if (audioOnlyRequired) {
+      for (const eventName of ["pause", "ended"] as const) {
+        session.media.addEventListener(
+          eventName,
+          () => {
+            this.scheduleReconcile();
+          },
+          { signal: presentationSignal }
+        );
+      }
+    }
+
     const playerShell = new PlayerShell(
       session.media,
       session.pipWindow,
