@@ -17,7 +17,8 @@ describe("settings normalization", () => {
       seekBackwardSeconds: 5,
       seekForwardSeconds: 5,
       autoHideDelayMs: 1000,
-      pipVideoClickTogglesPlayback: false
+      pipVideoClickTogglesPlayback: false,
+      audioOnlyEnabled: false
     });
     expect(normalizeSettings(undefined)).toEqual(DEFAULT_SETTINGS);
     expect(normalizeSettings({ schemaVersion: 2, seekBackwardSeconds: 30 })).toEqual(DEFAULT_SETTINGS);
@@ -33,7 +34,8 @@ describe("settings normalization", () => {
         autoHideEnabled: false,
         autoHideDelayMs: 3000,
         timeDisplayMode: "remaining",
-        pipVideoClickTogglesPlayback: true
+        pipVideoClickTogglesPlayback: true,
+        audioOnlyEnabled: true
       })
     ).toEqual({
       ...DEFAULT_SETTINGS,
@@ -43,7 +45,8 @@ describe("settings normalization", () => {
       autoHideEnabled: false,
       autoHideDelayMs: 3000,
       timeDisplayMode: "remaining",
-      pipVideoClickTogglesPlayback: true
+      pipVideoClickTogglesPlayback: true,
+      audioOnlyEnabled: true
     });
   });
 
@@ -57,7 +60,8 @@ describe("settings normalization", () => {
         autoHideEnabled: "yes",
         autoHideDelayMs: -1,
         timeDisplayMode: "unknown",
-        pipVideoClickTogglesPlayback: "yes"
+        pipVideoClickTogglesPlayback: "yes",
+        audioOnlyEnabled: "yes"
       })
     ).toEqual(DEFAULT_SETTINGS);
   });

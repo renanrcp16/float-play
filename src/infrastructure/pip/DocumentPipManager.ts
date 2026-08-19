@@ -29,6 +29,12 @@ interface PipSession {
   readonly pipWindow: Window;
   readonly origin: MediaOrigin;
   readonly lifecycle: AbortController;
+  readonly videoViewportSize: PipViewportSize;
+}
+
+export interface PipViewportSize {
+  readonly width: number;
+  readonly height: number;
 }
 
 export interface DocumentPipSession {
@@ -36,6 +42,7 @@ export interface DocumentPipSession {
   readonly pipWindow: Window;
   readonly originElement: HTMLElement;
   readonly signal: AbortSignal;
+  readonly videoViewportSize: PipViewportSize;
 }
 
 class DocumentPipUnavailableError extends Error {
@@ -65,7 +72,10 @@ export class DocumentPipManager {
     return this.session !== null;
   }
 
-  public async open(media: HTMLVideoElement): Promise<DocumentPipSession> {
+  public async open(
+    media: HTMLVideoElement,
+    preferredInitialSize?: PipViewportSize
+  ): Promise<DocumentPipSession> {
     if (this.session !== null) {
       return this.toPublicSession(this.session);
     }
@@ -85,7 +95,8 @@ export class DocumentPipManager {
     const nextSibling = media.nextSibling;
     const mediaWidth = media.videoWidth > 0 ? media.videoWidth : media.clientWidth;
     const mediaHeight = media.videoHeight > 0 ? media.videoHeight : media.clientHeight;
-    const initialSize = calculateInitialPipSize(mediaWidth, mediaHeight);
+    const videoViewportSize = calculateInitialPipSize(mediaWidth, mediaHeight);
+    const initialSize = preferredInitialSize ?? videoViewportSize;
     const pipWindow = await api.requestWindow({
       width: initialSize.width,
       height: initialSize.height,
@@ -110,7 +121,8 @@ export class DocumentPipManager {
         parent,
         nextSibling
       },
-      lifecycle
+      lifecycle,
+      videoViewportSize
     };
 
     this.session = session;
@@ -237,7 +249,8 @@ export class DocumentPipManager {
       media: session.media,
       pipWindow: session.pipWindow,
       originElement: session.origin.parent,
-      signal: session.lifecycle.signal
+      signal: session.lifecycle.signal,
+      videoViewportSize: session.videoViewportSize
     };
   }
 }

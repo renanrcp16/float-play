@@ -17,6 +17,8 @@
   "speedAction": { "message": "Velocidade de reprodução" },
   "settingsAction": { "message": "Configurações" },
   "moreOptionsAction": { "message": "Mais opções" },
+  "audioOnlyAction": { "message": "Somente áudio" },
+  "showVideoAction": { "message": "Mostrar vídeo" },
   "volumeAction": { "message": "Volume" },
   "muteAction": { "message": "Silenciar" },
   "unmuteAction": { "message": "Ativar som" },

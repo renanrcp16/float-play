@@ -1,6 +1,7 @@
 import type { OptionsPageLauncher } from "../../application/OptionsPage";
 import type { PlaybackRateMirror } from "../../application/PlaybackSpeed";
 import type { Logger } from "../../shared/Logger";
+import { createAudioOnlyMenuItem, type AudioOnlyLabels } from "./AudioOnlyMenuItem";
 import { createFitMenuItem } from "./FitMenuItem";
 import { PlayerMenu } from "./PlayerMenu";
 import { createSettingsMenuItem } from "./SettingsMenuItem";
@@ -17,6 +18,10 @@ export class PlayerOverflow {
     private readonly speedLabel: string,
     private readonly settingsLabel: string,
     private readonly moreOptionsLabel: string,
+    private readonly audioOnlyLabels: AudioOnlyLabels,
+    private readonly audioOnlyEnabled: boolean,
+    private readonly onAudioOnlyChange: (enabled: boolean) => void,
+    private readonly onMenuOpenChange: (open: boolean) => void,
     private readonly logger: Logger
   ) {}
 
@@ -42,6 +47,18 @@ export class PlayerOverflow {
       this.signal,
       this.logger
     );
+    fitItem.hidden = this.audioOnlyEnabled;
+
+    const audioOnlyItem = createAudioOnlyMenuItem(
+      this.playerWindow.document,
+      this.audioOnlyEnabled,
+      this.audioOnlyLabels,
+      this.signal,
+      (enabled) => {
+        fitItem.hidden = enabled;
+        this.onAudioOnlyChange(enabled);
+      }
+    );
     const settingsItem = createSettingsMenuItem(
       this.playerWindow.document,
       this.optionsPageLauncher,
@@ -53,7 +70,8 @@ export class PlayerOverflow {
       this.playerWindow.document,
       this.signal,
       this.moreOptionsLabel,
-      [speedItem, fitItem, settingsItem]
+      [speedItem, audioOnlyItem.element, fitItem, settingsItem],
+      this.onMenuOpenChange
     ).create();
 
     row.append(menu);

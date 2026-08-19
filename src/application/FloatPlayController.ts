@@ -2,6 +2,11 @@ import type { OptionsPageLauncher } from "./OptionsPage";
 import type { FloatPlaySettings, TimeDisplayMode } from "./Settings";
 import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
 import type { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
+import {
+  AUDIO_ONLY_COMPACT_HEIGHT,
+  AUDIO_ONLY_COMPACT_WIDTH,
+  AudioOnlyPresentation
+} from "../presentation/player/AudioOnlyPresentation";
 import { OriginPlaybackSurface } from "../presentation/player/OriginPlaybackSurface";
 import { PipPlaybackSurface } from "../presentation/player/PipPlaybackSurface";
 import { PlayerControlsVisibility } from "../presentation/player/PlayerControlsVisibility";
@@ -19,6 +24,8 @@ interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
   readonly speed: string;
   readonly settings: string;
   readonly moreOptions: string;
+  readonly audioOnly: string;
+  readonly showVideo: string;
   readonly triggerOpen: string;
   readonly triggerCoachmark: string;
   readonly triggerCoachmarkDismiss: string;
@@ -30,6 +37,7 @@ export class FloatPlayController {
   private readonly trigger: FloatPlayTrigger;
   private reconcileFrame: number | null = null;
   private playerShell: PlayerShell | null = null;
+  private audioOnlyPresentation: AudioOnlyPresentation | null = null;
   private originSurface: OriginPlaybackSurface | null = null;
   private pipPlaybackSurface: PipPlaybackSurface | null = null;
   private triggerCoachmarkPending: boolean;
@@ -45,6 +53,7 @@ export class FloatPlayController {
     private readonly persistTriggerCoachmarkSeen: () => void,
     private settings: FloatPlaySettings,
     private readonly persistTimeDisplayMode: (mode: TimeDisplayMode) => void,
+    private readonly persistAudioOnlyMode: (enabled: boolean) => void,
     private readonly logger: Logger
   ) {
     this.triggerCoachmarkPending = triggerCoachmarkInitiallyVisible;
@@ -172,7 +181,10 @@ export class FloatPlayController {
     this.trigger.setBusy(true);
 
     try {
-      const session = await this.pip.open(media);
+      const preferredInitialSize = this.settings.audioOnlyEnabled
+        ? { width: AUDIO_ONLY_COMPACT_WIDTH, height: AUDIO_ONLY_COMPACT_HEIGHT }
+        : undefined;
+      const session = await this.pip.open(media, preferredInitialSize);
       this.mountPresentation(session);
       this.logger.debug("FloatPlay player session opened successfully.");
     } catch (error) {
@@ -206,6 +218,11 @@ export class FloatPlayController {
       },
       this.logger
     );
+    const audioOnlyPresentation = new AudioOnlyPresentation(
+      session.pipWindow,
+      session.videoViewportSize,
+      this.logger
+    );
     const playerOverflow = new PlayerOverflow(
       session.media,
       session.pipWindow,
@@ -216,6 +233,13 @@ export class FloatPlayController {
       this.labels.speed,
       this.labels.settings,
       this.labels.moreOptions,
+      {
+        audioOnly: this.labels.audioOnly,
+        showVideo: this.labels.showVideo
+      },
+      this.settings.audioOnlyEnabled,
+      (enabled) => this.updateAudioOnlyMode(enabled, audioOnlyPresentation),
+      (open) => audioOnlyPresentation.setMenuOpen(open),
       this.logger
     );
     const volumeControl = new VolumeControl(
@@ -262,6 +286,7 @@ export class FloatPlayController {
     );
 
     playerShell.mount();
+    audioOnlyPresentation.setEnabled(this.settings.audioOnlyEnabled);
     volumeControl.mount();
     playerOverflow.mount();
     keyboardShortcuts.mount();
@@ -270,6 +295,7 @@ export class FloatPlayController {
     pipPlaybackSurface.mount();
 
     this.playerShell = playerShell;
+    this.audioOnlyPresentation = audioOnlyPresentation;
     this.originSurface = originSurface;
     this.pipPlaybackSurface = pipPlaybackSurface;
 
@@ -278,6 +304,10 @@ export class FloatPlayController {
       () => {
         if (this.playerShell === playerShell) {
           this.playerShell = null;
+        }
+
+        if (this.audioOnlyPresentation === audioOnlyPresentation) {
+          this.audioOnlyPresentation = null;
         }
 
         if (this.originSurface === originSurface) {
@@ -306,10 +336,26 @@ export class FloatPlayController {
     this.persistTimeDisplayMode(mode);
   }
 
+  private updateAudioOnlyMode(enabled: boolean, presentation: AudioOnlyPresentation): void {
+    presentation.setEnabled(enabled);
+
+    if (this.settings.audioOnlyEnabled === enabled) {
+      return;
+    }
+
+    this.settings = {
+      ...this.settings,
+      audioOnlyEnabled: enabled
+    };
+    this.persistAudioOnlyMode(enabled);
+  }
+
   private disposePresentation(): void {
+    this.audioOnlyPresentation?.dispose();
     this.playerShell?.dispose();
     this.originSurface?.dispose();
     this.pipPlaybackSurface?.dispose();
+    this.audioOnlyPresentation = null;
     this.playerShell = null;
     this.originSurface = null;
     this.pipPlaybackSurface = null;

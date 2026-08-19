@@ -7,6 +7,7 @@ import { isInteractiveElementTarget } from "../InteractiveElement";
 
 const CONTROL_AREA_SELECTOR =
   ".floatplay-controls, .floatplay-volume-control, .floatplay-overflow-menu";
+const AUDIO_ONLY_CLASS = "floatplay-audio-only";
 
 export class PlayerControlsVisibility {
   private hideTimer: number | null = null;
@@ -147,6 +148,10 @@ export class PlayerControlsVisibility {
   }
 
   private shouldStayVisible(): boolean {
+    if (this.root?.classList.contains(AUDIO_ONLY_CLASS) === true) {
+      return true;
+    }
+
     return shouldKeepControlsVisible(this.config, {
       paused: this.media.paused,
       pointerOverControls: this.pointerOverControls,
@@ -192,6 +197,19 @@ export class PlayerControlsVisibility {
       .floatplay-player-shell[data-floatplay-controls-hidden="true"] .floatplay-volume-control *,
       .floatplay-player-shell[data-floatplay-controls-hidden="true"] .floatplay-overflow-menu * {
         pointer-events: none !important;
+      }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[data-floatplay-controls-hidden="true"] .floatplay-controls,
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[data-floatplay-controls-hidden="true"] .floatplay-volume-control,
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[data-floatplay-controls-hidden="true"] .floatplay-overflow-menu {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[data-floatplay-controls-hidden="true"] .floatplay-controls *,
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[data-floatplay-controls-hidden="true"] .floatplay-volume-control *,
+      .floatplay-player-shell.${AUDIO_ONLY_CLASS}[data-floatplay-controls-hidden="true"] .floatplay-overflow-menu * {
+        pointer-events: auto !important;
       }
 
       @media (prefers-reduced-motion: reduce) {
