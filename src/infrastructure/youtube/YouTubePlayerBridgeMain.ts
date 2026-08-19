@@ -7,6 +7,10 @@ interface YouTubePlayerElement extends HTMLElement {
   setPlaybackRate?(playbackRate: number): void;
 }
 
+interface YouTubeMusicVolumeSlider extends HTMLElement {
+  value?: number | string;
+}
+
 window.addEventListener("message", (event) => {
   if (event.source !== window || event.origin !== window.location.origin) {
     return;
@@ -20,22 +24,42 @@ window.addEventListener("message", (event) => {
 
   const player: YouTubePlayerElement | null = document.getElementById("movie_player");
 
-  if (player === null) {
-    return;
-  }
-
   switch (message.type) {
     case "set-volume":
-      player.setVolume?.(message.volume * 100);
+      player?.setVolume?.(message.volume * 100);
+      syncYouTubeMusicVolumeUi(document, window.location.hostname, message.volume);
       return;
     case "set-muted":
       if (message.muted) {
-        player.mute?.();
+        player?.mute?.();
       } else {
-        player.unMute?.();
+        player?.unMute?.();
       }
       return;
     case "set-playback-rate":
-      player.setPlaybackRate?.(message.playbackRate);
+      player?.setPlaybackRate?.(message.playbackRate);
   }
 });
+
+export function syncYouTubeMusicVolumeUi(
+  document: Document,
+  hostname: string,
+  volume: number
+): void {
+  if (hostname !== "music.youtube.com" || !Number.isFinite(volume)) {
+    return;
+  }
+
+  const percent = Math.round(Math.min(1, Math.max(0, volume)) * 100);
+  const sliders = document.querySelectorAll<YouTubeMusicVolumeSlider>(
+    "ytmusic-player-bar #right-controls tp-yt-paper-slider#volume-slider, " +
+      "ytmusic-player-bar #right-controls #volume-slider, " +
+      "ytmusic-player-expanding-menu tp-yt-paper-slider#expand-volume-slider"
+  );
+
+  for (const slider of sliders) {
+    slider.value = percent;
+    slider.setAttribute("aria-valuenow", percent.toString());
+    slider.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+}
