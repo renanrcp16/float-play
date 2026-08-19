@@ -6,10 +6,13 @@ interface PipVideoClickState {
   readonly button: number;
 }
 
+export const PIP_VIDEO_CLICKABLE_CLASS = "floatplay-pip-video-clickable";
+
 export class PipPlaybackSurface {
   private readonly lifecycle = new AbortController();
   private mounted = false;
   private previousCursor: string | null = null;
+  private hoverStyle: HTMLStyleElement | null = null;
 
   public constructor(
     private readonly media: HTMLVideoElement,
@@ -33,6 +36,8 @@ export class PipPlaybackSurface {
 
     this.previousCursor = this.media.style.cursor;
     this.media.style.cursor = resolvePipVideoCursor(this.enabled);
+    this.media.classList.add(PIP_VIDEO_CLICKABLE_CLASS);
+    this.installHoverFeedback();
 
     this.media.addEventListener(
       "click",
@@ -67,8 +72,35 @@ export class PipPlaybackSurface {
       this.previousCursor = null;
     }
 
+    this.media.classList.remove(PIP_VIDEO_CLICKABLE_CLASS);
+    this.hoverStyle?.remove();
+    this.hoverStyle = null;
     this.lifecycle.abort();
     this.mounted = false;
+  }
+
+  private installHoverFeedback(): void {
+    const document = this.media.ownerDocument;
+    const style = document.createElement("style");
+    style.dataset.floatplay = "pip-video-click-feedback";
+    style.textContent = `
+      .floatplay-player-shell > video.${PIP_VIDEO_CLICKABLE_CLASS} {
+        transition: filter 120ms ease;
+      }
+
+      .floatplay-player-shell > video.${PIP_VIDEO_CLICKABLE_CLASS}:hover {
+        filter: brightness(0.78);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .floatplay-player-shell > video.${PIP_VIDEO_CLICKABLE_CLASS} {
+          transition: none;
+        }
+      }
+    `;
+
+    document.head.append(style);
+    this.hoverStyle = style;
   }
 }
 
