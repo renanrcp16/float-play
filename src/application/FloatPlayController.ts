@@ -238,6 +238,7 @@ export class FloatPlayController {
       },
       this.settings.audioOnlyEnabled,
       (enabled) => this.updateAudioOnlyMode(enabled, audioOnlyPresentation),
+      (open) => audioOnlyPresentation.setMenuOpen(open),
       this.logger
     );
     const volumeControl = new VolumeControl(
