@@ -220,6 +220,7 @@ export class FloatPlayController {
     );
     const audioOnlyPresentation = new AudioOnlyPresentation(
       session.pipWindow,
+      session.videoViewportSize,
       this.logger
     );
     const playerOverflow = new PlayerOverflow(
@@ -285,10 +286,7 @@ export class FloatPlayController {
     );
 
     playerShell.mount();
-    audioOnlyPresentation.setEnabled(
-      this.settings.audioOnlyEnabled,
-      this.settings.audioOnlyEnabled ? session.videoViewportSize : undefined
-    );
+    audioOnlyPresentation.setEnabled(this.settings.audioOnlyEnabled);
     volumeControl.mount();
     playerOverflow.mount();
     keyboardShortcuts.mount();
