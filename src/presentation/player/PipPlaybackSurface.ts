@@ -9,6 +9,7 @@ interface PipVideoClickState {
 export class PipPlaybackSurface {
   private readonly lifecycle = new AbortController();
   private mounted = false;
+  private previousCursor: string | null = null;
 
   public constructor(
     private readonly media: HTMLVideoElement,
@@ -29,6 +30,9 @@ export class PipPlaybackSurface {
     if (this.mounted || this.lifecycle.signal.aborted || !this.enabled) {
       return;
     }
+
+    this.previousCursor = this.media.style.cursor;
+    this.media.style.cursor = resolvePipVideoCursor(this.enabled);
 
     this.media.addEventListener(
       "click",
@@ -58,6 +62,11 @@ export class PipPlaybackSurface {
       return;
     }
 
+    if (this.previousCursor !== null) {
+      this.media.style.cursor = this.previousCursor;
+      this.previousCursor = null;
+    }
+
     this.lifecycle.abort();
     this.mounted = false;
   }
@@ -65,4 +74,8 @@ export class PipPlaybackSurface {
 
 export function shouldToggleFromPipVideoClick(state: PipVideoClickState): boolean {
   return state.enabled && state.button === 0;
+}
+
+export function resolvePipVideoCursor(enabled: boolean): string {
+  return enabled ? "pointer" : "";
 }
