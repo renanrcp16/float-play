@@ -1,5 +1,6 @@
 import type { OptionsPageLauncher } from "./OptionsPage";
 import type { FloatPlaySettings, TimeDisplayMode } from "./Settings";
+import { resolveAudioOnlyPolicy } from "./AudioOnlyPolicy";
 import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
 import type { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
 import {
@@ -181,8 +182,8 @@ export class FloatPlayController {
     this.trigger.setBusy(true);
 
     try {
-      const audioOnlyEnabled = this.isAudioOnlyEnabledForCurrentPage();
-      const preferredInitialSize = audioOnlyEnabled
+      const audioOnlyPolicy = this.getAudioOnlyPolicy();
+      const preferredInitialSize = audioOnlyPolicy.enabled
         ? { width: AUDIO_ONLY_COMPACT_WIDTH, height: AUDIO_ONLY_COMPACT_HEIGHT }
         : undefined;
       const session = await this.pip.open(media, preferredInitialSize);
@@ -206,8 +207,7 @@ export class FloatPlayController {
 
     this.disposePresentation();
 
-    const audioOnlyRequired = this.youtube.isAudioOnlyRequired();
-    const audioOnlyEnabled = audioOnlyRequired || this.settings.audioOnlyEnabled;
+    const audioOnlyPolicy = this.getAudioOnlyPolicy();
     const playerShell = new PlayerShell(
       session.media,
       session.pipWindow,
@@ -240,8 +240,8 @@ export class FloatPlayController {
         audioOnly: this.labels.audioOnly,
         showVideo: this.labels.showVideo
       },
-      audioOnlyEnabled,
-      !audioOnlyRequired,
+      audioOnlyPolicy.enabled,
+      audioOnlyPolicy.toggleVisible,
       (enabled) => this.updateAudioOnlyMode(enabled, audioOnlyPresentation),
       (open) => audioOnlyPresentation.setMenuOpen(open),
       this.logger
@@ -290,7 +290,7 @@ export class FloatPlayController {
     );
 
     playerShell.mount();
-    audioOnlyPresentation.setEnabled(audioOnlyEnabled);
+    audioOnlyPresentation.setEnabled(audioOnlyPolicy.enabled);
     volumeControl.mount();
     playerOverflow.mount();
     keyboardShortcuts.mount();
@@ -341,7 +341,7 @@ export class FloatPlayController {
   }
 
   private updateAudioOnlyMode(enabled: boolean, presentation: AudioOnlyPresentation): void {
-    if (this.youtube.isAudioOnlyRequired()) {
+    if (!this.getAudioOnlyPolicy().toggleVisible) {
       presentation.setEnabled(true);
       return;
     }
@@ -359,8 +359,11 @@ export class FloatPlayController {
     this.persistAudioOnlyMode(enabled);
   }
 
-  private isAudioOnlyEnabledForCurrentPage(): boolean {
-    return this.youtube.isAudioOnlyRequired() || this.settings.audioOnlyEnabled;
+  private getAudioOnlyPolicy() {
+    return resolveAudioOnlyPolicy(
+      this.settings.audioOnlyEnabled,
+      this.youtube.isAudioOnlyRequired()
+    );
   }
 
   private disposePresentation(): void {
