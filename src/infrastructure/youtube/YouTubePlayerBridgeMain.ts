@@ -9,6 +9,7 @@ interface YouTubePlayerElement extends HTMLElement {
 
 interface YouTubeMusicVolumeSlider extends HTMLElement {
   value?: number | string;
+  immediateValue?: number | string;
 }
 
 window.addEventListener("message", (event) => {
@@ -32,6 +33,7 @@ window.addEventListener("message", (event) => {
     case "set-muted":
       if (message.muted) {
         player?.mute?.();
+        syncYouTubeMusicVolumeUi(document, window.location.hostname, 0);
       } else {
         player?.unMute?.();
       }
@@ -59,6 +61,7 @@ export function syncYouTubeMusicVolumeUi(
 
   for (const slider of sliders) {
     slider.value = percent;
+    slider.immediateValue = percent;
     slider.setAttribute("aria-valuenow", percent.toString());
   }
 }
