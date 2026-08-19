@@ -1,16 +1,18 @@
 import type { Logger } from "../../shared/Logger";
 
 export const AUDIO_ONLY_COMPACT_WIDTH = 250;
-export const AUDIO_ONLY_COMPACT_HEIGHT = 120;
+export const AUDIO_ONLY_COMPACT_HEIGHT = 80;
+export const AUDIO_ONLY_MENU_HEIGHT = 180;
 export const AUDIO_ONLY_CLASS = "floatplay-audio-only";
 
-interface ViewportSize {
+export interface ViewportSize {
   readonly width: number;
   readonly height: number;
 }
 
 export class AudioOnlyPresentation {
   private enabled = false;
+  private menuOpen = false;
   private videoViewport: ViewportSize | null = null;
   private style: HTMLStyleElement | null = null;
 
@@ -19,7 +21,7 @@ export class AudioOnlyPresentation {
     private readonly logger: Logger
   ) {}
 
-  public setEnabled(enabled: boolean): void {
+  public setEnabled(enabled: boolean, restoreViewport?: ViewportSize): void {
     if (this.enabled === enabled) {
       return;
     }
@@ -27,21 +29,34 @@ export class AudioOnlyPresentation {
     const shell = this.playerWindow.document.querySelector<HTMLElement>(".floatplay-player-shell");
 
     if (enabled) {
-      this.videoViewport = {
+      this.videoViewport = restoreViewport ?? {
         width: this.playerWindow.innerWidth,
         height: this.playerWindow.innerHeight
       };
       this.installStyles();
       shell?.classList.add(AUDIO_ONLY_CLASS);
-      this.resizeToAudioOnly();
-    } else {
-      shell?.classList.remove(AUDIO_ONLY_CLASS);
-      this.restoreVideoViewport();
-      this.style?.remove();
-      this.style = null;
+      this.enabled = true;
+      this.resizeToAudioTarget();
+      return;
     }
 
-    this.enabled = enabled;
+    shell?.classList.remove(AUDIO_ONLY_CLASS);
+    this.enabled = false;
+    this.restoreVideoViewport();
+    this.style?.remove();
+    this.style = null;
+  }
+
+  public setMenuOpen(open: boolean): void {
+    if (this.menuOpen === open) {
+      return;
+    }
+
+    this.menuOpen = open;
+
+    if (this.enabled) {
+      this.resizeToAudioTarget();
+    }
   }
 
   public dispose(): void {
@@ -52,39 +67,24 @@ export class AudioOnlyPresentation {
     this.style = null;
     this.videoViewport = null;
     this.enabled = false;
+    this.menuOpen = false;
   }
 
-  private resizeToAudioOnly(): void {
-    const target = resolveAudioOnlyViewport(
-      this.playerWindow.innerWidth,
-      this.playerWindow.innerHeight
-    );
-    const delta = calculateViewportResizeDelta(
-      this.playerWindow.innerWidth,
-      this.playerWindow.innerHeight,
-      target.width,
-      target.height
-    );
-
-    if (delta.width === 0 && delta.height === 0) {
-      return;
-    }
-
-    try {
-      this.playerWindow.resizeBy(delta.width, delta.height);
-    } catch (error) {
-      this.logger.error("Unable to compact the Picture-in-Picture window for Audio-only mode.", error);
-    }
+  private resizeToAudioTarget(): void {
+    const target = resolveAudioOnlyViewportSize(this.menuOpen);
+    this.resizeTo(target, "Unable to resize the Picture-in-Picture window for Audio-only mode.");
   }
 
   private restoreVideoViewport(): void {
     const target = this.videoViewport;
     this.videoViewport = null;
 
-    if (target === null) {
-      return;
+    if (target !== null) {
+      this.resizeTo(target, "Unable to restore the Picture-in-Picture window from Audio-only mode.");
     }
+  }
 
+  private resizeTo(target: ViewportSize, errorMessage: string): void {
     const delta = calculateViewportResizeDelta(
       this.playerWindow.innerWidth,
       this.playerWindow.innerHeight,
@@ -99,7 +99,7 @@ export class AudioOnlyPresentation {
     try {
       this.playerWindow.resizeBy(delta.width, delta.height);
     } catch (error) {
-      this.logger.error("Unable to restore the Picture-in-Picture window from Audio-only mode.", error);
+      this.logger.error(errorMessage, error);
     }
   }
 
@@ -124,10 +124,10 @@ export class AudioOnlyPresentation {
   }
 }
 
-export function resolveAudioOnlyViewport(currentWidth: number, currentHeight: number): ViewportSize {
+export function resolveAudioOnlyViewportSize(menuOpen: boolean): ViewportSize {
   return {
-    width: resolveCompactDimension(currentWidth, AUDIO_ONLY_COMPACT_WIDTH),
-    height: resolveCompactDimension(currentHeight, AUDIO_ONLY_COMPACT_HEIGHT)
+    width: AUDIO_ONLY_COMPACT_WIDTH,
+    height: menuOpen ? AUDIO_ONLY_MENU_HEIGHT : AUDIO_ONLY_COMPACT_HEIGHT
   };
 }
 
@@ -141,12 +141,4 @@ export function calculateViewportResizeDelta(
     width: Math.round(targetWidth - currentWidth),
     height: Math.round(targetHeight - currentHeight)
   };
-}
-
-function resolveCompactDimension(current: number, compact: number): number {
-  if (!Number.isFinite(current) || current <= 0) {
-    return compact;
-  }
-
-  return Math.min(current, compact);
 }
