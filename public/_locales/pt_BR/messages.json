@@ -37,6 +37,8 @@
   "optionsVolumeStepLabel": { "message": "Ajuste do volume" },
   "optionsVolumeStepDescription": { "message": "Quanto o volume muda por vez com a roda do mouse ou as Setas para cima/baixo." },
   "optionsVolumeStepError": { "message": "Use um número inteiro entre 1% e 100%." },
+  "optionsPipVideoClickLabel": { "message": "Clicar no vídeo para reproduzir ou pausar" },
+  "optionsPipVideoClickDescription": { "message": "Quando ativado, clicar na imagem do vídeo dentro do FloatPlay alterna a reprodução." },
   "optionsControlsSection": { "message": "Visibilidade dos controles" },
   "optionsControlsDescription": { "message": "Escolha se os controles devem sair da tela enquanto o vídeo está reproduzindo." },
   "optionsAutoHideLabel": { "message": "Ocultar controles durante a reprodução" },
