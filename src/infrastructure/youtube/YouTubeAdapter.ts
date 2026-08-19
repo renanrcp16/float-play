@@ -17,6 +17,7 @@ export interface YouTubeTriggerAnchor {
   readonly parent: HTMLElement;
   readonly reference: ChildNode;
   readonly position: TriggerAnchorPosition;
+  readonly compact?: boolean;
 }
 
 interface ViewportRect {
@@ -70,7 +71,7 @@ export class YouTubeAdapter {
     );
 
     if (surface === "youtube-music") {
-      return this.findMusicMedia(candidates);
+      return selectYouTubeMusicMedia(candidates);
     }
 
     return candidates
@@ -103,10 +104,15 @@ export class YouTubeAdapter {
     const playerBar = root.querySelector("ytmusic-player-bar");
     const rightControls = playerBar?.querySelector<HTMLElement>("#right-controls");
     const volumeTarget = rightControls?.querySelector<HTMLElement>(
-      "#volume-slider, .volume-slider, .expand-volume-slider"
+      ".volume.ytmusic-player-bar, #volume-slider, .volume-slider, #expand-volume-slider, .expand-volume-slider"
     );
 
-    if (rightControls === null || rightControls === undefined || volumeTarget === null || volumeTarget === undefined) {
+    if (
+      rightControls === null ||
+      rightControls === undefined ||
+      volumeTarget === null ||
+      volumeTarget === undefined
+    ) {
       return null;
     }
 
@@ -119,19 +125,9 @@ export class YouTubeAdapter {
     return {
       parent: rightControls,
       reference: volumeControl,
-      position: "before"
+      position: "before",
+      compact: true
     };
-  }
-
-  private findMusicMedia(candidates: readonly HTMLVideoElement[]): HTMLVideoElement | null {
-    const preferred = candidates.find((video) => video.closest("#movie_player") !== null);
-
-    if (preferred !== undefined) {
-      return preferred;
-    }
-
-    const active = candidates.find((video) => !video.ended && (video.readyState > 0 || video.currentSrc.length > 0));
-    return active ?? candidates[0] ?? null;
   }
 
   private postPlayerMessage(message: YouTubePlayerBridgeMessage): void {
@@ -184,6 +180,32 @@ export function findDirectChildContaining(
   }
 
   return current?.parentElement === parent ? current : null;
+}
+
+export function selectYouTubeMusicMedia(
+  candidates: readonly HTMLVideoElement[]
+): HTMLVideoElement | null {
+  const playing = candidates.find((video) => !video.paused && !video.ended && video.readyState > 0);
+
+  if (playing !== undefined) {
+    return playing;
+  }
+
+  const readyInPlayer = candidates.find(
+    (video) =>
+      video.closest("#movie_player") !== null &&
+      !video.ended &&
+      (video.readyState > 0 || video.currentSrc.length > 0)
+  );
+
+  if (readyInPlayer !== undefined) {
+    return readyInPlayer;
+  }
+
+  const ready = candidates.find(
+    (video) => !video.ended && (video.readyState > 0 || video.currentSrc.length > 0)
+  );
+  return ready ?? candidates[0] ?? null;
 }
 
 export function calculateViewportIntersectionArea(
