@@ -140,6 +140,7 @@ export class PlayerMenu {
     style.textContent = `
       .floatplay-overflow-menu { position: absolute; right: 12px; bottom: 12px; z-index: 3; pointer-events: auto; }
       .floatplay-overflow-panel { position: absolute; right: 0; bottom: 36px; width: max-content; min-width: 190px; max-width: min(260px, calc(100vw - 24px)); max-height: min(240px, calc(100vh - 84px)); overflow-y: auto; overscroll-behavior: contain; padding: 6px; border: 1px solid rgb(255 255 255 / 12%); border-radius: 10px; box-sizing: border-box; background: rgb(18 18 18 / 96%); box-shadow: 0 8px 24px rgb(0 0 0 / 35%); }
+      .floatplay-player-shell.floatplay-audio-only .floatplay-overflow-panel { position: fixed; right: 0; bottom: 0; max-width: min(260px, 100vw); max-height: 100vh; padding: 5px; border-radius: 10px 0 0 0; }
       .floatplay-overflow-menu-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 8px 10px; border: 0; border-radius: 8px; box-sizing: border-box; color: #fff; background: transparent; cursor: pointer; text-align: left; }
       .floatplay-overflow-menu-item:hover { background: rgb(255 255 255 / 10%); }
       .floatplay-overflow-menu-item:active { background: rgb(255 255 255 / 16%); }
