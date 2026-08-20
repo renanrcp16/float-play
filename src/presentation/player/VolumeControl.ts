@@ -214,26 +214,31 @@ export class VolumeControl {
       .floatplay-volume-slider:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 999px; }
 
       .floatplay-volume-control[data-layout="compact"] .floatplay-volume-slider-wrap {
-        position: absolute;
-        left: 0;
-        bottom: 35px;
         width: 0;
         padding: 0;
-        border: 1px solid rgb(255 255 255 / 10%);
+        border: 1px solid transparent;
         border-radius: 8px;
-        background: rgb(18 18 18 / 94%);
-        box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
+        background: transparent;
+        box-shadow: none;
+      }
+
+      .floatplay-volume-control[data-layout="compact"]:hover,
+      .floatplay-volume-control[data-layout="compact"]:focus-within {
+        z-index: 5;
       }
 
       .floatplay-volume-control[data-layout="compact"]:hover .floatplay-volume-slider-wrap,
       .floatplay-volume-control[data-layout="compact"]:focus-within .floatplay-volume-slider-wrap {
-        width: 108px;
+        width: 90px;
         padding: 5px 8px;
+        border-color: rgb(255 255 255 / 10%);
+        background: rgb(18 18 18 / 94%);
+        box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
       }
 
       .floatplay-volume-control[data-layout="compact"] .floatplay-volume-slider {
-        width: 92px;
-        flex: 0 0 92px;
+        width: 72px;
+        flex: 0 0 72px;
       }
 
       @media (prefers-reduced-motion: reduce) { .floatplay-volume-slider-wrap { transition: none; } }
