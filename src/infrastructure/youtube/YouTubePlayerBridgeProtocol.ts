@@ -15,6 +15,11 @@ export type YouTubePlayerBridgeMessage =
       readonly channel: typeof YOUTUBE_PLAYER_BRIDGE_CHANNEL;
       readonly type: "set-playback-rate";
       readonly playbackRate: number;
+    }
+  | {
+      readonly channel: typeof YOUTUBE_PLAYER_BRIDGE_CHANNEL;
+      readonly type: "seek-to";
+      readonly time: number;
     };
 
 export function createVolumeBridgeMessage(volume: number): YouTubePlayerBridgeMessage | null {
@@ -51,6 +56,18 @@ export function createPlaybackRateBridgeMessage(
   };
 }
 
+export function createSeekBridgeMessage(time: number): YouTubePlayerBridgeMessage | null {
+  if (!Number.isFinite(time) || time < 0) {
+    return null;
+  }
+
+  return {
+    channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
+    type: "seek-to",
+    time
+  };
+}
+
 export function parseYouTubePlayerBridgeMessage(value: unknown): YouTubePlayerBridgeMessage | null {
   if (
     !isRecord(value) ||
@@ -69,6 +86,8 @@ export function parseYouTubePlayerBridgeMessage(value: unknown): YouTubePlayerBr
       return typeof value.playbackRate === "number"
         ? createPlaybackRateBridgeMessage(value.playbackRate)
         : null;
+    case "seek-to":
+      return typeof value.time === "number" ? createSeekBridgeMessage(value.time) : null;
     default:
       return null;
   }

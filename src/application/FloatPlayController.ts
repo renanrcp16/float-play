@@ -1,6 +1,9 @@
 import type { OptionsPageLauncher } from "./OptionsPage";
 import type { FloatPlaySettings, TimeDisplayMode } from "./Settings";
-import type { DocumentPipManager, DocumentPipSession } from "../infrastructure/pip/DocumentPipManager";
+import type {
+  DocumentPipManager,
+  DocumentPipSession
+} from "../infrastructure/pip/DocumentPipManager";
 import type { YouTubeAdapter } from "../infrastructure/youtube/YouTubeAdapter";
 import {
   AUDIO_ONLY_COMPACT_HEIGHT,
@@ -36,6 +39,7 @@ export class FloatPlayController {
   private readonly observer: MutationObserver;
   private readonly trigger: FloatPlayTrigger;
   private reconcileFrame: number | null = null;
+  private presentationLifecycle: AbortController | null = null;
   private playerShell: PlayerShell | null = null;
   private audioOnlyPresentation: AudioOnlyPresentation | null = null;
   private originSurface: OriginPlaybackSurface | null = null;
@@ -92,6 +96,16 @@ export class FloatPlayController {
       { signal: this.lifecycle.signal }
     );
 
+    document.addEventListener(
+      "play",
+      () => {
+        if (this.youtube.isAudioOnlyRequired()) {
+          this.scheduleReconcile();
+        }
+      },
+      { capture: true, signal: this.lifecycle.signal }
+    );
+
     window.addEventListener(
       "pagehide",
       () => {
@@ -146,6 +160,10 @@ export class FloatPlayController {
       return;
     }
 
+    if (this.pip.isOpen() && this.youtube.isAudioOnlyRequired()) {
+      this.reconcileYouTubeMusicMedia();
+    }
+
     this.trigger.refreshPlacement(this.youtube.findTriggerAnchor());
 
     const hasMedia = this.youtube.findActiveMedia() !== null;
@@ -153,6 +171,33 @@ export class FloatPlayController {
 
     this.trigger.setVisible(shouldShow);
     this.trigger.setCoachmarkVisible(shouldShow && this.triggerCoachmarkPending);
+  }
+
+  private reconcileYouTubeMusicMedia(): void {
+    const candidate = this.youtube.findActiveMedia();
+    const current = this.pip.getMedia();
+
+    if (
+      candidate === null ||
+      current === null ||
+      candidate === current ||
+      candidate.paused ||
+      candidate.ended ||
+      (!current.paused && !current.ended)
+    ) {
+      return;
+    }
+
+    try {
+      const session = this.pip.replaceMedia(candidate);
+
+      if (session !== null) {
+        this.mountPresentation(session);
+        this.logger.debug("FloatPlay followed the active YouTube Music track.");
+      }
+    } catch (error) {
+      this.logger.error("Unable to follow the active YouTube Music track.", error);
+    }
   }
 
   private dismissTriggerCoachmark(): void {
@@ -181,7 +226,8 @@ export class FloatPlayController {
     this.trigger.setBusy(true);
 
     try {
-      const preferredInitialSize = this.settings.audioOnlyEnabled
+      const audioOnlyEnabled = this.isAudioOnlyEnabledForCurrentPage();
+      const preferredInitialSize = audioOnlyEnabled
         ? { width: AUDIO_ONLY_COMPACT_WIDTH, height: AUDIO_ONLY_COMPACT_HEIGHT }
         : undefined;
       const session = await this.pip.open(media, preferredInitialSize);
@@ -205,16 +251,53 @@ export class FloatPlayController {
 
     this.disposePresentation();
 
+    const presentationLifecycle = new AbortController();
+    const presentationSignal = presentationLifecycle.signal;
+    this.presentationLifecycle = presentationLifecycle;
+
+    session.signal.addEventListener(
+      "abort",
+      () => {
+        if (this.presentationLifecycle === presentationLifecycle) {
+          this.presentationLifecycle = null;
+          this.playerShell = null;
+          this.audioOnlyPresentation = null;
+          this.originSurface = null;
+          this.pipPlaybackSurface = null;
+        }
+
+        presentationLifecycle.abort();
+        this.scheduleReconcile();
+      },
+      { once: true, signal: presentationSignal }
+    );
+
+    const audioOnlyRequired = this.youtube.isAudioOnlyRequired();
+    const audioOnlyEnabled = audioOnlyRequired || this.settings.audioOnlyEnabled;
+
+    if (audioOnlyRequired) {
+      for (const eventName of ["pause", "ended"] as const) {
+        session.media.addEventListener(
+          eventName,
+          () => {
+            this.scheduleReconcile();
+          },
+          { signal: presentationSignal }
+        );
+      }
+    }
+
     const playerShell = new PlayerShell(
       session.media,
       session.pipWindow,
-      session.signal,
+      presentationSignal,
       this.labels,
       {
         backwardSeconds: this.settings.seekBackwardSeconds,
         forwardSeconds: this.settings.seekForwardSeconds,
         timeDisplayMode: this.settings.timeDisplayMode,
-        onTimeDisplayModeChange: (mode) => this.updateTimeDisplayMode(mode)
+        onTimeDisplayModeChange: (mode) => this.updateTimeDisplayMode(mode),
+        ...(audioOnlyRequired ? { timelineMirror: this.youtube } : {})
       },
       this.logger
     );
@@ -226,7 +309,7 @@ export class FloatPlayController {
     const playerOverflow = new PlayerOverflow(
       session.media,
       session.pipWindow,
-      session.signal,
+      presentationSignal,
       this.youtube,
       this.optionsPage,
       this.labels.fit,
@@ -237,7 +320,8 @@ export class FloatPlayController {
         audioOnly: this.labels.audioOnly,
         showVideo: this.labels.showVideo
       },
-      this.settings.audioOnlyEnabled,
+      audioOnlyEnabled,
+      !audioOnlyRequired,
       (enabled) => this.updateAudioOnlyMode(enabled, audioOnlyPresentation),
       (open) => audioOnlyPresentation.setMenuOpen(open),
       this.logger
@@ -245,7 +329,7 @@ export class FloatPlayController {
     const volumeControl = new VolumeControl(
       session.media,
       session.pipWindow,
-      session.signal,
+      presentationSignal,
       this.labels,
       this.youtube,
       this.settings.volumeStep,
@@ -254,7 +338,7 @@ export class FloatPlayController {
     const keyboardShortcuts = new PlayerKeyboardShortcuts(
       session.media,
       session.pipWindow,
-      session.signal,
+      presentationSignal,
       this.youtube,
       {
         backwardSeconds: this.settings.seekBackwardSeconds,
@@ -266,7 +350,7 @@ export class FloatPlayController {
     const controlsVisibility = new PlayerControlsVisibility(
       session.media,
       session.pipWindow,
-      session.signal,
+      presentationSignal,
       {
         enabled: this.settings.autoHideEnabled,
         delayMs: this.settings.autoHideDelayMs
@@ -275,18 +359,18 @@ export class FloatPlayController {
     const originSurface = new OriginPlaybackSurface(
       session.media,
       session.originElement,
-      session.signal,
+      presentationSignal,
       this.logger
     );
     const pipPlaybackSurface = new PipPlaybackSurface(
       session.media,
       this.settings.pipVideoClickTogglesPlayback,
-      session.signal,
+      presentationSignal,
       this.logger
     );
 
     playerShell.mount();
-    audioOnlyPresentation.setEnabled(this.settings.audioOnlyEnabled);
+    audioOnlyPresentation.setEnabled(audioOnlyEnabled);
     volumeControl.mount();
     playerOverflow.mount();
     keyboardShortcuts.mount();
@@ -298,30 +382,6 @@ export class FloatPlayController {
     this.audioOnlyPresentation = audioOnlyPresentation;
     this.originSurface = originSurface;
     this.pipPlaybackSurface = pipPlaybackSurface;
-
-    session.signal.addEventListener(
-      "abort",
-      () => {
-        if (this.playerShell === playerShell) {
-          this.playerShell = null;
-        }
-
-        if (this.audioOnlyPresentation === audioOnlyPresentation) {
-          this.audioOnlyPresentation = null;
-        }
-
-        if (this.originSurface === originSurface) {
-          this.originSurface = null;
-        }
-
-        if (this.pipPlaybackSurface === pipPlaybackSurface) {
-          this.pipPlaybackSurface = null;
-        }
-
-        this.scheduleReconcile();
-      },
-      { once: true }
-    );
   }
 
   private updateTimeDisplayMode(mode: TimeDisplayMode): void {
@@ -337,6 +397,11 @@ export class FloatPlayController {
   }
 
   private updateAudioOnlyMode(enabled: boolean, presentation: AudioOnlyPresentation): void {
+    if (this.youtube.isAudioOnlyRequired()) {
+      presentation.setEnabled(true);
+      return;
+    }
+
     presentation.setEnabled(enabled);
 
     if (this.settings.audioOnlyEnabled === enabled) {
@@ -350,11 +415,17 @@ export class FloatPlayController {
     this.persistAudioOnlyMode(enabled);
   }
 
+  private isAudioOnlyEnabledForCurrentPage(): boolean {
+    return this.youtube.isAudioOnlyRequired() || this.settings.audioOnlyEnabled;
+  }
+
   private disposePresentation(): void {
+    this.presentationLifecycle?.abort();
     this.audioOnlyPresentation?.dispose();
     this.playerShell?.dispose();
     this.originSurface?.dispose();
     this.pipPlaybackSurface?.dispose();
+    this.presentationLifecycle = null;
     this.audioOnlyPresentation = null;
     this.playerShell = null;
     this.originSurface = null;

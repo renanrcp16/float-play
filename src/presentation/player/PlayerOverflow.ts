@@ -20,6 +20,7 @@ export class PlayerOverflow {
     private readonly moreOptionsLabel: string,
     private readonly audioOnlyLabels: AudioOnlyLabels,
     private readonly audioOnlyEnabled: boolean,
+    private readonly audioOnlyToggleVisible: boolean,
     private readonly onAudioOnlyChange: (enabled: boolean) => void,
     private readonly onMenuOpenChange: (open: boolean) => void,
     private readonly logger: Logger
@@ -59,6 +60,8 @@ export class PlayerOverflow {
         this.onAudioOnlyChange(enabled);
       }
     );
+    audioOnlyItem.element.hidden = !this.audioOnlyToggleVisible;
+
     const settingsItem = createSettingsMenuItem(
       this.playerWindow.document,
       this.optionsPageLauncher,

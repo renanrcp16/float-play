@@ -1,6 +1,12 @@
 import {
+  getMediaTimelineState,
+  seekTimelineTo as seekMediaTimelineTo,
+  type MediaTimelineState
+} from "../../application/MediaTimeline";
+import {
   createMutedBridgeMessage,
   createPlaybackRateBridgeMessage,
+  createSeekBridgeMessage,
   createVolumeBridgeMessage,
   type YouTubePlayerBridgeMessage
 } from "./YouTubePlayerBridgeProtocol";
@@ -10,9 +16,20 @@ interface PageLocation {
   readonly pathname: string;
 }
 
+interface SliderLikeElement extends HTMLElement {
+  value?: number | string;
+  immediateValue?: number | string;
+  max?: number | string;
+}
+
+export type YouTubeSurface = "youtube-watch" | "youtube-music";
+export type TriggerAnchorPosition = "before" | "after";
+
 export interface YouTubeTriggerAnchor {
   readonly parent: HTMLElement;
-  readonly after: ChildNode;
+  readonly reference: ChildNode;
+  readonly position: TriggerAnchorPosition;
+  readonly compact?: boolean;
 }
 
 interface ViewportRect {
@@ -24,12 +41,18 @@ interface ViewportRect {
 
 export class YouTubeAdapter {
   public isSupportedPage(location: PageLocation = window.location): boolean {
-    const isYouTubeHost = location.hostname === "www.youtube.com" || location.hostname === "youtube.com";
+    return classifyYouTubeSurface(location) !== null;
+  }
 
-    return isYouTubeHost && location.pathname === "/watch";
+  public isAudioOnlyRequired(location: PageLocation = window.location): boolean {
+    return classifyYouTubeSurface(location) === "youtube-music";
   }
 
   public findTriggerAnchor(root: ParentNode = document): YouTubeTriggerAnchor | null {
+    if (this.isAudioOnlyRequired()) {
+      return this.findMusicTriggerAnchor(root);
+    }
+
     const metadata = root.querySelector("ytd-watch-metadata");
     const owner = metadata?.querySelector("#owner");
     const subscriptionArea = owner?.querySelector(
@@ -43,22 +66,72 @@ export class YouTubeAdapter {
 
     return {
       parent,
-      after: subscriptionArea
+      reference: subscriptionArea,
+      position: "after"
     };
   }
 
   public findActiveMedia(root: ParentNode = document): HTMLVideoElement | null {
-    if (!this.isSupportedPage()) {
+    const surface = classifyYouTubeSurface(window.location);
+
+    if (surface === null) {
       return null;
     }
 
+    if (surface === "youtube-music") {
+      const musicCandidates = Array.from(
+        root.querySelectorAll("ytmusic-player video, #movie_player video")
+      ).filter(
+        (video): video is HTMLVideoElement => video instanceof HTMLVideoElement && video.isConnected
+      );
+
+      return selectYouTubeMusicMedia(musicCandidates);
+    }
+
     const candidates = Array.from(root.querySelectorAll("video"))
-      .filter((video): video is HTMLVideoElement => video instanceof HTMLVideoElement)
+      .filter((video): video is HTMLVideoElement => video instanceof HTMLVideoElement && video.isConnected)
       .map((video) => ({ video, area: this.getVisibleArea(video) }))
       .filter(({ area }) => area > 0)
       .sort((left, right) => right.area - left.area);
 
     return candidates[0]?.video ?? null;
+  }
+
+  public getTimelineState(
+    media: HTMLVideoElement,
+    root: ParentNode = document
+  ): MediaTimelineState | null {
+    if (!this.isAudioOnlyRequired()) {
+      return getMediaTimelineState(media);
+    }
+
+    return readYouTubeMusicTimelineState(root) ?? getMediaTimelineState(media);
+  }
+
+  public seekTimelineTo(
+    media: HTMLVideoElement,
+    time: number,
+    root: ParentNode = document
+  ): boolean {
+    if (!this.isAudioOnlyRequired()) {
+      return seekMediaTimelineTo(media, time);
+    }
+
+    const nativeState = readYouTubeMusicTimelineState(root);
+
+    if (nativeState === null || !Number.isFinite(time)) {
+      return seekMediaTimelineTo(media, time);
+    }
+
+    const relativeTarget = clamp(time, nativeState.start, nativeState.safeEnd);
+    const message = createSeekBridgeMessage(relativeTarget);
+
+    if (message === null) {
+      return false;
+    }
+
+    this.postPlayerMessage(message);
+    return true;
   }
 
   public setVolume(volume: number): void {
@@ -79,6 +152,39 @@ export class YouTubeAdapter {
     if (message !== null) {
       this.postPlayerMessage(message);
     }
+  }
+
+  private findMusicTriggerAnchor(root: ParentNode): YouTubeTriggerAnchor | null {
+    const playerBar = root.querySelector("ytmusic-player-bar");
+    const rightControls = playerBar?.querySelector<HTMLElement>("#right-controls");
+
+    if (rightControls === null || rightControls === undefined) {
+      return null;
+    }
+
+    const volumeButton =
+      rightControls.querySelector<HTMLElement>(".volume.ytmusic-player-bar") ??
+      rightControls.querySelector<HTMLElement>("tp-yt-paper-icon-button.volume") ??
+      rightControls.querySelector<HTMLElement>(
+        'button[aria-label*="volume" i], button[aria-label*="mute" i], button[aria-label*="unmute" i]'
+      );
+
+    if (volumeButton === null) {
+      return null;
+    }
+
+    const volumeControl = findDirectChildContaining(rightControls, volumeButton);
+
+    if (volumeControl === null) {
+      return null;
+    }
+
+    return {
+      parent: rightControls,
+      reference: volumeControl,
+      position: "after",
+      compact: true
+    };
   }
 
   private postPlayerMessage(message: YouTubePlayerBridgeMessage): void {
@@ -111,6 +217,105 @@ export class YouTubeAdapter {
   }
 }
 
+export function classifyYouTubeSurface(location: PageLocation): YouTubeSurface | null {
+  if (location.hostname === "music.youtube.com") {
+    return "youtube-music";
+  }
+
+  const isYouTubeHost = location.hostname === "www.youtube.com" || location.hostname === "youtube.com";
+  return isYouTubeHost && location.pathname === "/watch" ? "youtube-watch" : null;
+}
+
+export function findDirectChildContaining(
+  parent: HTMLElement,
+  descendant: HTMLElement
+): HTMLElement | null {
+  let current: HTMLElement | null = descendant;
+
+  while (current !== null && current.parentElement !== parent) {
+    current = current.parentElement;
+  }
+
+  return current?.parentElement === parent ? current : null;
+}
+
+export function selectYouTubeMusicMedia(
+  candidates: readonly HTMLVideoElement[]
+): HTMLVideoElement | null {
+  const playing = candidates.find((video) => !video.paused && !video.ended && video.readyState > 0);
+
+  if (playing !== undefined) {
+    return playing;
+  }
+
+  const ready = candidates.find(
+    (video) => !video.ended && (video.readyState > 0 || video.currentSrc.length > 0)
+  );
+  return ready ?? candidates[0] ?? null;
+}
+
+export function parseYouTubeMusicTimeInfo(text: string): MediaTimelineState | null {
+  const matches = text.match(/\b(?:\d+:)?\d{1,2}:\d{2}\b/g);
+
+  if (matches === null || matches.length < 2) {
+    return null;
+  }
+
+  const current = parseClockTime(matches[0] ?? "");
+  const end = parseClockTime(matches[1] ?? "");
+
+  if (current === null || end === null || end <= 0) {
+    return null;
+  }
+
+  return {
+    start: 0,
+    end,
+    safeEnd: end,
+    current: clamp(current, 0, end)
+  };
+}
+
+export function readYouTubeMusicTimelineState(root: ParentNode): MediaTimelineState | null {
+  const timeInfo = root.querySelector<HTMLElement>("ytmusic-player-bar .time-info");
+  const parsedText = timeInfo?.textContent !== null && timeInfo?.textContent !== undefined
+    ? parseYouTubeMusicTimeInfo(timeInfo.textContent)
+    : null;
+
+  if (parsedText !== null) {
+    return parsedText;
+  }
+
+  const progressElements = [
+    root.querySelector<SliderLikeElement>(
+      "ytmusic-player-bar tp-yt-paper-slider#progress-bar tp-yt-paper-progress#sliderBar"
+    ),
+    root.querySelector<SliderLikeElement>("ytmusic-player-bar tp-yt-paper-slider#progress-bar")
+  ];
+
+  for (const progress of progressElements) {
+    if (progress === null) {
+      continue;
+    }
+
+    const current = readControlNumber(progress, ["value", "immediateValue"], "aria-valuenow");
+    const end = readControlNumber(progress, ["max"], "aria-valuemax");
+
+    if (current === null || end === null || end <= 0 || current < 0 || current > end + 1) {
+      continue;
+    }
+
+    return {
+      start: 0,
+      end,
+      safeEnd: end,
+      current: clamp(current, 0, end)
+    };
+  }
+
+  return null;
+}
+
 export function calculateViewportIntersectionArea(
   rect: ViewportRect,
   viewportWidth: number,
@@ -139,4 +344,43 @@ export function calculateViewportIntersectionArea(
   );
 
   return visibleWidth * visibleHeight;
+}
+
+function readControlNumber(
+  element: SliderLikeElement,
+  propertyNames: readonly ("value" | "immediateValue" | "max")[],
+  attributeName: string
+): number | null {
+  for (const propertyName of propertyNames) {
+    const value = Number(element[propertyName]);
+
+    if (Number.isFinite(value)) {
+      return value;
+    }
+  }
+
+  const attributeValue = Number(element.getAttribute(attributeName));
+  return Number.isFinite(attributeValue) ? attributeValue : null;
+}
+
+function parseClockTime(value: string): number | null {
+  const parts = value.split(":").map((part) => Number(part));
+
+  if (
+    parts.length < 2 ||
+    parts.length > 3 ||
+    parts.some((part) => !Number.isFinite(part) || part < 0)
+  ) {
+    return null;
+  }
+
+  if (parts.length === 2) {
+    return (parts[0] ?? 0) * 60 + (parts[1] ?? 0);
+  }
+
+  return (parts[0] ?? 0) * 3600 + (parts[1] ?? 0) * 60 + (parts[2] ?? 0);
+}
+
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.min(Math.max(value, minimum), maximum);
 }
