@@ -65,9 +65,7 @@ export class VolumeControl {
     controls.insertBefore(root, buttonRow);
 
     const syncLayout = (): void => {
-      const layout = resolveVolumeControlLayout(this.playerWindow.innerWidth);
-      root.dataset.layout = layout;
-      controls.dataset.floatplayVolumeLayout = layout;
+      root.dataset.layout = resolveVolumeControlLayout(this.playerWindow.innerWidth);
     };
 
     syncLayout();
@@ -120,14 +118,7 @@ export class VolumeControl {
     };
 
     this.media.addEventListener("volumechange", sync, { signal: this.signal });
-    this.signal.addEventListener(
-      "abort",
-      () => {
-        root.remove();
-        delete controls.dataset.floatplayVolumeLayout;
-      },
-      { once: true }
-    );
+    this.signal.addEventListener("abort", () => root.remove(), { once: true });
     sync();
   }
 
@@ -228,27 +219,21 @@ export class VolumeControl {
         bottom: 35px;
         width: 0;
         padding: 0;
-        border-radius: 999px;
-        background: rgb(0 0 0 / 78%);
-        box-shadow: 0 2px 8px rgb(0 0 0 / 35%);
-        backdrop-filter: blur(6px);
+        border: 1px solid rgb(255 255 255 / 10%);
+        border-radius: 8px;
+        background: rgb(18 18 18 / 94%);
+        box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
       }
 
       .floatplay-volume-control[data-layout="compact"]:hover .floatplay-volume-slider-wrap,
       .floatplay-volume-control[data-layout="compact"]:focus-within .floatplay-volume-slider-wrap {
-        width: 124px;
-        padding: 4px 10px;
+        width: 108px;
+        padding: 5px 8px;
       }
 
       .floatplay-volume-control[data-layout="compact"] .floatplay-volume-slider {
-        width: 104px;
-        flex: 0 0 104px;
-      }
-
-      .floatplay-controls[data-floatplay-volume-layout="compact"]:has(.floatplay-volume-control:hover) .floatplay-timeline-group,
-      .floatplay-controls[data-floatplay-volume-layout="compact"]:has(.floatplay-volume-control:focus-within) .floatplay-timeline-group {
-        opacity: 0;
-        pointer-events: none;
+        width: 92px;
+        flex: 0 0 92px;
       }
 
       @media (prefers-reduced-motion: reduce) { .floatplay-volume-slider-wrap { transition: none; } }
