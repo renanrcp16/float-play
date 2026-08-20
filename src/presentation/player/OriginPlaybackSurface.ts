@@ -1,6 +1,6 @@
 import { togglePlayback } from "../../application/MediaPlayback";
 import type { Logger } from "../../shared/Logger";
-import { eventPathHasInteractiveElement } from "../InteractiveElement";
+import { eventPathHasInteractiveElementBefore } from "../InteractiveElement";
 
 interface OriginSurfaceBounds {
   readonly left: number;
@@ -15,6 +15,11 @@ interface OriginSurfaceClickState {
   readonly y: number;
   readonly bounds: OriginSurfaceBounds | null;
   readonly interactiveTarget: boolean;
+}
+
+interface OriginClickSurface {
+  readonly element: HTMLElement;
+  readonly bounds: OriginSurfaceBounds;
 }
 
 export class OriginPlaybackSurface {
@@ -65,13 +70,17 @@ export class OriginPlaybackSurface {
   }
 
   private handleClick(event: MouseEvent): void {
+    const path = event.composedPath();
+    const surface = resolveOriginClickSurface(this.originElement, path);
+
     if (
       !shouldToggleFromOriginSurface({
         button: event.button,
         x: event.clientX,
         y: event.clientY,
-        bounds: this.getCurrentBounds(),
-        interactiveTarget: eventPathHasInteractiveElement(event.composedPath())
+        bounds: surface?.bounds ?? null,
+        interactiveTarget:
+          surface !== null && eventPathHasInteractiveElementBefore(path, surface.element)
       })
     ) {
       return;
@@ -84,32 +93,31 @@ export class OriginPlaybackSurface {
       this.logger.error("Unable to toggle media playback from the YouTube origin surface.", error);
     });
   }
+}
 
-  private getCurrentBounds(): OriginSurfaceBounds | null {
-    if (!this.originElement.isConnected) {
-      return null;
-    }
-
-    const rect = this.originElement.getBoundingClientRect();
-
-    if (
-      !Number.isFinite(rect.left) ||
-      !Number.isFinite(rect.top) ||
-      !Number.isFinite(rect.right) ||
-      !Number.isFinite(rect.bottom) ||
-      rect.width <= 0 ||
-      rect.height <= 0
-    ) {
-      return null;
-    }
-
-    return {
-      left: rect.left,
-      top: rect.top,
-      right: rect.right,
-      bottom: rect.bottom
-    };
+export function resolveOriginClickSurface(
+  originElement: HTMLElement,
+  path: readonly EventTarget[]
+): OriginClickSurface | null {
+  if (!originElement.isConnected) {
+    return null;
   }
+
+  let candidate: HTMLElement | null = originElement;
+
+  while (candidate !== null) {
+    if (path.includes(candidate)) {
+      const bounds = getCurrentBounds(candidate);
+
+      if (bounds !== null) {
+        return { element: candidate, bounds };
+      }
+    }
+
+    candidate = candidate.parentElement;
+  }
+
+  return null;
 }
 
 export function shouldToggleFromOriginSurface(state: OriginSurfaceClickState): boolean {
@@ -136,4 +144,30 @@ export function isPointWithinBounds(x: number, y: number, bounds: OriginSurfaceB
   }
 
   return x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom;
+}
+
+function getCurrentBounds(element: HTMLElement): OriginSurfaceBounds | null {
+  if (!element.isConnected) {
+    return null;
+  }
+
+  const rect = element.getBoundingClientRect();
+
+  if (
+    !Number.isFinite(rect.left) ||
+    !Number.isFinite(rect.top) ||
+    !Number.isFinite(rect.right) ||
+    !Number.isFinite(rect.bottom) ||
+    rect.width <= 0 ||
+    rect.height <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    left: rect.left,
+    top: rect.top,
+    right: rect.right,
+    bottom: rect.bottom
+  };
 }
