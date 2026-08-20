@@ -29,6 +29,8 @@ interface FloatPlayLabels extends PlayerPlaybackLabels, VolumeControlLabels {
   readonly moreOptions: string;
   readonly audioOnly: string;
   readonly showVideo: string;
+  readonly previousTrack: string;
+  readonly nextTrack: string;
   readonly triggerOpen: string;
   readonly triggerCoachmark: string;
   readonly triggerCoachmarkDismiss: string;
@@ -320,6 +322,13 @@ export class FloatPlayController {
         audioOnly: this.labels.audioOnly,
         showVideo: this.labels.showVideo
       },
+      {
+        previous: this.labels.previousTrack,
+        next: this.labels.nextTrack
+      },
+      audioOnlyRequired,
+      () => this.youtube.previousTrack(),
+      () => this.youtube.nextTrack(),
       audioOnlyEnabled,
       !audioOnlyRequired,
       (enabled) => this.updateAudioOnlyMode(enabled, audioOnlyPresentation),
