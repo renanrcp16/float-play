@@ -9,12 +9,15 @@ interface OriginSurfaceBounds {
   readonly bottom: number;
 }
 
-interface OriginSurfaceClickState {
-  readonly button: number;
+interface OriginSurfacePointerState {
   readonly x: number;
   readonly y: number;
   readonly bounds: OriginSurfaceBounds | null;
   readonly interactiveTarget: boolean;
+}
+
+interface OriginSurfaceClickState extends OriginSurfacePointerState {
+  readonly button: number;
 }
 
 interface OriginClickSurface {
@@ -25,6 +28,8 @@ interface OriginClickSurface {
 export class OriginPlaybackSurface {
   private readonly lifecycle = new AbortController();
   private mounted = false;
+  private cursorTarget: HTMLElement | null = null;
+  private cursorTargetPreviousValue = "";
 
   public constructor(
     private readonly media: HTMLVideoElement,
@@ -46,10 +51,23 @@ export class OriginPlaybackSurface {
       return;
     }
 
-    this.originElement.ownerDocument.addEventListener(
+    const document = this.originElement.ownerDocument;
+
+    document.addEventListener(
       "click",
       (event) => {
         this.handleClick(event);
+      },
+      {
+        capture: true,
+        signal: this.lifecycle.signal
+      }
+    );
+
+    document.addEventListener(
+      "pointermove",
+      (event) => {
+        this.handlePointerMove(event);
       },
       {
         capture: true,
@@ -65,6 +83,7 @@ export class OriginPlaybackSurface {
       return;
     }
 
+    this.restoreCursorTarget();
     this.lifecycle.abort();
     this.mounted = false;
   }
@@ -93,6 +112,46 @@ export class OriginPlaybackSurface {
       this.logger.error("Unable to toggle media playback from the YouTube origin surface.", error);
     });
   }
+
+  private handlePointerMove(event: PointerEvent): void {
+    const path = event.composedPath();
+    const surface = resolveOriginClickSurface(this.originElement, path);
+    const shouldShowPointer = shouldShowPointerFromOriginSurface({
+      x: event.clientX,
+      y: event.clientY,
+      bounds: surface?.bounds ?? null,
+      interactiveTarget:
+        surface !== null && eventPathHasInteractiveElementBefore(path, surface.element)
+    });
+
+    this.setCursorTarget(shouldShowPointer ? surface?.element ?? null : null);
+  }
+
+  private setCursorTarget(target: HTMLElement | null): void {
+    if (this.cursorTarget === target) {
+      return;
+    }
+
+    this.restoreCursorTarget();
+
+    if (target === null) {
+      return;
+    }
+
+    this.cursorTarget = target;
+    this.cursorTargetPreviousValue = target.style.cursor;
+    target.style.cursor = "pointer";
+  }
+
+  private restoreCursorTarget(): void {
+    if (this.cursorTarget === null) {
+      return;
+    }
+
+    this.cursorTarget.style.cursor = this.cursorTargetPreviousValue;
+    this.cursorTarget = null;
+    this.cursorTargetPreviousValue = "";
+  }
 }
 
 export function resolveOriginClickSurface(
@@ -120,13 +179,16 @@ export function resolveOriginClickSurface(
   return null;
 }
 
-export function shouldToggleFromOriginSurface(state: OriginSurfaceClickState): boolean {
+export function shouldShowPointerFromOriginSurface(state: OriginSurfacePointerState): boolean {
   return (
-    state.button === 0 &&
     !state.interactiveTarget &&
     state.bounds !== null &&
     isPointWithinBounds(state.x, state.y, state.bounds)
   );
+}
+
+export function shouldToggleFromOriginSurface(state: OriginSurfaceClickState): boolean {
+  return state.button === 0 && shouldShowPointerFromOriginSurface(state);
 }
 
 export function isPointWithinBounds(x: number, y: number, bounds: OriginSurfaceBounds): boolean {
