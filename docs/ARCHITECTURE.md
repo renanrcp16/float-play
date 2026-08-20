@@ -24,8 +24,8 @@ FloatPlay uses four extension execution surfaces:
 Supported YouTube page
   │
   ├─ MAIN-world bridge (typed build entry)
-  │     └─ narrow player synchronization for volume/mute/rate
-  │        plus current-track seek on YouTube Music
+  │     └─ narrow player synchronization for volume/mute/rate,
+  │        current-track seek, and native track navigation on YouTube Music
   │
   └─ ISOLATED content script
         │
@@ -86,9 +86,10 @@ Its responsibilities include:
 - restricting YouTube Music media discovery to the player media rather than unrelated page videos;
 - reading the current-track YouTube Music timeline from the native player-bar state when media timestamps are cumulative;
 - requesting current-track seeking through the narrow same-page bridge on YouTube Music;
+- requesting previous/next track navigation through the same narrow bridge on YouTube Music;
 - sending minimal same-page synchronization messages for volume, mute, and playback-rate compatibility.
 
-The adapter should prefer platform-neutral media characteristics over private selectors and APIs whenever the platform state is trustworthy. YouTube-specific DOM or player methods are acceptable only for narrowly documented compatibility gaps such as YouTube Music's current-track timeline.
+The adapter should prefer platform-neutral media characteristics over private selectors and APIs whenever the platform state is trustworthy. YouTube-specific DOM or player methods are acceptable only for narrowly documented compatibility gaps such as YouTube Music's current-track timeline and native queue navigation.
 
 ### MAIN-world YouTube player bridge
 
@@ -102,13 +103,14 @@ The bridge:
 
 - listens only for same-window, same-origin `window.postMessage` events;
 - accepts only the `floatplay:youtube-player` channel;
-- validates only the supported actions: volume, mute, playback rate, and seek-to;
+- validates only the supported actions: volume, mute, playback rate, seek-to, previous track, and next track;
 - validates and clamps numeric values before use;
 - invokes the corresponding YouTube player method only when that method exists;
 - uses seek-to only for the user-requested current-track seek path required by YouTube Music;
+- uses previous/next only on `music.youtube.com`, preferring the native player-bar controls and falling back to the corresponding player methods when those controls are unavailable;
 - has no access to Chrome extension storage, privileged runtime APIs, FloatPlay settings, account identifiers, video identifiers, analytics identifiers, or backend services.
 
-The bridge is compatibility synchronization, not a general page-control API. FloatPlay should continue using standard media APIs whenever they accurately represent the requested behavior.
+The bridge is compatibility synchronization, not a general page-control API. FloatPlay should continue using standard media APIs whenever they accurately represent the requested behavior. Adding previous/next track navigation does not add a host, permission, persisted field, data collection path, or external connection surface; it only extends the already-reviewed same-page YouTube Music command set.
 
 ### Infrastructure — Picture-in-Picture
 
@@ -155,7 +157,7 @@ Current presentation responsibilities include:
 - timeline and time-display controls;
 - volume controls;
 - keyboard shortcuts;
-- overflow actions such as speed, fit, settings, and Audio-only mode where allowed;
+- overflow actions such as speed, fit, settings, Audio-only mode where allowed, and YouTube Music previous/next track actions;
 - mandatory Audio-only presentation on YouTube Music;
 - automatic control visibility;
 - `OriginPlaybackSurface` for the eligible non-interactive area at the original standard YouTube player location;
@@ -163,7 +165,7 @@ Current presentation responsibilities include:
 
 The PiP video surface remains passive by default. When the persisted `pipVideoClickTogglesPlayback` preference is enabled, only the video image becomes a click target and receives the corresponding visual hover feedback; overlaid controls remain independent interactive elements.
 
-In Audio-only mode the video image is hidden, the player uses compact geometry, and playback controls remain visible. On standard YouTube, Audio-only is user-selectable and persisted. On YouTube Music it is required and the restore-video action is not exposed.
+In Audio-only mode the video image is hidden, the player uses compact geometry, and playback controls remain visible. On standard YouTube, Audio-only is user-selectable and persisted. On YouTube Music it is required and the restore-video action is not exposed. YouTube Music track navigation is exposed through the overflow menu so the compact closed player does not gain additional permanent controls or overlap the existing seek actions.
 
 ### Settings and onboarding
 
@@ -183,7 +185,7 @@ The active `HTMLVideoElement` is authoritative for:
 - playback rate;
 - standard YouTube media time and seekable ranges.
 
-For YouTube Music, FloatPlay deliberately mirrors the current-track elapsed time and duration from the native player-bar state because the underlying media element may expose timestamps accumulated across tracks. User-requested timeline seeking is sent as a relative current-track target to YouTube's player through the narrow bridge rather than by applying that relative value directly to the cumulative media timestamp.
+For YouTube Music, FloatPlay deliberately mirrors the current-track elapsed time and duration from the native player-bar state because the underlying media element may expose timestamps accumulated across tracks. User-requested timeline seeking is sent as a relative current-track target to YouTube's player through the narrow bridge rather than by applying that relative value directly to the cumulative media timestamp. Previous/next actions similarly delegate to YouTube Music's native queue navigation rather than attempting to infer the next URL or mutate media time.
 
 FloatPlay controls should otherwise mutate or read platform media state first and reflect media events instead of maintaining a competing playback model.
 
