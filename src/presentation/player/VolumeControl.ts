@@ -9,6 +9,15 @@ export interface VolumeControlLabels {
   readonly unmute: string;
 }
 
+export type VolumeControlLayout = "inline" | "compact";
+export const COMPACT_VOLUME_MAX_WIDTH = 320;
+
+export function resolveVolumeControlLayout(viewportWidth: number): VolumeControlLayout {
+  return Number.isFinite(viewportWidth) && viewportWidth <= COMPACT_VOLUME_MAX_WIDTH
+    ? "compact"
+    : "inline";
+}
+
 export class VolumeControl {
   private sliderInteractionStartVolume: number | null = null;
 
@@ -54,6 +63,15 @@ export class VolumeControl {
     sliderWrap.append(slider);
     root.append(button, sliderWrap);
     controls.insertBefore(root, buttonRow);
+
+    const syncLayout = (): void => {
+      const layout = resolveVolumeControlLayout(this.playerWindow.innerWidth);
+      root.dataset.layout = layout;
+      controls.dataset.floatplayVolumeLayout = layout;
+    };
+
+    syncLayout();
+    this.playerWindow.addEventListener("resize", syncLayout, { signal: this.signal });
 
     button.addEventListener("click", () => this.setMuted(!this.media.muted), { signal: this.signal });
     root.addEventListener(
@@ -102,7 +120,14 @@ export class VolumeControl {
     };
 
     this.media.addEventListener("volumechange", sync, { signal: this.signal });
-    this.signal.addEventListener("abort", () => root.remove(), { once: true });
+    this.signal.addEventListener(
+      "abort",
+      () => {
+        root.remove();
+        delete controls.dataset.floatplayVolumeLayout;
+      },
+      { once: true }
+    );
     sync();
   }
 
@@ -189,13 +214,43 @@ export class VolumeControl {
     style.textContent = `
       .floatplay-volume-control { position: absolute; left: 12px; bottom: 12px; z-index: 3; display: flex; align-items: center; gap: 6px; pointer-events: auto; }
       .floatplay-volume-icon { display: block; place-self: center; pointer-events: none; }
-      .floatplay-volume-slider-wrap { display: flex; align-items: center; width: 0; opacity: 0; overflow: hidden; pointer-events: none; transition: width 120ms ease, opacity 100ms ease; }
+      .floatplay-volume-slider-wrap { box-sizing: border-box; display: flex; align-items: center; width: 0; opacity: 0; overflow: hidden; pointer-events: none; transition: width 120ms ease, opacity 100ms ease; }
       .floatplay-volume-control:hover .floatplay-volume-slider-wrap,
       .floatplay-volume-control:focus-within .floatplay-volume-slider-wrap { width: 72px; opacity: 1; pointer-events: auto; }
       .floatplay-volume-slider { --floatplay-volume-progress: 0%; width: 72px; height: 20px; margin: 0; appearance: none; background: transparent; cursor: pointer; }
       .floatplay-volume-slider::-webkit-slider-runnable-track { height: 4px; border-radius: 999px; background: linear-gradient(to right, #fff 0 var(--floatplay-volume-progress), rgb(255 255 255 / 35%) var(--floatplay-volume-progress) 100%); }
       .floatplay-volume-slider::-webkit-slider-thumb { width: 10px; height: 10px; margin-top: -3px; appearance: none; border: 0; border-radius: 999px; background: #fff; }
       .floatplay-volume-slider:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 999px; }
+
+      .floatplay-volume-control[data-layout="compact"] .floatplay-volume-slider-wrap {
+        position: absolute;
+        left: 0;
+        bottom: 35px;
+        width: 0;
+        padding: 0;
+        border-radius: 999px;
+        background: rgb(0 0 0 / 78%);
+        box-shadow: 0 2px 8px rgb(0 0 0 / 35%);
+        backdrop-filter: blur(6px);
+      }
+
+      .floatplay-volume-control[data-layout="compact"]:hover .floatplay-volume-slider-wrap,
+      .floatplay-volume-control[data-layout="compact"]:focus-within .floatplay-volume-slider-wrap {
+        width: 124px;
+        padding: 4px 10px;
+      }
+
+      .floatplay-volume-control[data-layout="compact"] .floatplay-volume-slider {
+        width: 104px;
+        flex: 0 0 104px;
+      }
+
+      .floatplay-controls[data-floatplay-volume-layout="compact"]:has(.floatplay-volume-control:hover) .floatplay-timeline-group,
+      .floatplay-controls[data-floatplay-volume-layout="compact"]:has(.floatplay-volume-control:focus-within) .floatplay-timeline-group {
+        opacity: 0;
+        pointer-events: none;
+      }
+
       @media (prefers-reduced-motion: reduce) { .floatplay-volume-slider-wrap { transition: none; } }
     `;
     document.head.append(style);
