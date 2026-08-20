@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { isPointWithinBounds, shouldToggleFromOriginSurface } from "./OriginPlaybackSurface";
+import {
+  isPointWithinBounds,
+  resolveOriginClickSurface,
+  shouldShowPointerFromOriginSurface,
+  shouldToggleFromOriginSurface
+} from "./OriginPlaybackSurface";
 
 const bounds = {
   left: 100,
@@ -8,6 +13,28 @@ const bounds = {
   right: 500,
   bottom: 275
 };
+
+function elementWithBounds(
+  currentBounds: typeof bounds,
+  parentElement: HTMLElement | null = null,
+  isConnected = true,
+  isPlayerBoundary = false
+): HTMLElement {
+  return {
+    isConnected,
+    parentElement,
+    matches: (selector: string) =>
+      isPlayerBoundary && selector === "#movie_player, .html5-video-player",
+    getBoundingClientRect: () => ({
+      ...currentBounds,
+      width: currentBounds.right - currentBounds.left,
+      height: currentBounds.bottom - currentBounds.top,
+      x: currentBounds.left,
+      y: currentBounds.top,
+      toJSON: () => ({})
+    })
+  } as unknown as HTMLElement;
+}
 
 describe("isPointWithinBounds", () => {
   it("accepts points inside the current origin bounds", () => {
@@ -38,6 +65,100 @@ describe("isPointWithinBounds", () => {
   });
 });
 
+describe("resolveOriginClickSurface", () => {
+  it("uses the current origin element when it is on the click path", () => {
+    const player = elementWithBounds(bounds, null, true, true);
+    const origin = elementWithBounds(bounds, player);
+
+    expect(resolveOriginClickSurface(origin, [origin, player])).toEqual({
+      element: origin,
+      bounds
+    });
+  });
+
+  it("falls back to the YouTube player when an overlay receives the click", () => {
+    const playerBounds = {
+      left: 20,
+      top: 10,
+      right: 1020,
+      bottom: 570
+    };
+    const player = elementWithBounds(playerBounds, null, true, true);
+    const origin = elementWithBounds(
+      {
+        left: 100,
+        top: 100,
+        right: 100,
+        bottom: 100
+      },
+      player
+    );
+    const overlay = {} as EventTarget;
+
+    expect(resolveOriginClickSurface(origin, [overlay, player])).toEqual({
+      element: player,
+      bounds: playerBounds
+    });
+  });
+
+  it("does not climb beyond the YouTube player into watch-page content", () => {
+    const page = elementWithBounds(
+      {
+        left: 0,
+        top: 0,
+        right: 1400,
+        bottom: 2000
+      }
+    );
+    const player = elementWithBounds(bounds, page, true, true);
+    const origin = elementWithBounds(bounds, player);
+    const metadata = {} as EventTarget;
+
+    expect(resolveOriginClickSurface(origin, [metadata, page])).toBeNull();
+  });
+
+  it("fails closed when the origin is disconnected or no player boundary exists", () => {
+    const player = elementWithBounds(bounds, null, true, true);
+    const disconnectedOrigin = elementWithBounds(bounds, player, false);
+    const unboundedOrigin = elementWithBounds(bounds);
+
+    expect(resolveOriginClickSurface(disconnectedOrigin, [player])).toBeNull();
+    expect(resolveOriginClickSurface(unboundedOrigin, [unboundedOrigin])).toBeNull();
+  });
+});
+
+describe("shouldShowPointerFromOriginSurface", () => {
+  it("shows a pointer over the eligible non-interactive origin surface", () => {
+    expect(
+      shouldShowPointerFromOriginSurface({
+        x: 250,
+        y: 150,
+        bounds,
+        interactiveTarget: false
+      })
+    ).toBe(true);
+  });
+
+  it("keeps native cursor semantics over controls and outside the surface", () => {
+    expect(
+      shouldShowPointerFromOriginSurface({
+        x: 250,
+        y: 150,
+        bounds,
+        interactiveTarget: true
+      })
+    ).toBe(false);
+    expect(
+      shouldShowPointerFromOriginSurface({
+        x: 50,
+        y: 150,
+        bounds,
+        interactiveTarget: false
+      })
+    ).toBe(false);
+  });
+});
+
 describe("shouldToggleFromOriginSurface", () => {
   it("accepts a primary click on the current non-interactive origin surface", () => {
     expect(
@@ -61,6 +182,18 @@ describe("shouldToggleFromOriginSurface", () => {
         interactiveTarget: true
       })
     ).toBe(false);
+  });
+
+  it("accepts clicks after hidden overlay filtering resolves them as non-interactive", () => {
+    expect(
+      shouldToggleFromOriginSurface({
+        button: 0,
+        x: 250,
+        y: 150,
+        bounds,
+        interactiveTarget: false
+      })
+    ).toBe(true);
   });
 
   it("rejects clicks when the current origin surface is unavailable", () => {

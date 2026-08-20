@@ -22,6 +22,7 @@ export const INTERACTIVE_ELEMENT_SELECTOR = [
 
 interface ElementLikeTarget {
   closest?(selector: string): Element | null;
+  getAttribute?(name: string): string | null;
   matches?(selector: string): boolean;
 }
 
@@ -35,4 +36,44 @@ export function eventPathHasInteractiveElement(path: readonly EventTarget[]): bo
     const candidate = target as ElementLikeTarget;
     return candidate.matches?.(INTERACTIVE_ELEMENT_SELECTOR) === true;
   });
+}
+
+export function eventPathHasInteractiveElementBefore(
+  path: readonly EventTarget[],
+  boundary: EventTarget
+): boolean {
+  const boundaryIndex = path.indexOf(boundary);
+
+  if (boundaryIndex < 0) {
+    return false;
+  }
+
+  for (let index = 0; index < boundaryIndex; index += 1) {
+    const candidate = path[index] as ElementLikeTarget;
+
+    if (
+      candidate.matches?.(INTERACTIVE_ELEMENT_SELECTOR) === true &&
+      !isWithinAriaHiddenRegion(path, index, boundaryIndex)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isWithinAriaHiddenRegion(
+  path: readonly EventTarget[],
+  startIndex: number,
+  boundaryIndex: number
+): boolean {
+  for (let index = startIndex; index < boundaryIndex; index += 1) {
+    const candidate = path[index] as ElementLikeTarget;
+
+    if (candidate.getAttribute?.("aria-hidden") === "true") {
+      return true;
+    }
+  }
+
+  return false;
 }

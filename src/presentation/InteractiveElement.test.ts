@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   eventPathHasInteractiveElement,
+  eventPathHasInteractiveElementBefore,
   INTERACTIVE_ELEMENT_SELECTOR,
   isInteractiveElementTarget
 } from "./InteractiveElement";
@@ -15,11 +16,15 @@ function targetWithClosest(matches: boolean): EventTarget {
   } as unknown as EventTarget;
 }
 
-function targetWithMatches(matches: boolean): EventTarget {
+function targetWithMatches(matches: boolean, ariaHidden = false): EventTarget {
   return {
     matches: (selector: string) => {
       expect(selector).toBe(INTERACTIVE_ELEMENT_SELECTOR);
       return matches;
+    },
+    getAttribute: (name: string) => {
+      expect(name).toBe("aria-hidden");
+      return ariaHidden ? "true" : null;
     }
   } as unknown as EventTarget;
 }
@@ -50,5 +55,49 @@ describe("interactive element semantics", () => {
       ])
     ).toBe(true);
     expect(eventPathHasInteractiveElement([targetWithMatches(false)])).toBe(false);
+  });
+
+  it("detects interactive controls before a resolved surface boundary", () => {
+    const boundary = targetWithMatches(false);
+
+    expect(
+      eventPathHasInteractiveElementBefore(
+        [targetWithMatches(false), targetWithMatches(true), boundary],
+        boundary
+      )
+    ).toBe(true);
+  });
+
+  it("ignores aria-hidden interactive overlays before the surface boundary", () => {
+    const boundary = targetWithMatches(false);
+
+    expect(
+      eventPathHasInteractiveElementBefore(
+        [targetWithMatches(false), targetWithMatches(true, true), boundary],
+        boundary
+      )
+    ).toBe(false);
+  });
+
+  it("ignores interactive descendants inside an aria-hidden overlay", () => {
+    const boundary = targetWithMatches(false);
+
+    expect(
+      eventPathHasInteractiveElementBefore(
+        [targetWithMatches(true), targetWithMatches(false, true), boundary],
+        boundary
+      )
+    ).toBe(false);
+  });
+
+  it("ignores interactive semantics on the surface boundary and its ancestors", () => {
+    const boundary = targetWithMatches(true);
+
+    expect(
+      eventPathHasInteractiveElementBefore(
+        [targetWithMatches(false), boundary, targetWithMatches(true)],
+        boundary
+      )
+    ).toBe(false);
   });
 });

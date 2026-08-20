@@ -1,6 +1,8 @@
 import { togglePlayback } from "../../application/MediaPlayback";
 import type { Logger } from "../../shared/Logger";
-import { eventPathHasInteractiveElement } from "../InteractiveElement";
+import { eventPathHasInteractiveElementBefore } from "../InteractiveElement";
+
+const YOUTUBE_PLAYER_SURFACE_SELECTOR = "#movie_player, .html5-video-player";
 
 interface OriginSurfaceBounds {
   readonly left: number;
@@ -9,17 +11,27 @@ interface OriginSurfaceBounds {
   readonly bottom: number;
 }
 
-interface OriginSurfaceClickState {
-  readonly button: number;
+interface OriginSurfacePointerState {
   readonly x: number;
   readonly y: number;
   readonly bounds: OriginSurfaceBounds | null;
   readonly interactiveTarget: boolean;
 }
 
+interface OriginSurfaceClickState extends OriginSurfacePointerState {
+  readonly button: number;
+}
+
+interface OriginClickSurface {
+  readonly element: HTMLElement;
+  readonly bounds: OriginSurfaceBounds;
+}
+
 export class OriginPlaybackSurface {
   private readonly lifecycle = new AbortController();
   private mounted = false;
+  private cursorTarget: HTMLElement | null = null;
+  private cursorTargetPreviousValue = "";
 
   public constructor(
     private readonly media: HTMLVideoElement,
@@ -41,10 +53,23 @@ export class OriginPlaybackSurface {
       return;
     }
 
-    this.originElement.ownerDocument.addEventListener(
+    const document = this.originElement.ownerDocument;
+
+    document.addEventListener(
       "click",
       (event) => {
         this.handleClick(event);
+      },
+      {
+        capture: true,
+        signal: this.lifecycle.signal
+      }
+    );
+
+    document.addEventListener(
+      "pointermove",
+      (event) => {
+        this.handlePointerMove(event);
       },
       {
         capture: true,
@@ -60,18 +85,23 @@ export class OriginPlaybackSurface {
       return;
     }
 
+    this.restoreCursorTarget();
     this.lifecycle.abort();
     this.mounted = false;
   }
 
   private handleClick(event: MouseEvent): void {
+    const path = event.composedPath();
+    const surface = resolveOriginClickSurface(this.originElement, path);
+
     if (
       !shouldToggleFromOriginSurface({
         button: event.button,
         x: event.clientX,
         y: event.clientY,
-        bounds: this.getCurrentBounds(),
-        interactiveTarget: eventPathHasInteractiveElement(event.composedPath())
+        bounds: surface?.bounds ?? null,
+        interactiveTarget:
+          surface !== null && eventPathHasInteractiveElementBefore(path, surface.element)
       })
     ) {
       return;
@@ -85,40 +115,92 @@ export class OriginPlaybackSurface {
     });
   }
 
-  private getCurrentBounds(): OriginSurfaceBounds | null {
-    if (!this.originElement.isConnected) {
-      return null;
+  private handlePointerMove(event: PointerEvent): void {
+    const path = event.composedPath();
+    const surface = resolveOriginClickSurface(this.originElement, path);
+    const shouldShowPointer = shouldShowPointerFromOriginSurface({
+      x: event.clientX,
+      y: event.clientY,
+      bounds: surface?.bounds ?? null,
+      interactiveTarget:
+        surface !== null && eventPathHasInteractiveElementBefore(path, surface.element)
+    });
+
+    this.setCursorTarget(shouldShowPointer ? surface?.element ?? null : null);
+  }
+
+  private setCursorTarget(target: HTMLElement | null): void {
+    if (this.cursorTarget === target) {
+      return;
     }
 
-    const rect = this.originElement.getBoundingClientRect();
+    this.restoreCursorTarget();
 
-    if (
-      !Number.isFinite(rect.left) ||
-      !Number.isFinite(rect.top) ||
-      !Number.isFinite(rect.right) ||
-      !Number.isFinite(rect.bottom) ||
-      rect.width <= 0 ||
-      rect.height <= 0
-    ) {
-      return null;
+    if (target === null) {
+      return;
     }
 
-    return {
-      left: rect.left,
-      top: rect.top,
-      right: rect.right,
-      bottom: rect.bottom
-    };
+    this.cursorTarget = target;
+    this.cursorTargetPreviousValue = target.style.cursor;
+    target.style.cursor = "pointer";
+  }
+
+  private restoreCursorTarget(): void {
+    if (this.cursorTarget === null) {
+      return;
+    }
+
+    this.cursorTarget.style.cursor = this.cursorTargetPreviousValue;
+    this.cursorTarget = null;
+    this.cursorTargetPreviousValue = "";
   }
 }
 
-export function shouldToggleFromOriginSurface(state: OriginSurfaceClickState): boolean {
+export function resolveOriginClickSurface(
+  originElement: HTMLElement,
+  path: readonly EventTarget[]
+): OriginClickSurface | null {
+  if (!originElement.isConnected) {
+    return null;
+  }
+
+  const playerBoundary = resolveYouTubePlayerBoundary(originElement);
+
+  if (playerBoundary === null) {
+    return null;
+  }
+
+  let candidate: HTMLElement | null = originElement;
+
+  while (candidate !== null) {
+    if (path.includes(candidate)) {
+      const bounds = getCurrentBounds(candidate);
+
+      if (bounds !== null) {
+        return { element: candidate, bounds };
+      }
+    }
+
+    if (candidate === playerBoundary) {
+      break;
+    }
+
+    candidate = candidate.parentElement;
+  }
+
+  return null;
+}
+
+export function shouldShowPointerFromOriginSurface(state: OriginSurfacePointerState): boolean {
   return (
-    state.button === 0 &&
     !state.interactiveTarget &&
     state.bounds !== null &&
     isPointWithinBounds(state.x, state.y, state.bounds)
   );
+}
+
+export function shouldToggleFromOriginSurface(state: OriginSurfaceClickState): boolean {
+  return state.button === 0 && shouldShowPointerFromOriginSurface(state);
 }
 
 export function isPointWithinBounds(x: number, y: number, bounds: OriginSurfaceBounds): boolean {
@@ -136,4 +218,44 @@ export function isPointWithinBounds(x: number, y: number, bounds: OriginSurfaceB
   }
 
   return x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom;
+}
+
+function resolveYouTubePlayerBoundary(originElement: HTMLElement): HTMLElement | null {
+  let candidate: HTMLElement | null = originElement;
+
+  while (candidate !== null) {
+    if (candidate.matches(YOUTUBE_PLAYER_SURFACE_SELECTOR)) {
+      return candidate;
+    }
+
+    candidate = candidate.parentElement;
+  }
+
+  return null;
+}
+
+function getCurrentBounds(element: HTMLElement): OriginSurfaceBounds | null {
+  if (!element.isConnected) {
+    return null;
+  }
+
+  const rect = element.getBoundingClientRect();
+
+  if (
+    !Number.isFinite(rect.left) ||
+    !Number.isFinite(rect.top) ||
+    !Number.isFinite(rect.right) ||
+    !Number.isFinite(rect.bottom) ||
+    rect.width <= 0 ||
+    rect.height <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    left: rect.left,
+    top: rect.top,
+    right: rect.right,
+    bottom: rect.bottom
+  };
 }
