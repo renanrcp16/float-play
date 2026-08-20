@@ -36,3 +36,22 @@ export function eventPathHasInteractiveElement(path: readonly EventTarget[]): bo
     return candidate.matches?.(INTERACTIVE_ELEMENT_SELECTOR) === true;
   });
 }
+
+export function eventPathHasInteractiveElementBefore(
+  path: readonly EventTarget[],
+  boundary: EventTarget
+): boolean {
+  for (const target of path) {
+    if (target === boundary) {
+      return false;
+    }
+
+    const candidate = target as ElementLikeTarget;
+
+    if (candidate.matches?.(INTERACTIVE_ELEMENT_SELECTOR) === true) {
+      return true;
+    }
+  }
+
+  return false;
+}
