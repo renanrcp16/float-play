@@ -6,6 +6,7 @@ import {
 import {
   createMutedBridgeMessage,
   createPlaybackRateBridgeMessage,
+  createSeekBridgeMessage,
   createVolumeBridgeMessage,
   type YouTubePlayerBridgeMessage
 } from "./YouTubePlayerBridgeProtocol";
@@ -123,14 +124,13 @@ export class YouTubeAdapter {
     }
 
     const relativeTarget = clamp(time, nativeState.start, nativeState.safeEnd);
-    const mediaOffset = media.currentTime - nativeState.current;
-    const absoluteTarget = mediaOffset + relativeTarget;
+    const message = createSeekBridgeMessage(relativeTarget);
 
-    if (!Number.isFinite(absoluteTarget)) {
+    if (message === null) {
       return false;
     }
 
-    media.currentTime = absoluteTarget;
+    this.postPlayerMessage(message);
     return true;
   }
 
