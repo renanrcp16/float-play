@@ -2,6 +2,8 @@ import { togglePlayback } from "../../application/MediaPlayback";
 import type { Logger } from "../../shared/Logger";
 import { eventPathHasInteractiveElementBefore } from "../InteractiveElement";
 
+const YOUTUBE_PLAYER_SURFACE_SELECTOR = "#movie_player, .html5-video-player";
+
 interface OriginSurfaceBounds {
   readonly left: number;
   readonly top: number;
@@ -162,6 +164,12 @@ export function resolveOriginClickSurface(
     return null;
   }
 
+  const playerBoundary = resolveYouTubePlayerBoundary(originElement);
+
+  if (playerBoundary === null) {
+    return null;
+  }
+
   let candidate: HTMLElement | null = originElement;
 
   while (candidate !== null) {
@@ -171,6 +179,10 @@ export function resolveOriginClickSurface(
       if (bounds !== null) {
         return { element: candidate, bounds };
       }
+    }
+
+    if (candidate === playerBoundary) {
+      break;
     }
 
     candidate = candidate.parentElement;
@@ -206,6 +218,20 @@ export function isPointWithinBounds(x: number, y: number, bounds: OriginSurfaceB
   }
 
   return x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom;
+}
+
+function resolveYouTubePlayerBoundary(originElement: HTMLElement): HTMLElement | null {
+  let candidate: HTMLElement | null = originElement;
+
+  while (candidate !== null) {
+    if (candidate.matches(YOUTUBE_PLAYER_SURFACE_SELECTOR)) {
+      return candidate;
+    }
+
+    candidate = candidate.parentElement;
+  }
+
+  return null;
 }
 
 function getCurrentBounds(element: HTMLElement): OriginSurfaceBounds | null {
