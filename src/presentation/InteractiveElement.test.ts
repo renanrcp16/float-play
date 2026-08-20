@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   eventPathHasInteractiveElement,
+  eventPathHasInteractiveElementBefore,
   INTERACTIVE_ELEMENT_SELECTOR,
   isInteractiveElementTarget
 } from "./InteractiveElement";
@@ -50,5 +51,27 @@ describe("interactive element semantics", () => {
       ])
     ).toBe(true);
     expect(eventPathHasInteractiveElement([targetWithMatches(false)])).toBe(false);
+  });
+
+  it("detects interactive controls before a resolved surface boundary", () => {
+    const boundary = targetWithMatches(false);
+
+    expect(
+      eventPathHasInteractiveElementBefore(
+        [targetWithMatches(false), targetWithMatches(true), boundary],
+        boundary
+      )
+    ).toBe(true);
+  });
+
+  it("ignores interactive semantics on the surface boundary and its ancestors", () => {
+    const boundary = targetWithMatches(true);
+
+    expect(
+      eventPathHasInteractiveElementBefore(
+        [targetWithMatches(false), boundary, targetWithMatches(true)],
+        boundary
+      )
+    ).toBe(false);
   });
 });
