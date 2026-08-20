@@ -215,6 +215,7 @@ export class VolumeControl {
 
       .floatplay-volume-control[data-layout="compact"] .floatplay-volume-slider-wrap {
         width: 0;
+        height: 29px;
         padding: 0;
         border: 1px solid transparent;
         border-radius: 8px;
@@ -230,7 +231,7 @@ export class VolumeControl {
       .floatplay-volume-control[data-layout="compact"]:hover .floatplay-volume-slider-wrap,
       .floatplay-volume-control[data-layout="compact"]:focus-within .floatplay-volume-slider-wrap {
         width: 90px;
-        padding: 5px 8px;
+        padding: 3px 8px;
         border-color: rgb(255 255 255 / 10%);
         background: rgb(18 18 18 / 94%);
         box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
