@@ -7,8 +7,10 @@ import {
   createMutedBridgeMessage,
   createPlaybackRateBridgeMessage,
   createSeekBridgeMessage,
+  createTrackNavigationBridgeMessage,
   createVolumeBridgeMessage,
-  type YouTubePlayerBridgeMessage
+  type YouTubePlayerBridgeMessage,
+  type YouTubeTrackDirection
 } from "./YouTubePlayerBridgeProtocol";
 
 interface PageLocation {
@@ -152,6 +154,22 @@ export class YouTubeAdapter {
     if (message !== null) {
       this.postPlayerMessage(message);
     }
+  }
+
+  public previousTrack(): void {
+    this.navigateTrack("previous");
+  }
+
+  public nextTrack(): void {
+    this.navigateTrack("next");
+  }
+
+  private navigateTrack(direction: YouTubeTrackDirection): void {
+    if (!this.isAudioOnlyRequired()) {
+      return;
+    }
+
+    this.postPlayerMessage(createTrackNavigationBridgeMessage(direction));
   }
 
   private findMusicTriggerAnchor(root: ParentNode): YouTubeTriggerAnchor | null {
