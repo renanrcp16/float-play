@@ -13,8 +13,8 @@ const bounds = {
   bottom: 275
 };
 
-function surfaceElement(
-  elementBounds: typeof bounds,
+function elementWithBounds(
+  currentBounds: typeof bounds,
   parentElement: HTMLElement | null = null,
   isConnected = true
 ): HTMLElement {
@@ -22,64 +22,15 @@ function surfaceElement(
     isConnected,
     parentElement,
     getBoundingClientRect: () => ({
-      ...elementBounds,
-      width: elementBounds.right - elementBounds.left,
-      height: elementBounds.bottom - elementBounds.top
+      ...currentBounds,
+      width: currentBounds.right - currentBounds.left,
+      height: currentBounds.bottom - currentBounds.top,
+      x: currentBounds.left,
+      y: currentBounds.top,
+      toJSON: () => ({})
     })
   } as unknown as HTMLElement;
 }
-
-describe("resolveOriginClickSurface", () => {
-  it("uses the current origin element when it belongs to the click path", () => {
-    const origin = surfaceElement(bounds);
-
-    expect(resolveOriginClickSurface(origin, [origin])).toEqual({
-      element: origin,
-      bounds
-    });
-  });
-
-  it("climbs to the first current ancestor shared with an overlay click path", () => {
-    const playerBounds = {
-      left: 80,
-      top: 30,
-      right: 520,
-      bottom: 300
-    };
-    const player = surfaceElement(playerBounds);
-    const origin = surfaceElement(bounds, player);
-    const overlay = {} as EventTarget;
-
-    expect(resolveOriginClickSurface(origin, [overlay, player])).toEqual({
-      element: player,
-      bounds: playerBounds
-    });
-  });
-
-  it("skips collapsed origin geometry and uses a valid shared ancestor", () => {
-    const player = surfaceElement(bounds);
-    const collapsed = surfaceElement(
-      {
-        left: 100,
-        top: 50,
-        right: 100,
-        bottom: 50
-      },
-      player
-    );
-
-    expect(resolveOriginClickSurface(collapsed, [collapsed, player])).toEqual({
-      element: player,
-      bounds
-    });
-  });
-
-  it("fails closed when the original container is disconnected", () => {
-    const origin = surfaceElement(bounds, null, false);
-
-    expect(resolveOriginClickSurface(origin, [origin])).toBeNull();
-  });
-});
 
 describe("isPointWithinBounds", () => {
   it("accepts points inside the current origin bounds", () => {
@@ -110,6 +61,49 @@ describe("isPointWithinBounds", () => {
   });
 });
 
+describe("resolveOriginClickSurface", () => {
+  it("uses the current origin element when it is on the click path", () => {
+    const origin = elementWithBounds(bounds);
+
+    expect(resolveOriginClickSurface(origin, [origin])).toEqual({
+      element: origin,
+      bounds
+    });
+  });
+
+  it("falls back to the first valid shared ancestor when an overlay receives the click", () => {
+    const playerBounds = {
+      left: 20,
+      top: 10,
+      right: 1020,
+      bottom: 570
+    };
+    const player = elementWithBounds(playerBounds);
+    const origin = elementWithBounds(
+      {
+        left: 100,
+        top: 100,
+        right: 100,
+        bottom: 100
+      },
+      player
+    );
+    const overlay = {} as EventTarget;
+
+    expect(resolveOriginClickSurface(origin, [overlay, player])).toEqual({
+      element: player,
+      bounds: playerBounds
+    });
+  });
+
+  it("fails closed when no connected ancestor with valid current bounds is on the click path", () => {
+    const player = elementWithBounds(bounds);
+    const origin = elementWithBounds(bounds, player, false);
+
+    expect(resolveOriginClickSurface(origin, [player])).toBeNull();
+  });
+});
+
 describe("shouldToggleFromOriginSurface", () => {
   it("accepts a primary click on the current non-interactive origin surface", () => {
     expect(
@@ -133,6 +127,18 @@ describe("shouldToggleFromOriginSurface", () => {
         interactiveTarget: true
       })
     ).toBe(false);
+  });
+
+  it("accepts clicks after hidden overlay filtering resolves them as non-interactive", () => {
+    expect(
+      shouldToggleFromOriginSurface({
+        button: 0,
+        x: 250,
+        y: 150,
+        bounds,
+        interactiveTarget: false
+      })
+    ).toBe(true);
   });
 
   it("rejects clicks when the current origin surface is unavailable", () => {
