@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { isPointWithinBounds, shouldToggleFromOriginSurface } from "./OriginPlaybackSurface";
+import {
+  isPointWithinBounds,
+  resolveOriginClickSurface,
+  shouldToggleFromOriginSurface
+} from "./OriginPlaybackSurface";
 
 const bounds = {
   left: 100,
@@ -8,6 +12,74 @@ const bounds = {
   right: 500,
   bottom: 275
 };
+
+function surfaceElement(
+  elementBounds: typeof bounds,
+  parentElement: HTMLElement | null = null,
+  isConnected = true
+): HTMLElement {
+  return {
+    isConnected,
+    parentElement,
+    getBoundingClientRect: () => ({
+      ...elementBounds,
+      width: elementBounds.right - elementBounds.left,
+      height: elementBounds.bottom - elementBounds.top
+    })
+  } as unknown as HTMLElement;
+}
+
+describe("resolveOriginClickSurface", () => {
+  it("uses the current origin element when it belongs to the click path", () => {
+    const origin = surfaceElement(bounds);
+
+    expect(resolveOriginClickSurface(origin, [origin])).toEqual({
+      element: origin,
+      bounds
+    });
+  });
+
+  it("climbs to the first current ancestor shared with an overlay click path", () => {
+    const playerBounds = {
+      left: 80,
+      top: 30,
+      right: 520,
+      bottom: 300
+    };
+    const player = surfaceElement(playerBounds);
+    const origin = surfaceElement(bounds, player);
+    const overlay = {} as EventTarget;
+
+    expect(resolveOriginClickSurface(origin, [overlay, player])).toEqual({
+      element: player,
+      bounds: playerBounds
+    });
+  });
+
+  it("skips collapsed origin geometry and uses a valid shared ancestor", () => {
+    const player = surfaceElement(bounds);
+    const collapsed = surfaceElement(
+      {
+        left: 100,
+        top: 50,
+        right: 100,
+        bottom: 50
+      },
+      player
+    );
+
+    expect(resolveOriginClickSurface(collapsed, [collapsed, player])).toEqual({
+      element: player,
+      bounds
+    });
+  });
+
+  it("fails closed when the original container is disconnected", () => {
+    const origin = surfaceElement(bounds, null, false);
+
+    expect(resolveOriginClickSurface(origin, [origin])).toBeNull();
+  });
+});
 
 describe("isPointWithinBounds", () => {
   it("accepts points inside the current origin bounds", () => {
