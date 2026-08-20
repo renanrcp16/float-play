@@ -17,11 +17,14 @@ const bounds = {
 function elementWithBounds(
   currentBounds: typeof bounds,
   parentElement: HTMLElement | null = null,
-  isConnected = true
+  isConnected = true,
+  isPlayerBoundary = false
 ): HTMLElement {
   return {
     isConnected,
     parentElement,
+    matches: (selector: string) =>
+      isPlayerBoundary && selector === "#movie_player, .html5-video-player",
     getBoundingClientRect: () => ({
       ...currentBounds,
       width: currentBounds.right - currentBounds.left,
@@ -64,22 +67,23 @@ describe("isPointWithinBounds", () => {
 
 describe("resolveOriginClickSurface", () => {
   it("uses the current origin element when it is on the click path", () => {
-    const origin = elementWithBounds(bounds);
+    const player = elementWithBounds(bounds, null, true, true);
+    const origin = elementWithBounds(bounds, player);
 
-    expect(resolveOriginClickSurface(origin, [origin])).toEqual({
+    expect(resolveOriginClickSurface(origin, [origin, player])).toEqual({
       element: origin,
       bounds
     });
   });
 
-  it("falls back to the first valid shared ancestor when an overlay receives the click", () => {
+  it("falls back to the YouTube player when an overlay receives the click", () => {
     const playerBounds = {
       left: 20,
       top: 10,
       right: 1020,
       bottom: 570
     };
-    const player = elementWithBounds(playerBounds);
+    const player = elementWithBounds(playerBounds, null, true, true);
     const origin = elementWithBounds(
       {
         left: 100,
@@ -97,11 +101,29 @@ describe("resolveOriginClickSurface", () => {
     });
   });
 
-  it("fails closed when no connected ancestor with valid current bounds is on the click path", () => {
-    const player = elementWithBounds(bounds);
-    const origin = elementWithBounds(bounds, player, false);
+  it("does not climb beyond the YouTube player into watch-page content", () => {
+    const page = elementWithBounds(
+      {
+        left: 0,
+        top: 0,
+        right: 1400,
+        bottom: 2000
+      }
+    );
+    const player = elementWithBounds(bounds, page, true, true);
+    const origin = elementWithBounds(bounds, player);
+    const metadata = {} as EventTarget;
 
-    expect(resolveOriginClickSurface(origin, [player])).toBeNull();
+    expect(resolveOriginClickSurface(origin, [metadata, page])).toBeNull();
+  });
+
+  it("fails closed when the origin is disconnected or no player boundary exists", () => {
+    const player = elementWithBounds(bounds, null, true, true);
+    const disconnectedOrigin = elementWithBounds(bounds, player, false);
+    const unboundedOrigin = elementWithBounds(bounds);
+
+    expect(resolveOriginClickSurface(disconnectedOrigin, [player])).toBeNull();
+    expect(resolveOriginClickSurface(unboundedOrigin, [unboundedOrigin])).toBeNull();
   });
 });
 
