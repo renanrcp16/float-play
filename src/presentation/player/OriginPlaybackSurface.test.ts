@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   isPointWithinBounds,
   resolveOriginClickSurface,
+  shouldShowPointerFromOriginSurface,
   shouldToggleFromOriginSurface
 } from "./OriginPlaybackSurface";
 
@@ -101,6 +102,38 @@ describe("resolveOriginClickSurface", () => {
     const origin = elementWithBounds(bounds, player, false);
 
     expect(resolveOriginClickSurface(origin, [player])).toBeNull();
+  });
+});
+
+describe("shouldShowPointerFromOriginSurface", () => {
+  it("shows a pointer over the eligible non-interactive origin surface", () => {
+    expect(
+      shouldShowPointerFromOriginSurface({
+        x: 250,
+        y: 150,
+        bounds,
+        interactiveTarget: false
+      })
+    ).toBe(true);
+  });
+
+  it("keeps native cursor semantics over controls and outside the surface", () => {
+    expect(
+      shouldShowPointerFromOriginSurface({
+        x: 250,
+        y: 150,
+        bounds,
+        interactiveTarget: true
+      })
+    ).toBe(false);
+    expect(
+      shouldShowPointerFromOriginSurface({
+        x: 50,
+        y: 150,
+        bounds,
+        interactiveTarget: false
+      })
+    ).toBe(false);
   });
 });
 
