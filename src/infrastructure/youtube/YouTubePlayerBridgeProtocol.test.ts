@@ -4,6 +4,7 @@ import {
   createMutedBridgeMessage,
   createPlaybackRateBridgeMessage,
   createSeekBridgeMessage,
+  createTrackNavigationBridgeMessage,
   createVolumeBridgeMessage,
   parseYouTubePlayerBridgeMessage,
   YOUTUBE_PLAYER_BRIDGE_CHANNEL
@@ -52,6 +53,17 @@ describe("YouTube player bridge protocol", () => {
     expect(createSeekBridgeMessage(Number.NaN)).toBeNull();
   });
 
+  it("creates previous and next track messages", () => {
+    expect(createTrackNavigationBridgeMessage("previous")).toEqual({
+      channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
+      type: "previous-track"
+    });
+    expect(createTrackNavigationBridgeMessage("next")).toEqual({
+      channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
+      type: "next-track"
+    });
+  });
+
   it("parses and normalizes valid messages", () => {
     expect(
       parseYouTubePlayerBridgeMessage({
@@ -74,6 +86,24 @@ describe("YouTube player bridge protocol", () => {
       channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
       type: "seek-to",
       time: 90
+    });
+    expect(
+      parseYouTubePlayerBridgeMessage({
+        channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
+        type: "previous-track"
+      })
+    ).toEqual({
+      channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
+      type: "previous-track"
+    });
+    expect(
+      parseYouTubePlayerBridgeMessage({
+        channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
+        type: "next-track"
+      })
+    ).toEqual({
+      channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
+      type: "next-track"
     });
   });
 
