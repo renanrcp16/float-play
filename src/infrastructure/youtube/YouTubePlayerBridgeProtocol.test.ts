@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createMutedBridgeMessage,
   createPlaybackRateBridgeMessage,
+  createSeekBridgeMessage,
   createVolumeBridgeMessage,
   parseYouTubePlayerBridgeMessage,
   YOUTUBE_PLAYER_BRIDGE_CHANNEL
@@ -41,6 +42,16 @@ describe("YouTube player bridge protocol", () => {
     expect(createPlaybackRateBridgeMessage(Number.POSITIVE_INFINITY)).toBeNull();
   });
 
+  it("creates finite non-negative seek messages", () => {
+    expect(createSeekBridgeMessage(42.5)).toEqual({
+      channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
+      type: "seek-to",
+      time: 42.5
+    });
+    expect(createSeekBridgeMessage(-1)).toBeNull();
+    expect(createSeekBridgeMessage(Number.NaN)).toBeNull();
+  });
+
   it("parses and normalizes valid messages", () => {
     expect(
       parseYouTubePlayerBridgeMessage({
@@ -53,6 +64,17 @@ describe("YouTube player bridge protocol", () => {
       type: "set-volume",
       volume: 1
     });
+    expect(
+      parseYouTubePlayerBridgeMessage({
+        channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
+        type: "seek-to",
+        time: 90
+      })
+    ).toEqual({
+      channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
+      type: "seek-to",
+      time: 90
+    });
   });
 
   it.each([
@@ -62,7 +84,8 @@ describe("YouTube player bridge protocol", () => {
     { channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL, type: "unknown" },
     { channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL, type: "set-volume", volume: "1" },
     { channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL, type: "set-muted", muted: 1 },
-    { channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL, type: "set-playback-rate", playbackRate: 0 }
+    { channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL, type: "set-playback-rate", playbackRate: 0 },
+    { channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL, type: "seek-to", time: -1 }
   ])("rejects malformed bridge data %#", (value) => {
     expect(parseYouTubePlayerBridgeMessage(value)).toBeNull();
   });
