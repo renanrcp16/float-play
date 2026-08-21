@@ -1,5 +1,7 @@
 export const YOUTUBE_PLAYER_BRIDGE_CHANNEL = "floatplay:youtube-player" as const;
 
+export type YouTubeTrackDirection = "previous" | "next";
+
 export type YouTubePlayerBridgeMessage =
   | {
       readonly channel: typeof YOUTUBE_PLAYER_BRIDGE_CHANNEL;
@@ -20,6 +22,10 @@ export type YouTubePlayerBridgeMessage =
       readonly channel: typeof YOUTUBE_PLAYER_BRIDGE_CHANNEL;
       readonly type: "seek-to";
       readonly time: number;
+    }
+  | {
+      readonly channel: typeof YOUTUBE_PLAYER_BRIDGE_CHANNEL;
+      readonly type: "previous-track" | "next-track";
     };
 
 export function createVolumeBridgeMessage(volume: number): YouTubePlayerBridgeMessage | null {
@@ -68,6 +74,15 @@ export function createSeekBridgeMessage(time: number): YouTubePlayerBridgeMessag
   };
 }
 
+export function createTrackNavigationBridgeMessage(
+  direction: YouTubeTrackDirection
+): YouTubePlayerBridgeMessage {
+  return {
+    channel: YOUTUBE_PLAYER_BRIDGE_CHANNEL,
+    type: direction === "previous" ? "previous-track" : "next-track"
+  };
+}
+
 export function parseYouTubePlayerBridgeMessage(value: unknown): YouTubePlayerBridgeMessage | null {
   if (
     !isRecord(value) ||
@@ -88,6 +103,10 @@ export function parseYouTubePlayerBridgeMessage(value: unknown): YouTubePlayerBr
         : null;
     case "seek-to":
       return typeof value.time === "number" ? createSeekBridgeMessage(value.time) : null;
+    case "previous-track":
+      return createTrackNavigationBridgeMessage("previous");
+    case "next-track":
+      return createTrackNavigationBridgeMessage("next");
     default:
       return null;
   }

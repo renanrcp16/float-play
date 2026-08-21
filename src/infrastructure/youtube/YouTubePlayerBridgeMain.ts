@@ -1,4 +1,7 @@
-import { parseYouTubePlayerBridgeMessage } from "./YouTubePlayerBridgeProtocol";
+import {
+  parseYouTubePlayerBridgeMessage,
+  type YouTubeTrackDirection
+} from "./YouTubePlayerBridgeProtocol";
 
 interface YouTubePlayerElement extends HTMLElement {
   setVolume?(volumePercent: number): void;
@@ -8,6 +11,8 @@ interface YouTubePlayerElement extends HTMLElement {
   isMuted?(): boolean;
   setPlaybackRate?(playbackRate: number): void;
   seekTo?(seconds: number, allowSeekAhead?: boolean): void;
+  previousVideo?(): void;
+  nextVideo?(): void;
 }
 
 interface YouTubeMusicVolumeSlider extends HTMLElement {
@@ -41,8 +46,42 @@ window.addEventListener("message", (event) => {
       return;
     case "seek-to":
       player?.seekTo?.(message.time, true);
+      return;
+    case "previous-track":
+      navigateYouTubeMusicTrack(document, window.location.hostname, player, "previous");
+      return;
+    case "next-track":
+      navigateYouTubeMusicTrack(document, window.location.hostname, player, "next");
   }
 });
+
+function navigateYouTubeMusicTrack(
+  document: Document,
+  hostname: string,
+  player: YouTubePlayerElement | null,
+  direction: YouTubeTrackDirection
+): void {
+  if (hostname !== "music.youtube.com") {
+    return;
+  }
+
+  const className = direction === "previous" ? "previous-button" : "next-button";
+  const id = direction === "previous" ? "previous-button" : "next-button";
+  const nativeButton =
+    document.querySelector<HTMLElement>(`ytmusic-player-bar .${className}`) ??
+    document.querySelector<HTMLElement>(`ytmusic-player-bar #${id}`);
+
+  if (nativeButton !== null) {
+    nativeButton.click();
+    return;
+  }
+
+  if (direction === "previous") {
+    player?.previousVideo?.();
+  } else {
+    player?.nextVideo?.();
+  }
+}
 
 function syncMutedState(
   document: Document,

@@ -57,6 +57,8 @@ async function bootstrap(): Promise<void> {
       moreOptions: i18n.getMessage("moreOptionsAction", "More options"),
       audioOnly: i18n.getMessage("audioOnlyAction", "Audio only"),
       showVideo: i18n.getMessage("showVideoAction", "Show video"),
+      previousTrack: i18n.getMessage("previousTrackAction", "Previous track"),
+      nextTrack: i18n.getMessage("nextTrackAction", "Next track"),
       volume: i18n.getMessage("volumeAction", "Volume"),
       mute: i18n.getMessage("muteAction", "Mute"),
       unmute: i18n.getMessage("unmuteAction", "Unmute"),

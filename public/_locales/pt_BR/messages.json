@@ -19,6 +19,8 @@
   "moreOptionsAction": { "message": "Mais opções" },
   "audioOnlyAction": { "message": "Somente áudio" },
   "showVideoAction": { "message": "Mostrar vídeo" },
+  "previousTrackAction": { "message": "Faixa anterior" },
+  "nextTrackAction": { "message": "Próxima faixa" },
   "volumeAction": { "message": "Volume" },
   "muteAction": { "message": "Silenciar" },
   "unmuteAction": { "message": "Ativar som" },
