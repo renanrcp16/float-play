@@ -1,6 +1,6 @@
 {
   "extensionName": { "message": "FloatPlay" },
-  "extensionDescription": { "message": "Melhore o Picture-in-Picture do YouTube com controles de reprodução mais completos." },
+  "extensionDescription": { "message": "Melhore o Picture-in-Picture do YouTube e YouTube Music com controles de reprodução mais completos." },
   "playAction": { "message": "Reproduzir" },
   "pauseAction": { "message": "Pausar" },
   "backwardAction": {
@@ -29,7 +29,7 @@
   "triggerCoachmarkDismissAction": { "message": "Fechar dica do FloatPlay" },
   "optionsPageTitle": { "message": "Configurações do FloatPlay" },
   "optionsPageDescription": { "message": "Escolha como os controles do mini player funcionam enquanto você assiste." },
-  "optionsHowToOpen": { "message": "No YouTube, clique no ícone do FloatPlay ao lado dos controles de inscrição e notificações para abrir o mini player." },
+  "optionsHowToOpen": { "message": "No YouTube, use o ícone do FloatPlay próximo aos detalhes do vídeo. No YouTube Music, use o ícone do FloatPlay nos controles do player." },
   "optionsPlaybackSection": { "message": "Controles de reprodução" },
   "optionsPlaybackDescription": { "message": "Defina quanto o vídeo avança, volta e muda de volume a cada ação." },
   "optionsSeekBackwardLabel": { "message": "Voltar" },
@@ -57,13 +57,13 @@
   "optionsShortcutVolume": { "message": "Aumentar / Diminuir volume" },
   "optionsShortcutMute": { "message": "Silenciar / Ativar som" },
   "optionsShortcutSpeed": { "message": "Diminuir / Aumentar velocidade" },
-  "optionsApplyNotice": { "message": "Recarregue as abas do YouTube que já estiverem abertas para usar as novas configurações." },
+  "optionsApplyNotice": { "message": "Recarregue as abas do YouTube ou YouTube Music que já estiverem abertas para usar as novas configurações." },
   "optionsDeveloperCredit": { "message": "Desenvolvido por" },
   "optionsSourceCode": { "message": "Código-fonte" },
   "optionsReset": { "message": "Restaurar padrões" },
   "optionsSave": { "message": "Salvar alterações" },
   "optionsInvalidForm": { "message": "Revise os valores destacados antes de salvar." },
-  "optionsSaved": { "message": "Alterações salvas. Recarregue as abas abertas do YouTube para usá-las." },
-  "optionsResetDone": { "message": "Padrões restaurados. Recarregue as abas abertas do YouTube para usá-los." },
+  "optionsSaved": { "message": "Alterações salvas. Recarregue as abas abertas do YouTube ou YouTube Music para usá-las." },
+  "optionsResetDone": { "message": "Padrões restaurados. Recarregue as abas abertas do YouTube ou YouTube Music para usá-los." },
   "optionsSaveError": { "message": "Não foi possível salvar as alterações. Tente novamente." }
 }
