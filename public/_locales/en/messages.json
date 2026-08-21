@@ -1,6 +1,6 @@
 {
   "extensionName": { "message": "FloatPlay" },
-  "extensionDescription": { "message": "Enhance YouTube Picture-in-Picture with better playback controls." },
+  "extensionDescription": { "message": "Enhance YouTube and YouTube Music Picture-in-Picture with better playback controls." },
   "playAction": { "message": "Play" },
   "pauseAction": { "message": "Pause" },
   "backwardAction": {
@@ -29,7 +29,7 @@
   "triggerCoachmarkDismissAction": { "message": "Dismiss FloatPlay tip" },
   "optionsPageTitle": { "message": "FloatPlay Settings" },
   "optionsPageDescription": { "message": "Choose how the mini player controls behave while you watch." },
-  "optionsHowToOpen": { "message": "On YouTube, click the FloatPlay icon beside the subscription and notification controls to open the mini player." },
+  "optionsHowToOpen": { "message": "On YouTube, use the FloatPlay icon near the video details. On YouTube Music, use the FloatPlay icon in the player controls." },
   "optionsPlaybackSection": { "message": "Playback controls" },
   "optionsPlaybackDescription": { "message": "Set how far the video moves and how much the volume changes with each action." },
   "optionsSeekBackwardLabel": { "message": "Go back by" },
@@ -57,13 +57,13 @@
   "optionsShortcutVolume": { "message": "Volume up / down" },
   "optionsShortcutMute": { "message": "Mute / Unmute" },
   "optionsShortcutSpeed": { "message": "Playback speed down / up" },
-  "optionsApplyNotice": { "message": "Reload YouTube tabs that are already open to use the new settings." },
+  "optionsApplyNotice": { "message": "Reload YouTube or YouTube Music tabs that are already open to use the new settings." },
   "optionsDeveloperCredit": { "message": "Developed by" },
   "optionsSourceCode": { "message": "Source code" },
   "optionsReset": { "message": "Restore defaults" },
   "optionsSave": { "message": "Save changes" },
   "optionsInvalidForm": { "message": "Check the highlighted values before saving." },
-  "optionsSaved": { "message": "Changes saved. Reload open YouTube tabs to use them." },
-  "optionsResetDone": { "message": "Defaults restored. Reload open YouTube tabs to use them." },
+  "optionsSaved": { "message": "Changes saved. Reload open YouTube or YouTube Music tabs to use them." },
+  "optionsResetDone": { "message": "Defaults restored. Reload open YouTube or YouTube Music tabs to use them." },
   "optionsSaveError": { "message": "Unable to save changes. Try again." }
 }
