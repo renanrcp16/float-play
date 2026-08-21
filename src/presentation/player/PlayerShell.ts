@@ -14,15 +14,24 @@ export interface PlayerPlaybackLabels {
   readonly timeDisplayToggle: string;
 }
 
+export interface TrackNavigationConfig {
+  readonly previousLabel: string;
+  readonly nextLabel: string;
+  readonly onPrevious: () => void;
+  readonly onNext: () => void;
+}
+
 export interface PlayerPlaybackConfig {
   readonly backwardSeconds: number;
   readonly forwardSeconds: number;
   readonly timeDisplayMode: TimeDisplayMode;
   readonly onTimeDisplayModeChange: (mode: TimeDisplayMode) => void;
   readonly timelineMirror?: TimelineMirror;
+  readonly trackNavigation?: TrackNavigationConfig;
 }
 
 type NavigationDirection = "backward" | "forward";
+type TrackDirection = "previous" | "next";
 
 export class PlayerShell {
   private readonly lifecycle = new AbortController();
@@ -66,11 +75,22 @@ export class PlayerShell {
     const buttonRow = document.createElement("div");
     buttonRow.className = "floatplay-button-row";
 
+    const trackNavigation = this.config.trackNavigation;
+    if (trackNavigation !== undefined) {
+      buttonRow.dataset.trackNavigation = "true";
+    }
+
     const backwardButton = this.createNavigationButton(document, this.labels.backward, "backward");
     const playbackButton = document.createElement("button");
     playbackButton.type = "button";
     playbackButton.className = "floatplay-playback-button";
     const forwardButton = this.createNavigationButton(document, this.labels.forward, "forward");
+    const previousTrackButton = trackNavigation === undefined
+      ? null
+      : this.createTrackNavigationButton(document, trackNavigation.previousLabel, "previous");
+    const nextTrackButton = trackNavigation === undefined
+      ? null
+      : this.createTrackNavigationButton(document, trackNavigation.nextLabel, "next");
 
     const timelineControl = new TimelineControl(
       this.media,
@@ -84,10 +104,25 @@ export class PlayerShell {
       this.config.timelineMirror
     );
 
+    if (previousTrackButton !== null) {
+      buttonRow.append(previousTrackButton);
+    }
     buttonRow.append(backwardButton, playbackButton, forwardButton);
+    if (nextTrackButton !== null) {
+      buttonRow.append(nextTrackButton);
+    }
+
     controls.append(timelineControl.create(), buttonRow);
     root.append(this.media, controls);
     document.body.replaceChildren(root);
+
+    previousTrackButton?.addEventListener(
+      "click",
+      () => {
+        this.activateTrackNavigation(trackNavigation?.onPrevious);
+      },
+      { signal: this.lifecycle.signal }
+    );
 
     backwardButton.addEventListener(
       "click",
@@ -109,6 +144,14 @@ export class PlayerShell {
       "click",
       () => {
         this.navigate(this.config.forwardSeconds);
+      },
+      { signal: this.lifecycle.signal }
+    );
+
+    nextTrackButton?.addEventListener(
+      "click",
+      () => {
+        this.activateTrackNavigation(trackNavigation?.onNext);
       },
       { signal: this.lifecycle.signal }
     );
@@ -156,6 +199,20 @@ export class PlayerShell {
     return button;
   }
 
+  private createTrackNavigationButton(
+    document: Document,
+    label: string,
+    direction: TrackDirection
+  ): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "floatplay-playback-button floatplay-track-navigation-button";
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    button.append(this.createTrackNavigationIcon(document, direction));
+    return button;
+  }
+
   private createNavigationIcon(document: Document, direction: NavigationDirection): SVGSVGElement {
     const svgNamespace = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNamespace, "svg");
@@ -186,6 +243,34 @@ export class PlayerShell {
     return svg;
   }
 
+  private createTrackNavigationIcon(document: Document, direction: TrackDirection): SVGSVGElement {
+    const svgNamespace = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNamespace, "svg");
+    svg.classList.add("floatplay-track-navigation-icon");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("width", "15");
+    svg.setAttribute("height", "15");
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("fill", "currentColor");
+
+    const bar = document.createElementNS(svgNamespace, "rect");
+    bar.setAttribute("x", direction === "previous" ? "5" : "17");
+    bar.setAttribute("y", "5");
+    bar.setAttribute("width", "2");
+    bar.setAttribute("height", "14");
+    bar.setAttribute("rx", "1");
+
+    const triangle = document.createElementNS(svgNamespace, "path");
+    triangle.setAttribute(
+      "d",
+      direction === "previous" ? "M18 5.5v13L8 12l10-6.5Z" : "M6 5.5v13L16 12 6 5.5Z"
+    );
+
+    svg.append(bar, triangle);
+    return svg;
+  }
+
   private navigate(deltaSeconds: number): void {
     try {
       if (!seekBy(this.media, deltaSeconds)) {
@@ -193,6 +278,18 @@ export class PlayerShell {
       }
     } catch (error) {
       this.logger.error("Unable to navigate media from the player window.", error);
+    }
+  }
+
+  private activateTrackNavigation(action: (() => void) | undefined): void {
+    if (action === undefined) {
+      return;
+    }
+
+    try {
+      action();
+    } catch (error) {
+      this.logger.error("Unable to navigate the YouTube Music queue from the player window.", error);
     }
   }
 
@@ -292,6 +389,10 @@ export class PlayerShell {
         gap: 8px;
       }
 
+      .floatplay-button-row[data-track-navigation="true"] {
+        gap: 4px;
+      }
+
       .floatplay-playback-button {
         display: grid;
         place-items: center;
@@ -326,18 +427,21 @@ export class PlayerShell {
       }
 
       .floatplay-playback-icon,
-      .floatplay-navigation-icon {
+      .floatplay-navigation-icon,
+      .floatplay-track-navigation-icon {
         display: block;
         place-self: center;
         margin: 0;
         pointer-events: none;
       }
 
-      .floatplay-playback-icon {
+      .floatplay-playback-icon,
+      .floatplay-track-navigation-icon {
         fill: currentColor;
       }
 
-      .floatplay-navigation-icon {
+      .floatplay-navigation-icon,
+      .floatplay-track-navigation-icon {
         flex: none;
       }
 
