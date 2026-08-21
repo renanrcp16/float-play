@@ -214,7 +214,7 @@ async function collectFiles(directory, prefix = "") {
     const absolutePath = path.join(directory, entry.name);
 
     if (entry.isDirectory()) {
-      files.push(...(await collectFiles(absolutePath, relativePath));
+      files.push(...(await collectFiles(absolutePath, relativePath)));
       continue;
     }
 
