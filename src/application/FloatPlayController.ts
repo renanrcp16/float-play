@@ -299,7 +299,17 @@ export class FloatPlayController {
         forwardSeconds: this.settings.seekForwardSeconds,
         timeDisplayMode: this.settings.timeDisplayMode,
         onTimeDisplayModeChange: (mode) => this.updateTimeDisplayMode(mode),
-        ...(audioOnlyRequired ? { timelineMirror: this.youtube } : {})
+        ...(audioOnlyRequired
+          ? {
+              timelineMirror: this.youtube,
+              trackNavigation: {
+                previousLabel: this.labels.previousTrack,
+                nextLabel: this.labels.nextTrack,
+                onPrevious: () => this.youtube.previousTrack(),
+                onNext: () => this.youtube.nextTrack()
+              }
+            }
+          : {})
       },
       this.logger
     );
@@ -322,13 +332,6 @@ export class FloatPlayController {
         audioOnly: this.labels.audioOnly,
         showVideo: this.labels.showVideo
       },
-      {
-        previous: this.labels.previousTrack,
-        next: this.labels.nextTrack
-      },
-      audioOnlyRequired,
-      () => this.youtube.previousTrack(),
-      () => this.youtube.nextTrack(),
       audioOnlyEnabled,
       !audioOnlyRequired,
       (enabled) => this.updateAudioOnlyMode(enabled, audioOnlyPresentation),
