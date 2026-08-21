@@ -1,21 +1,23 @@
 # FloatPlay
 
-FloatPlay is a Chrome extension that enhances YouTube Picture-in-Picture with a compact Document Picture-in-Picture player, richer playback controls, and a local-first, privacy-conscious architecture.
+FloatPlay is a Chrome extension that enhances YouTube and YouTube Music Picture-in-Picture with a compact Document Picture-in-Picture player, richer playback controls, and a local-first, privacy-conscious architecture.
 
 ## Status
 
-FloatPlay `v1.0.0` is publicly available on the Chrome Web Store.
+FloatPlay `v1.0.0` is publicly available on the Chrome Web Store. The `v1.1.0` release candidate is in final validation.
 
 - [Install FloatPlay from the Chrome Web Store](https://chromewebstore.google.com/detail/floatplay/eegmhncffdkhjlnnifaaghkgfphicpgo)
 - [View the v1.0.0 GitHub Release](https://github.com/renanrcp16/float-play/releases/tag/v1.0.0)
 
-The first public release includes the production player, YouTube trigger and first-use guidance, Options Page, English/Brazilian Portuguese localization, deterministic release packaging, and Chrome/YouTube validation coverage.
+The v1.1.0 development line adds supported YouTube Music playback, persistent Audio-only mode for standard YouTube, optional click-on-video Play/Pause inside PiP, compact-player layout fixes, and more reliable playback interaction on the original YouTube player surface.
 
 ## Highlights
 
-- Document Picture-in-Picture mini player for supported YouTube watch pages.
+- Document Picture-in-Picture mini player for supported YouTube watch pages and YouTube Music.
 - Play/Pause, configurable seeking, timeline, volume/mute, playback speed, keyboard shortcuts, and auto-hide controls.
-- Icon-only YouTube entry point with one-time onboarding guidance.
+- YouTube Music Audio-only playback with current-track timeline plus previous/next track controls.
+- Persistent Audio-only preference for standard YouTube and optional PiP video-surface Play/Pause.
+- Icon-only YouTube/YouTube Music entry points with one-time onboarding guidance.
 - Full Options Page with synchronized preferences and English/Brazilian Portuguese localization.
 - No FloatPlay backend, analytics, telemetry, authentication, or unrelated host access.
 - Manifest V3 with a deliberately small permission and release-artifact surface.

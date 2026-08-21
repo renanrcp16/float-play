@@ -1,6 +1,6 @@
 # FloatPlay Privacy Policy
 
-Last updated: 2026-08-20
+Last updated: 2026-08-21
 
 This policy describes the current FloatPlay data-handling behavior for the version distributed through the Chrome Web Store and the current release line under development. It must remain synchronized with the shipped extension and Chrome Web Store privacy disclosures.
 
@@ -24,9 +24,9 @@ While FloatPlay is active on a supported YouTube or YouTube Music page, the exte
 
 This information is processed inside the browser for the active feature. FloatPlay does not retain, build, or transmit its own database of YouTube or YouTube Music watch/listening history. It processes the current supported page and media state only as needed to provide FloatPlay features.
 
-Playback state changes initiated by FloatPlay use the active `HTMLVideoElement` as the primary media path wherever the platform state is sufficient. For volume, mute, and playback-rate compatibility with YouTube's own player state, FloatPlay also sends a narrow same-page message to a MAIN-world bridge running in the same supported YouTube tab. On YouTube Music, the bridge may additionally apply a user-requested seek to the current track through the page player because YouTube Music can expose cumulative media timestamps that do not match the current-track timeline shown to the user.
+Playback state changes initiated by FloatPlay use the active `HTMLVideoElement` as the primary media path wherever the platform state is sufficient. For volume, mute, and playback-rate compatibility with YouTube's own player state, FloatPlay also sends a narrow same-page message to a MAIN-world bridge running in the same supported YouTube tab. On YouTube Music, the bridge may additionally apply a user-requested seek to the current track and request previous/next track navigation through the page player because YouTube Music can expose cumulative media timestamps and native queue behavior that are not represented reliably by direct media-time manipulation alone.
 
-The bridge accepts only the supported playback-state actions and invokes the corresponding YouTube player method when that method exists. It does not read Chrome extension storage, access FloatPlay privileged APIs, send network requests, or receive URLs, video identifiers, account identifiers, analytics identifiers, or other user data from FloatPlay.
+The bridge accepts only the supported playback-state actions and invokes the corresponding YouTube player/native control behavior when available. It does not read Chrome extension storage, access FloatPlay privileged APIs, send network requests, or receive URLs, video identifiers, account identifiers, analytics identifiers, or other user data from FloatPlay.
 
 ### FloatPlay preferences
 

@@ -78,7 +78,7 @@ assertDeepEqual(
 assertStringArrayEqual(
   Object.keys(distManifest),
   expectedManifestKeys,
-  "release manifest top-level keys changed from the approved v1 allowlist"
+  "release manifest top-level keys changed from the approved release allowlist"
 );
 assertEqual(distManifest.manifest_version, 3, "release manifest must remain Manifest V3");
 assertEqual(distManifest.name, "__MSG_extensionName__", "release manifest name changed");
@@ -96,7 +96,7 @@ assertEqual(
 assertStringArrayEqual(
   distManifest.permissions,
   ["storage"],
-  "release manifest permissions changed from the approved v1 set"
+  "release manifest permissions changed from the approved release set"
 );
 assertDeepEqual(distManifest.icons, expectedIcons, "release manifest icon set changed");
 assertEqual(distManifest.options_page, "options.html", "release manifest options page changed");
