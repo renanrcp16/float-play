@@ -157,7 +157,8 @@ Current presentation responsibilities include:
 - timeline and time-display controls;
 - volume controls;
 - keyboard shortcuts;
-- overflow actions such as speed, fit, settings, Audio-only mode where allowed, and YouTube Music previous/next track actions;
+- overflow actions such as speed, fit, settings, and Audio-only mode where allowed;
+- YouTube Music previous/next track actions in the primary playback row;
 - mandatory Audio-only presentation on YouTube Music;
 - automatic control visibility;
 - `OriginPlaybackSurface` for the eligible non-interactive area at the original standard YouTube player location;
@@ -165,7 +166,7 @@ Current presentation responsibilities include:
 
 The PiP video surface remains passive by default. When the persisted `pipVideoClickTogglesPlayback` preference is enabled, only the video image becomes a click target and receives the corresponding visual hover feedback; overlaid controls remain independent interactive elements.
 
-In Audio-only mode the video image is hidden, the player uses compact geometry, and playback controls remain visible. On standard YouTube, Audio-only is user-selectable and persisted. On YouTube Music it is required and the restore-video action is not exposed. YouTube Music track navigation is exposed through the overflow menu so the compact closed player does not gain additional permanent controls or overlap the existing seek actions.
+In Audio-only mode the video image is hidden, the player uses compact geometry, and playback controls remain visible. On standard YouTube, Audio-only is user-selectable and persisted. On YouTube Music it is required and the restore-video action is not exposed. YouTube Music track navigation is exposed as primary playback controls around the existing seek/playback actions; the buttons retain the standard 29px size while the YouTube Music row uses a tighter 4px gap to preserve compact geometry without overlap.
 
 ### Settings and onboarding
 
