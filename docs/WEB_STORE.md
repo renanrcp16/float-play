@@ -54,11 +54,12 @@ FloatPlay injects content scripts only on the YouTube origins needed by the prod
 - move and safely restore the active media element;
 - follow YouTube Music media changes during track transitions;
 - read the current-track YouTube Music timeline when the underlying media timestamp is cumulative;
+- request current-track seek and native previous/next queue navigation on YouTube Music;
 - keep controls synchronized with media/player state;
 - support YouTube SPA behavior and playlist/track progression;
 - provide the FloatPlay trigger and first-use trigger guidance.
 
-FloatPlay uses an isolated content script for extension logic plus one narrow MAIN-world bridge on the same approved YouTube origins. The bridge accepts only validated same-page playback actions for volume, mute, playback rate, and user-requested current-track seek. The seek path is used for YouTube Music because its media element can expose cumulative timestamps that differ from the current-track timeline shown by the site.
+FloatPlay uses an isolated content script for extension logic plus one narrow MAIN-world bridge on the same approved YouTube origins. The bridge accepts only validated same-page playback actions for volume, mute, playback rate, YouTube Music current-track seek, and YouTube Music previous/next track navigation. Those YouTube Music paths are needed because the underlying media element can expose cumulative timestamps and does not reliably represent native queue navigation by direct media-time manipulation alone.
 
 The bridge has no Chrome storage/runtime access, backend access, analytics, or user identifiers. FloatPlay does not request access to unrelated websites.
 
@@ -93,7 +94,7 @@ While active on a supported YouTube or YouTube Music page, FloatPlay reads curre
 
 This state is processed inside the browser to provide the mini player. FloatPlay does not retain, build, or transmit its own database of YouTube viewing or YouTube Music listening history.
 
-The same-page playback bridge receives only the requested playback action and its value. That communication stays inside the active supported YouTube tab and is not transmitted to FloatPlay infrastructure.
+The same-page playback bridge receives only the requested playback action and its value/direction. That communication stays inside the active supported YouTube tab and is not transmitted to FloatPlay infrastructure.
 
 ### Persisted preferences
 
@@ -113,15 +114,21 @@ FloatPlay does not include a FloatPlay backend, authentication, third-party anal
 
 ## Store listing notes for v1.1.0
 
-The final `1.1.0` listing update should accurately mention only behavior that has landed in the exact release candidate. Expected additions from the current plan include:
+The exact v1.1.0 feature set is:
 
-- persistent Audio-only mode for standard YouTube Picture-in-Picture;
-- optional click-on-video Play/Pause in the PiP window;
-- YouTube Music support with mandatory Audio-only presentation;
-- YouTube Music current-track timeline and playback controls;
-- any additional YouTube Music track-navigation controls that land before the release is frozen.
+- YouTube Music support with mandatory Audio-only Picture-in-Picture;
+- current-track YouTube Music timeline and seek behavior;
+- primary Previous/Next track controls for YouTube Music;
+- persistent Audio-only preference for standard YouTube;
+- optional click-on-video Play/Pause inside the PiP window, disabled by default;
+- improved compact/small-PiP volume layout and hover stability;
+- more reliable Play/Pause on the original YouTube player surface while PiP is active.
 
-The final public English and Brazilian Portuguese descriptions must be regenerated/reviewed from the exact candidate rather than copied prematurely from the development plan.
+Suggested concise update/release note:
+
+> FloatPlay 1.1.0 adds YouTube Music support, Audio-only playback, previous/next track controls, optional click-to-play/pause in PiP, and compact-player interaction fixes.
+
+The public English and Brazilian Portuguese descriptions must describe only the exact shipped behavior. Do not claim that `1.1.0` is publicly available until the Chrome Web Store update is published.
 
 ## Store assets
 
@@ -139,13 +146,13 @@ Dashboard screenshots and promotional artwork must show the actual current produ
 
 Before clicking Submit for Review:
 
-- bump the manifest/package version to `1.1.0` only on the frozen release candidate;
+- confirm the manifest/package version is `1.1.0` on the exact frozen candidate;
 - make sure the English and pt-BR dashboard listing copy matches the shipped feature set;
-- confirm Privacy practices and Limited Use disclosures still match `docs/PRIVACY.md` and the shipped behavior;
+- confirm Privacy practices and Limited Use disclosures still match `docs/PRIVACY.md` and shipped behavior;
 - confirm the public privacy-policy and support URLs are accepted by the dashboard;
-- re-check whether the added `music.youtube.com` content-script scope changes any Chrome Web Store/site-access disclosure shown for the update;
+- re-check how the added `music.youtube.com` content-script scope is presented in the Chrome Web Store/site-access disclosure for the update;
 - confirm the active `Protect main` ruleset requires `Validate`, `Dependency audit`, and `Browser E2E`;
-- run the exact-candidate CI/local gates and targeted real Chrome smoke from `docs/RELEASE.md`;
+- run the exact-candidate gates and targeted real Chrome smoke from `docs/RELEASE.md`;
 - run `pnpm package:release` on the exact final candidate and inspect `floatplay-1.1.0.zip`;
 - upload only the ZIP produced from the exact validated candidate.
 
@@ -156,7 +163,7 @@ Immediately before submission, verify that:
 - the single-purpose statement matches the shipped extension;
 - permission and site-access justifications match `manifest.json`;
 - the Chrome 130 baseline, reviewed manifest allowlist, explicit CSP, and closed external-messaging policy match the candidate;
-- privacy disclosures describe all data handling, including local media/page processing, Chrome storage sync, the device-local onboarding flag, and same-tab player synchronization;
+- privacy disclosures describe all data handling, including local media/page processing, Chrome storage sync, the device-local onboarding flag, and same-tab player synchronization/navigation;
 - the public privacy-policy URL works;
 - the support URL works and public support guidance does not ask users to disclose private information;
 - listing text and screenshots match version `1.1.0`;
