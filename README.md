@@ -4,10 +4,10 @@ FloatPlay is a Chrome extension that enhances YouTube and YouTube Music Picture-
 
 ## Status
 
-FloatPlay `v1.1.0` is publicly available on the Chrome Web Store. The `v1.1.1` hotfix is being prepared to remove unreliable PiP hover dimming while preserving optional click-on-video Play/Pause.
+FloatPlay `v1.1.1` is publicly available on the Chrome Web Store. This focused hotfix removes unreliable PiP hover dimming while preserving optional click-on-video Play/Pause.
 
 - [Install FloatPlay from the Chrome Web Store](https://chromewebstore.google.com/detail/floatplay/eegmhncffdkhjlnnifaaghkgfphicpgo)
-- [View the v1.1.0 GitHub Release](https://github.com/renanrcp16/float-play/releases/tag/v1.1.0)
+- [View FloatPlay GitHub Releases](https://github.com/renanrcp16/float-play/releases)
 
 The v1.1 line includes supported YouTube Music playback, persistent Audio-only mode for standard YouTube, optional click-on-video Play/Pause inside PiP, compact-player layout fixes, and more reliable playback interaction on the original YouTube player surface.
 

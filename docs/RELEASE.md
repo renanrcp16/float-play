@@ -4,15 +4,23 @@ This document is the canonical checklist for preparing a FloatPlay release candi
 
 ## Current release status
 
-- Public stable: `v1.1.0`
-- Current release target: `v1.1.1`
-- Release type: focused patch hotfix
-- Release branch: `release/v1.1.1`
+- Public stable: `v1.1.1`
+- Current release target: none
+- Last release type: focused patch hotfix
+- Released candidate SHA: `e3da74ff968ed79709a99a09ef53cb0206daaed0`
 - Release issue: #131
 
 The version in `package.json` and `public/manifest.json` must remain synchronized. Any source, manifest, release-facing documentation, or package-relevant change after a candidate is validated creates a new candidate SHA and invalidates validation recorded against the older SHA.
 
-Do not move or recreate the existing `v1.0.0` or `v1.1.0` tags. Do not create the `v1.1.1` tag until the exact candidate has been validated and the Chrome Web Store update has been published.
+Do not move or recreate existing release tags. The `v1.1.1` tag must point to the exact released candidate SHA `e3da74ff968ed79709a99a09ef53cb0206daaed0`, regardless of later documentation or development commits on `main`.
+
+## v1.1.1 publication record
+
+- Chrome Web Store publication confirmed on 2026-08-25.
+- Exact released candidate SHA: `e3da74ff968ed79709a99a09ef53cb0206daaed0`.
+- Release ZIP: `floatplay-1.1.1.zip` (`16` files, `134383` bytes).
+- Release ZIP SHA-256: `AE6C13B2B9C438C95050C310FB345250C31A872A3936EFC83AC1D1D624D302FB`.
+- Targeted live Chrome validation for the shipped behavior passed before release preparation.
 
 ## v1.1.1 scope
 
@@ -139,17 +147,4 @@ The listing/privacy disclosures must continue to accurately describe:
 
 ## Final v1.1.1 gate
 
-Do not submit the update until all of the following are true:
-
-- package and manifest both report `1.1.1`;
-- #130 is merged and its targeted manual validation is recorded as passed;
-- release-prep PR required CI is green;
-- there is no unresolved manual regression;
-- local `pnpm validate` passes on the exact merged candidate;
-- `pnpm package:release` succeeds on the exact merged candidate;
-- `floatplay-1.1.1.zip` is inspected and its SHA-256 recorded;
-- permission/site-access/privacy/store claims match shipped behavior;
-- listing update notes do not claim unrelated features;
-- privacy-policy and support URLs are publicly reachable;
-- existing `v1.0.0` and `v1.1.0` tags remain unchanged;
-- `v1.1.1` is not tagged until the Chrome Web Store publication step defined above.
+The v1.1.1 package passed the candidate validation, package inspection, Chrome Web Store review, and publication gates recorded above. The exact released candidate remains immutable for release metadata purposes even if `main` advances with later documentation or development commits.
