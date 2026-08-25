@@ -5,9 +5,9 @@ This document prepares Chrome Web Store metadata and reviewer-facing explanation
 ## Current package identity
 
 - Name: FloatPlay
-- Published stable version: `1.1.0`
-- Current release target: `1.1.1`
-- Release type: focused patch hotfix
+- Published stable version: `1.1.1`
+- Current release target: none
+- Last release type: focused patch hotfix
 - Manifest: Manifest V3
 - Default locale: English
 - Additional locale: Brazilian Portuguese
@@ -18,7 +18,14 @@ This document prepares Chrome Web Store metadata and reviewer-facing explanation
 - External messaging: explicitly closed with an empty `externally_connectable.ids` allowlist and no web-page match patterns
 - Web-accessible resource exposure: only `brand/icon.svg` on the approved YouTube origins
 
-The public Chrome Web Store package remains `1.1.0` until the exact `1.1.1` candidate passes the release gate and is published. Repository documentation must not imply that `1.1.1` is publicly available before publication is confirmed.
+FloatPlay `1.1.1` is publicly available on the Chrome Web Store. The published package was produced from exact candidate SHA `e3da74ff968ed79709a99a09ef53cb0206daaed0`.
+
+## v1.1.1 publication record
+
+- Chrome Web Store publication confirmed on 2026-08-25.
+- Release ZIP: `floatplay-1.1.1.zip` (`16` files, `134383` bytes).
+- Release ZIP SHA-256: `AE6C13B2B9C438C95050C310FB345250C31A872A3936EFC83AC1D1D624D302FB`.
+- No new permission, site-access, privacy, storage, MAIN-world, backend/network, analytics/telemetry, or runtime dependency scope was introduced.
 
 ## v1.1.1 hotfix scope
 
@@ -30,13 +37,15 @@ The exact v1.1.1 change is intentionally narrow:
 
 The hotfix does not add a feature, permission, site, persisted field, MAIN-world action, network path, dependency, or data-handling behavior.
 
-Suggested concise Chrome Web Store update note:
+Chrome Web Store update note prepared for this release:
 
 > Fixes an intermittent Picture-in-Picture visual issue where the video could remain dark after the pointer left the mini player. Click-to-Play/Pause behavior remains available when enabled.
 
-Suggested pt-BR update note:
+Prepared pt-BR equivalent:
 
 > Corrige um problema visual intermitente no Picture-in-Picture em que o vídeo podia permanecer escurecido após o mouse sair do mini player. O clique para Reproduzir/Pausar continua disponível quando habilitado.
+
+The Chrome Web Store dashboard did not require a dedicated release-note field for this update, so the listing description and screenshots were left unchanged.
 
 ## Public release links
 
@@ -120,7 +129,7 @@ FloatPlay does not include a FloatPlay backend, authentication, third-party anal
 
 ## Store assets
 
-No new store screenshot or promotional asset is required for v1.1.1 because the hotfix removes an unreliable transient hover treatment and does not introduce a new advertised feature.
+No new store screenshot or promotional asset was required for v1.1.1 because the hotfix removes an unreliable transient hover treatment and does not introduce a new advertised feature.
 
 Existing screenshots and listing descriptions remain valid as long as they do not specifically depict or promise PiP video hover dimming.
 
@@ -130,23 +139,13 @@ The extension package contains branded 16, 32, 48, and 128 pixel icons, includin
 pnpm capture:store-screenshot
 ```
 
-## Before the v1.1.1 submission
+## v1.1.1 submission record
 
-Before clicking Submit for Review:
-
-- confirm the manifest/package version is `1.1.1` on the exact frozen candidate;
-- confirm the dashboard listing still accurately describes the v1.1 feature set;
-- use only the focused v1.1.1 update note above or equivalent wording that does not claim unrelated changes;
-- confirm Privacy practices and Limited Use disclosures still match `docs/PRIVACY.md` and shipped behavior;
-- confirm the public privacy-policy and support URLs are accepted by the dashboard;
-- confirm the active `Protect main` ruleset requires `Validate`, `Dependency audit`, and `Browser E2E`;
-- follow the exact-candidate gates from `docs/RELEASE.md`;
-- run `pnpm package:release` on the exact final candidate and inspect `floatplay-1.1.1.zip`;
-- upload only the ZIP produced from the exact validated candidate.
+The v1.1.1 submission used the exact validated ZIP recorded above. The dashboard accepted the package, automatic publication was enabled, and publication was later confirmed. No listing-description or screenshot change was required for this hotfix.
 
 ## Final dashboard review
 
-Immediately before submission, verify that:
+Immediately before any future submission, verify that:
 
 - the single-purpose statement matches the shipped extension;
 - permission and site-access justifications match `public/manifest.json`;
@@ -156,4 +155,4 @@ Immediately before submission, verify that:
 - the support URL works and public support guidance does not ask users to disclose private information;
 - listing text and screenshots remain accurate for the shipped product;
 - no unsupported claims, rankings, badges, or comparative marketing have been added;
-- the uploaded ZIP contains `manifest.json` at its root, reports version `1.1.1`, and contains no source maps or unexpected repository artifacts.
+- the uploaded ZIP contains `manifest.json` at its root, reports the intended release version, and contains no source maps or unexpected repository artifacts.
