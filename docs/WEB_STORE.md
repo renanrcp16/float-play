@@ -5,8 +5,9 @@ This document prepares Chrome Web Store metadata and reviewer-facing explanation
 ## Current package identity
 
 - Name: FloatPlay
-- Published stable version: `1.0.0`
-- Next release target: `1.1.0`
+- Published stable version: `1.1.0`
+- Current release target: `1.1.1`
+- Release type: focused patch hotfix
 - Manifest: Manifest V3
 - Default locale: English
 - Additional locale: Brazilian Portuguese
@@ -17,7 +18,25 @@ This document prepares Chrome Web Store metadata and reviewer-facing explanation
 - External messaging: explicitly closed with an empty `externally_connectable.ids` allowlist and no web-page match patterns
 - Web-accessible resource exposure: only `brand/icon.svg` on the approved YouTube origins
 
-The published Chrome Web Store package remains `1.0.0` until the exact `1.1.0` candidate passes the release gate and is submitted. Repository documentation must describe the development line accurately without implying that unreleased features are already present in the store package.
+The public Chrome Web Store package remains `1.1.0` until the exact `1.1.1` candidate passes the release gate and is published. Repository documentation must not imply that `1.1.1` is publicly available before publication is confirmed.
+
+## v1.1.1 hotfix scope
+
+The exact v1.1.1 change is intentionally narrow:
+
+- remove unreliable hover dimming from the clickable PiP video surface because Chrome could intermittently leave that visual state stuck after the pointer exited the Document Picture-in-Picture window;
+- preserve optional click-on-video Play/Pause;
+- preserve the pointer cursor as the clickability affordance when that preference is enabled.
+
+The hotfix does not add a feature, permission, site, persisted field, MAIN-world action, network path, dependency, or data-handling behavior.
+
+Suggested concise Chrome Web Store update note:
+
+> Fixes an intermittent Picture-in-Picture visual issue where the video could remain dark after the pointer left the mini player. Click-to-Play/Pause behavior remains available when enabled.
+
+Suggested pt-BR update note:
+
+> Corrige um problema visual intermitente no Picture-in-Picture em que o vídeo podia permanecer escurecido após o mouse sair do mini player. O clique para Reproduzir/Pausar continua disponível quando habilitado.
 
 ## Public release links
 
@@ -59,7 +78,7 @@ FloatPlay injects content scripts only on the YouTube origins needed by the prod
 - support YouTube SPA behavior and playlist/track progression;
 - provide the FloatPlay trigger and first-use trigger guidance.
 
-FloatPlay uses an isolated content script for extension logic plus one narrow MAIN-world bridge on the same approved YouTube origins. The bridge accepts only validated same-page playback actions for volume, mute, playback rate, YouTube Music current-track seek, and YouTube Music previous/next track navigation. Those YouTube Music paths are needed because the underlying media element can expose cumulative timestamps and does not reliably represent native queue navigation by direct media-time manipulation alone.
+FloatPlay uses an isolated content script for extension logic plus one narrow MAIN-world bridge on the same approved YouTube origins. The bridge accepts only validated same-page playback actions for volume, mute, playback rate, YouTube Music current-track seek, and YouTube Music previous/next track navigation.
 
 The bridge has no Chrome storage/runtime access, backend access, analytics, or user identifiers. FloatPlay does not request access to unrelated websites.
 
@@ -69,12 +88,13 @@ The production Manifest is an explicit security allowlist rather than an open-en
 
 The release verifier fails if the extension gains an unreviewed manifest key or changes security-sensitive values such as permissions, host scope, external connection allowances, content-script files/worlds/timing, background worker, CSP, or web-accessible resources.
 
-The current package intentionally has:
+The v1.1.1 hotfix intentionally keeps the v1.1.0 security posture unchanged:
 
-- Chrome 130 as its minimum supported version;
+- Chrome 130 minimum supported version;
+- only explicit permission `storage`;
 - no broad `host_permissions` grant;
 - no optional permissions or optional host permissions;
-- content-script matches limited to the three approved YouTube origins;
+- content-script matches limited to the approved YouTube origins;
 - an explicit `externally_connectable` policy with no allowed extension IDs and no allowed web-page matches;
 - no sandboxed extension pages;
 - no remote executable code;
@@ -88,49 +108,21 @@ The release ZIP is generated only from verified `dist/`. Any future expansion of
 
 FloatPlay handles only data required to provide its disclosed single purpose.
 
-### Transient media/page state
-
 While active on a supported YouTube or YouTube Music page, FloatPlay reads current media and page state needed for playback behavior, such as current-track time/duration, paused state, volume, mute state, playback rate, seekable ranges, active media identity, and supported-surface/DOM context.
 
 This state is processed inside the browser to provide the mini player. FloatPlay does not retain, build, or transmit its own database of YouTube viewing or YouTube Music listening history.
 
-The same-page playback bridge receives only the requested playback action and its value/direction. That communication stays inside the active supported YouTube tab and is not transmitted to FloatPlay infrastructure.
+User-selected FloatPlay settings are stored with Chrome extension storage. When Chrome sync is enabled, Chrome may synchronize those settings as part of the browser's own sync infrastructure. The first-use coachmark seen flag remains device-local in `chrome.storage.local`.
 
-### Persisted preferences
+FloatPlay does not include a FloatPlay backend, authentication, third-party analytics, advertising SDKs, operational telemetry, or a FloatPlay watch/listening-history service. The v1.1.1 hotfix changes none of these data-handling behaviors.
 
-User-selected FloatPlay settings are stored with Chrome extension storage. When Chrome sync is enabled, Chrome may synchronize those settings as part of the browser's own sync infrastructure.
-
-The standard-YouTube Audio-only choice is a persisted preference. YouTube Music always opens in Audio-only mode as part of that supported surface and does not expose a restore-video action.
-
-### Local onboarding state
-
-After the user opens FloatPlay from its trigger or dismisses the first-use coachmark, FloatPlay stores one boolean seen state in local Chrome extension storage so the tip is not repeatedly shown. The flag does not include video identifiers, URLs, timestamps, analytics identifiers, or browsing history.
-
-### What FloatPlay does not do
-
-FloatPlay does not include a FloatPlay backend, authentication, third-party analytics, advertising SDKs, operational telemetry, or a FloatPlay watch/listening-history service. The project does not sell user data or transmit YouTube viewing/listening activity to FloatPlay infrastructure.
-
-`docs/PRIVACY.md` is the canonical public privacy-policy text and includes the Chrome Web Store Limited Use disclosure.
-
-## Store listing notes for v1.1.0
-
-The exact v1.1.0 feature set is:
-
-- YouTube Music support with mandatory Audio-only Picture-in-Picture;
-- current-track YouTube Music timeline and seek behavior;
-- primary Previous/Next track controls for YouTube Music;
-- persistent Audio-only preference for standard YouTube;
-- optional click-on-video Play/Pause inside the PiP window, disabled by default;
-- improved compact/small-PiP volume layout and hover stability;
-- more reliable Play/Pause on the original YouTube player surface while PiP is active.
-
-Suggested concise update/release note:
-
-> FloatPlay 1.1.0 adds YouTube Music support, Audio-only playback, previous/next track controls, optional click-to-play/pause in PiP, and compact-player interaction fixes.
-
-The public English and Brazilian Portuguese descriptions must describe only the exact shipped behavior. Do not claim that `1.1.0` is publicly available until the Chrome Web Store update is published.
+`docs/PRIVACY.md` remains the canonical public privacy-policy text and includes the Chrome Web Store Limited Use disclosure.
 
 ## Store assets
+
+No new store screenshot or promotional asset is required for v1.1.1 because the hotfix removes an unreliable transient hover treatment and does not introduce a new advertised feature.
+
+Existing screenshots and listing descriptions remain valid as long as they do not specifically depict or promise PiP video hover dimming.
 
 The extension package contains branded 16, 32, 48, and 128 pixel icons, including the verified 128x128 installation/store artwork. The Options Page screenshot workflow remains available through:
 
@@ -138,22 +130,18 @@ The extension package contains branded 16, 32, 48, and 128 pixel icons, includin
 pnpm capture:store-screenshot
 ```
 
-Real YouTube/YouTube Music FloatPlay PiP screenshots remain manual assets because live site behavior and Document Picture-in-Picture are intentionally outside the deterministic browser automation boundary.
-
-Dashboard screenshots and promotional artwork must show the actual current product experience and must not advertise unsupported behavior.
-
-## Before the v1.1.0 submission
+## Before the v1.1.1 submission
 
 Before clicking Submit for Review:
 
-- confirm the manifest/package version is `1.1.0` on the exact frozen candidate;
-- make sure the English and pt-BR dashboard listing copy matches the shipped feature set;
+- confirm the manifest/package version is `1.1.1` on the exact frozen candidate;
+- confirm the dashboard listing still accurately describes the v1.1 feature set;
+- use only the focused v1.1.1 update note above or equivalent wording that does not claim unrelated changes;
 - confirm Privacy practices and Limited Use disclosures still match `docs/PRIVACY.md` and shipped behavior;
 - confirm the public privacy-policy and support URLs are accepted by the dashboard;
-- re-check how the added `music.youtube.com` content-script scope is presented in the Chrome Web Store/site-access disclosure for the update;
 - confirm the active `Protect main` ruleset requires `Validate`, `Dependency audit`, and `Browser E2E`;
-- run the exact-candidate gates and targeted real Chrome smoke from `docs/RELEASE.md`;
-- run `pnpm package:release` on the exact final candidate and inspect `floatplay-1.1.0.zip`;
+- follow the exact-candidate gates from `docs/RELEASE.md`;
+- run `pnpm package:release` on the exact final candidate and inspect `floatplay-1.1.1.zip`;
 - upload only the ZIP produced from the exact validated candidate.
 
 ## Final dashboard review
@@ -161,11 +149,11 @@ Before clicking Submit for Review:
 Immediately before submission, verify that:
 
 - the single-purpose statement matches the shipped extension;
-- permission and site-access justifications match `manifest.json`;
+- permission and site-access justifications match `public/manifest.json`;
 - the Chrome 130 baseline, reviewed manifest allowlist, explicit CSP, and closed external-messaging policy match the candidate;
 - privacy disclosures describe all data handling, including local media/page processing, Chrome storage sync, the device-local onboarding flag, and same-tab player synchronization/navigation;
 - the public privacy-policy URL works;
 - the support URL works and public support guidance does not ask users to disclose private information;
-- listing text and screenshots match version `1.1.0`;
+- listing text and screenshots remain accurate for the shipped product;
 - no unsupported claims, rankings, badges, or comparative marketing have been added;
-- the uploaded ZIP contains `manifest.json` at its root, reports version `1.1.0`, and contains no source maps or unexpected repository artifacts.
+- the uploaded ZIP contains `manifest.json` at its root, reports version `1.1.1`, and contains no source maps or unexpected repository artifacts.
