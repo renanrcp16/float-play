@@ -46,10 +46,53 @@ export class PipPlaybackSurface {
     this.previousCursor = this.media.style.cursor;
     this.media.style.cursor = resolvePipVideoCursor(this.enabled);
     this.media.classList.add(PIP_VIDEO_CLICKABLE_CLASS);
-    this.installHoverFeedback();
-    this.installHoverStateListeners();
 
-    this.media.addEventListener(
+    const overlay = this.installHoverFeedback();
+    this.installInteractionListeners(overlay);
+
+    this.mounted = true;
+  }
+
+  public dispose(): void {
+    if (this.lifecycle.signal.aborted) {
+      return;
+    }
+
+    if (this.previousCursor !== null) {
+      this.media.style.cursor = this.previousCursor;
+      this.previousCursor = null;
+    }
+
+    if (this.hoverOverlay !== null) {
+      setPipVideoHoverFeedback(this.hoverOverlay, false);
+      this.hoverOverlay.remove();
+      this.hoverOverlay = null;
+    }
+
+    this.media.classList.remove(PIP_VIDEO_CLICKABLE_CLASS);
+    this.hoverStyle?.remove();
+    this.hoverStyle = null;
+    this.lifecycle.abort();
+    this.mounted = false;
+  }
+
+  private installInteractionListeners(overlay: HTMLDivElement): void {
+    const document = this.media.ownerDocument;
+    const signal = this.lifecycle.signal;
+    const clearHover = () => {
+      setPipVideoHoverFeedback(overlay, false);
+    };
+
+    overlay.addEventListener(
+      "mouseenter",
+      () => {
+        setPipVideoHoverFeedback(overlay, true);
+      },
+      { signal }
+    );
+    overlay.addEventListener("mouseleave", clearHover, { signal });
+
+    overlay.addEventListener(
       "click",
       (event) => {
         if (!shouldToggleFromPipVideoClick({ enabled: this.enabled, button: event.button })) {
@@ -65,54 +108,13 @@ export class PipPlaybackSurface {
       },
       {
         capture: true,
-        signal: this.lifecycle.signal
+        signal
       }
     );
 
-    this.mounted = true;
-  }
-
-  public dispose(): void {
-    if (this.lifecycle.signal.aborted) {
-      return;
-    }
-
-    if (this.previousCursor !== null) {
-      this.media.style.cursor = this.previousCursor;
-      this.previousCursor = null;
-    }
-
-    setPipVideoHoverFeedback(this.media, false);
-    this.media.classList.remove(PIP_VIDEO_CLICKABLE_CLASS);
-    this.hoverOverlay?.remove();
-    this.hoverOverlay = null;
-    this.hoverStyle?.remove();
-    this.hoverStyle = null;
-    this.lifecycle.abort();
-    this.mounted = false;
-  }
-
-  private installHoverStateListeners(): void {
-    const document = this.media.ownerDocument;
-    const signal = this.lifecycle.signal;
-    const clearHover = () => {
-      setPipVideoHoverFeedback(this.media, false);
-    };
-
-    this.media.addEventListener(
-      "pointerenter",
-      () => {
-        setPipVideoHoverFeedback(this.media, true);
-      },
-      { signal }
-    );
-
-    for (const eventName of ["pointerleave", "pointercancel"] as const) {
-      this.media.addEventListener(eventName, clearHover, { signal });
-    }
-
+    document.documentElement.addEventListener("mouseleave", clearHover, { signal });
     document.addEventListener(
-      "pointerout",
+      "mouseout",
       (event) => {
         if (shouldClearPipVideoHoverOnPointerOut(event.relatedTarget)) {
           clearHover();
@@ -120,11 +122,10 @@ export class PipPlaybackSurface {
       },
       { capture: true, signal }
     );
-
     document.defaultView?.addEventListener("blur", clearHover, { signal });
   }
 
-  private installHoverFeedback(): void {
+  private installHoverFeedback(): HTMLDivElement {
     const document = this.media.ownerDocument;
     const overlay = document.createElement("div");
     overlay.className = PIP_VIDEO_HOVER_OVERLAY_CLASS;
@@ -139,12 +140,17 @@ export class PipPlaybackSurface {
         inset: 0;
         background: rgb(0 0 0 / 22%);
         opacity: 0;
-        pointer-events: none;
+        cursor: pointer;
+        pointer-events: auto;
         transition: opacity 120ms ease;
       }
 
-      .floatplay-player-shell > video.${PIP_VIDEO_CLICKABLE_CLASS}.${PIP_VIDEO_HOVERED_CLASS} + .${PIP_VIDEO_HOVER_OVERLAY_CLASS} {
+      .floatplay-player-shell > .${PIP_VIDEO_HOVER_OVERLAY_CLASS}.${PIP_VIDEO_HOVERED_CLASS} {
         opacity: 1;
+      }
+
+      .floatplay-player-shell.floatplay-audio-only > .${PIP_VIDEO_HOVER_OVERLAY_CLASS} {
+        display: none;
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -157,6 +163,7 @@ export class PipPlaybackSurface {
     document.head.append(style);
     this.hoverOverlay = overlay;
     this.hoverStyle = style;
+    return overlay;
   }
 }
 
