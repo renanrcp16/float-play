@@ -14,12 +14,14 @@ interface HoverClassTarget {
 
 export const PIP_VIDEO_CLICKABLE_CLASS = "floatplay-pip-video-clickable";
 export const PIP_VIDEO_HOVERED_CLASS = "floatplay-pip-video-hovered";
+export const PIP_VIDEO_HOVER_OVERLAY_CLASS = "floatplay-pip-video-hover-overlay";
 
 export class PipPlaybackSurface {
   private readonly lifecycle = new AbortController();
   private mounted = false;
   private previousCursor: string | null = null;
   private hoverStyle: HTMLStyleElement | null = null;
+  private hoverOverlay: HTMLDivElement | null = null;
 
   public constructor(
     private readonly media: HTMLVideoElement,
@@ -82,6 +84,8 @@ export class PipPlaybackSurface {
 
     setPipVideoHoverFeedback(this.media, false);
     this.media.classList.remove(PIP_VIDEO_CLICKABLE_CLASS);
+    this.hoverOverlay?.remove();
+    this.hoverOverlay = null;
     this.hoverStyle?.remove();
     this.hoverStyle = null;
     this.lifecycle.abort();
@@ -122,25 +126,36 @@ export class PipPlaybackSurface {
 
   private installHoverFeedback(): void {
     const document = this.media.ownerDocument;
+    const overlay = document.createElement("div");
+    overlay.className = PIP_VIDEO_HOVER_OVERLAY_CLASS;
+    overlay.setAttribute("aria-hidden", "true");
+    this.media.insertAdjacentElement("afterend", overlay);
+
     const style = document.createElement("style");
     style.dataset.floatplay = "pip-video-click-feedback";
     style.textContent = `
-      .floatplay-player-shell > video.${PIP_VIDEO_CLICKABLE_CLASS} {
-        transition: filter 120ms ease;
+      .floatplay-player-shell > .${PIP_VIDEO_HOVER_OVERLAY_CLASS} {
+        position: absolute;
+        inset: 0;
+        background: rgb(0 0 0 / 22%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 120ms ease;
       }
 
-      .floatplay-player-shell > video.${PIP_VIDEO_CLICKABLE_CLASS}.${PIP_VIDEO_HOVERED_CLASS} {
-        filter: brightness(0.78);
+      .floatplay-player-shell > video.${PIP_VIDEO_CLICKABLE_CLASS}.${PIP_VIDEO_HOVERED_CLASS} + .${PIP_VIDEO_HOVER_OVERLAY_CLASS} {
+        opacity: 1;
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .floatplay-player-shell > video.${PIP_VIDEO_CLICKABLE_CLASS} {
+        .floatplay-player-shell > .${PIP_VIDEO_HOVER_OVERLAY_CLASS} {
           transition: none;
         }
       }
     `;
 
     document.head.append(style);
+    this.hoverOverlay = overlay;
     this.hoverStyle = style;
   }
 }
