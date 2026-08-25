@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { resolvePipVideoCursor, shouldToggleFromPipVideoClick } from "./PipPlaybackSurface";
+import {
+  PIP_VIDEO_HOVERED_CLASS,
+  resolvePipVideoCursor,
+  setPipVideoHoverFeedback,
+  shouldClearPipVideoHoverOnPointerOut,
+  shouldToggleFromPipVideoClick
+} from "./PipPlaybackSurface";
 
 describe("shouldToggleFromPipVideoClick", () => {
   it("accepts a primary click when the preference is enabled", () => {
@@ -21,5 +27,34 @@ describe("resolvePipVideoCursor", () => {
   it("uses a pointer only when clicking the PiP video can toggle playback", () => {
     expect(resolvePipVideoCursor(true)).toBe("pointer");
     expect(resolvePipVideoCursor(false)).toBe("");
+  });
+});
+
+describe("setPipVideoHoverFeedback", () => {
+  it("sets and clears the managed hover class explicitly", () => {
+    const toggles: Array<[string, boolean | undefined]> = [];
+    const target = {
+      classList: {
+        toggle(token: string, force?: boolean): boolean {
+          toggles.push([token, force]);
+          return force ?? false;
+        }
+      }
+    };
+
+    setPipVideoHoverFeedback(target, true);
+    setPipVideoHoverFeedback(target, false);
+
+    expect(toggles).toEqual([
+      [PIP_VIDEO_HOVERED_CLASS, true],
+      [PIP_VIDEO_HOVERED_CLASS, false]
+    ]);
+  });
+});
+
+describe("shouldClearPipVideoHoverOnPointerOut", () => {
+  it("clears hover when the pointer leaves the PiP document", () => {
+    expect(shouldClearPipVideoHoverOnPointerOut(null)).toBe(true);
+    expect(shouldClearPipVideoHoverOnPointerOut({} as EventTarget)).toBe(false);
   });
 });
