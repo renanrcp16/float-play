@@ -6,7 +6,14 @@ interface PipVideoClickState {
   readonly button: number;
 }
 
+interface HoverClassTarget {
+  readonly classList: {
+    toggle(token: string, force?: boolean): boolean;
+  };
+}
+
 export const PIP_VIDEO_CLICKABLE_CLASS = "floatplay-pip-video-clickable";
+export const PIP_VIDEO_HOVERED_CLASS = "floatplay-pip-video-hovered";
 
 export class PipPlaybackSurface {
   private readonly lifecycle = new AbortController();
@@ -38,6 +45,7 @@ export class PipPlaybackSurface {
     this.media.style.cursor = resolvePipVideoCursor(this.enabled);
     this.media.classList.add(PIP_VIDEO_CLICKABLE_CLASS);
     this.installHoverFeedback();
+    this.installHoverStateListeners();
 
     this.media.addEventListener(
       "click",
@@ -72,11 +80,44 @@ export class PipPlaybackSurface {
       this.previousCursor = null;
     }
 
+    setPipVideoHoverFeedback(this.media, false);
     this.media.classList.remove(PIP_VIDEO_CLICKABLE_CLASS);
     this.hoverStyle?.remove();
     this.hoverStyle = null;
     this.lifecycle.abort();
     this.mounted = false;
+  }
+
+  private installHoverStateListeners(): void {
+    const document = this.media.ownerDocument;
+    const signal = this.lifecycle.signal;
+    const clearHover = () => {
+      setPipVideoHoverFeedback(this.media, false);
+    };
+
+    this.media.addEventListener(
+      "pointerenter",
+      () => {
+        setPipVideoHoverFeedback(this.media, true);
+      },
+      { signal }
+    );
+
+    for (const eventName of ["pointerleave", "pointercancel"] as const) {
+      this.media.addEventListener(eventName, clearHover, { signal });
+    }
+
+    document.addEventListener(
+      "pointerout",
+      (event) => {
+        if (shouldClearPipVideoHoverOnPointerOut(event.relatedTarget)) {
+          clearHover();
+        }
+      },
+      { capture: true, signal }
+    );
+
+    document.defaultView?.addEventListener("blur", clearHover, { signal });
   }
 
   private installHoverFeedback(): void {
@@ -88,7 +129,7 @@ export class PipPlaybackSurface {
         transition: filter 120ms ease;
       }
 
-      .floatplay-player-shell > video.${PIP_VIDEO_CLICKABLE_CLASS}:hover {
+      .floatplay-player-shell > video.${PIP_VIDEO_CLICKABLE_CLASS}.${PIP_VIDEO_HOVERED_CLASS} {
         filter: brightness(0.78);
       }
 
@@ -110,4 +151,12 @@ export function shouldToggleFromPipVideoClick(state: PipVideoClickState): boolea
 
 export function resolvePipVideoCursor(enabled: boolean): string {
   return enabled ? "pointer" : "";
+}
+
+export function setPipVideoHoverFeedback(target: HoverClassTarget, hovered: boolean): void {
+  target.classList.toggle(PIP_VIDEO_HOVERED_CLASS, hovered);
+}
+
+export function shouldClearPipVideoHoverOnPointerOut(relatedTarget: EventTarget | null): boolean {
+  return relatedTarget === null;
 }
