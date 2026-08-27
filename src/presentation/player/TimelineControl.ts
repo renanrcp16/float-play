@@ -1,7 +1,9 @@
 import {
   formatTimelineTimeDisplay,
+  getLiveTimelineLabel,
   getMediaTimelineState,
   getNextTimeDisplayMode,
+  isLiveTimelineMedia,
   seekTimelineTo,
   type MediaTimelineState
 } from "../../application/MediaTimeline";
@@ -123,10 +125,17 @@ export class TimelineControl {
     const total = state.end - state.start;
     const elapsed = state.current - state.start;
     const progress = total > 0 ? (elapsed / total) * 100 : 0;
-    const displayText = formatTimelineTimeDisplay(elapsed, total, this.displayMode);
+    const liveLabel = isLiveTimelineMedia(this.media)
+      ? getLiveTimelineLabel(this.getDocumentLanguage())
+      : undefined;
+    const displayText = formatTimelineTimeDisplay(elapsed, total, this.displayMode, liveLabel);
 
     input.style.setProperty("--floatplay-timeline-progress", `${Math.min(Math.max(progress, 0), 100)}%`);
     input.setAttribute("aria-valuetext", displayText);
     timeDisplay.textContent = displayText;
+  }
+
+  private getDocumentLanguage(): string {
+    return this.document.documentElement.lang || this.document.defaultView?.navigator.language || "en";
   }
 }
