@@ -4,8 +4,10 @@ import type { MediaTimeRanges } from "./MediaSeekableRange";
 import {
   formatMediaTime,
   formatTimelineTimeDisplay,
+  getLiveTimelineLabel,
   getMediaTimelineState,
   getNextTimeDisplayMode,
+  isLiveTimelineMedia,
   seekTimelineTo
 } from "./MediaTimeline";
 
@@ -78,6 +80,17 @@ describe("getMediaTimelineState", () => {
   });
 });
 
+describe("isLiveTimelineMedia", () => {
+  it("treats non-finite duration as live media", () => {
+    expect(isLiveTimelineMedia({ duration: Number.POSITIVE_INFINITY })).toBe(true);
+    expect(isLiveTimelineMedia({ duration: Number.NaN })).toBe(true);
+  });
+
+  it("keeps finite-duration media as non-live", () => {
+    expect(isLiveTimelineMedia({ duration: 300 })).toBe(false);
+  });
+});
+
 describe("seekTimelineTo", () => {
   it("seeks directly inside the active range", () => {
     const media = { currentTime: 20, duration: 100, seekable: ranges([[0, 100]]) };
@@ -109,6 +122,22 @@ describe("formatTimelineTimeDisplay", () => {
 
   it("shows remaining time without changing total duration", () => {
     expect(formatTimelineTimeDisplay(65, 300, "remaining")).toBe("-3:55 / 5:00");
+  });
+
+  it("uses a live status instead of presenting the live edge as a final duration", () => {
+    expect(formatTimelineTimeDisplay(65, 300, "elapsed", "LIVE")).toBe("1:05 / LIVE");
+    expect(formatTimelineTimeDisplay(65, 300, "remaining", "LIVE")).toBe("-3:55 / LIVE");
+  });
+});
+
+describe("getLiveTimelineLabel", () => {
+  it("uses the pt-BR live label for Portuguese locales", () => {
+    expect(getLiveTimelineLabel("pt-BR")).toBe("AO VIVO");
+    expect(getLiveTimelineLabel("pt")).toBe("AO VIVO");
+  });
+
+  it("uses the compact English live label otherwise", () => {
+    expect(getLiveTimelineLabel("en-US")).toBe("LIVE");
   });
 });
 
