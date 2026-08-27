@@ -44,6 +44,10 @@ export function getMediaTimelineState(media: TimelineMedia): MediaTimelineState 
   return null;
 }
 
+export function isLiveTimelineMedia(media: Pick<TimelineMedia, "duration">): boolean {
+  return !Number.isFinite(media.duration);
+}
+
 export function seekTimelineTo(media: TimelineMedia, time: number): boolean {
   const state = getMediaTimelineState(media);
 
@@ -66,7 +70,8 @@ export function formatMediaTime(seconds: number): string {
 export function formatTimelineTimeDisplay(
   elapsedSeconds: number,
   totalSeconds: number,
-  mode: TimeDisplayMode
+  mode: TimeDisplayMode,
+  endLabel?: string
 ): string {
   const elapsed = Number.isFinite(elapsedSeconds) ? Math.max(elapsedSeconds, 0) : 0;
   const total = Number.isFinite(totalSeconds) ? Math.max(totalSeconds, 0) : 0;
@@ -74,8 +79,13 @@ export function formatTimelineTimeDisplay(
     mode === "remaining"
       ? `-${formatMediaTime(Math.max(total - elapsed, 0))}`
       : formatMediaTime(elapsed);
+  const terminal = endLabel ?? formatMediaTime(total);
 
-  return `${primary} / ${formatMediaTime(total)}`;
+  return `${primary} / ${terminal}`;
+}
+
+export function getLiveTimelineLabel(language: string): string {
+  return language.toLowerCase().startsWith("pt") ? "AO VIVO" : "LIVE";
 }
 
 export function getNextTimeDisplayMode(mode: TimeDisplayMode): TimeDisplayMode {
