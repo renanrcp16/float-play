@@ -14,6 +14,11 @@ export interface TimelineMirror {
   getTimelineState(media: HTMLVideoElement): MediaTimelineState | null;
   seekTimelineTo(media: HTMLVideoElement, time: number): boolean;
   isLiveMedia?(media: HTMLVideoElement): boolean;
+  subscribeTimelineUpdates?(
+    media: HTMLVideoElement,
+    listener: () => void,
+    signal: AbortSignal
+  ): void;
 }
 
 export type TimeDisplayActivation = "seek-live" | "toggle-display-mode";
@@ -72,6 +77,11 @@ export class TimelineControl {
 
     this.input = input;
     this.timeDisplay = timeDisplay;
+    this.timelineMirror?.subscribeTimelineUpdates?.(
+      this.media,
+      () => this.update(),
+      this.lifecycle.signal
+    );
     root.append(input, timeDisplay);
     this.update();
     return root;
@@ -103,14 +113,20 @@ export class TimelineControl {
   }
 
   private seekTo(target: number): void {
+    let didSeek = false;
+
     try {
-      const didSeek = this.timelineMirror?.seekTimelineTo(this.media, target) ?? seekTimelineTo(this.media, target);
+      didSeek = this.timelineMirror?.seekTimelineTo(this.media, target) ?? seekTimelineTo(this.media, target);
       if (!didSeek) this.logger.debug("No safe timeline seek target is currently available.");
     } catch (error) {
       this.logger.error("Unable to seek media from the timeline.", error);
     }
 
-    this.update();
+    // YouTube live seeks are asynchronous. Keep the user's selected range position
+    // until the native progress bar publishes its authoritative aria-valuenow update.
+    if (!didSeek || !this.renderedLive) {
+      this.update();
+    }
   }
 
   private update(): void {
