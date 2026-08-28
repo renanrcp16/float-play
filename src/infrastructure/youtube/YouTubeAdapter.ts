@@ -142,7 +142,7 @@ export class YouTubeAdapter {
       }
     });
 
-    observer.observe(root as Node, {
+    observer.observe(root, {
       attributes: true,
       subtree: true,
       attributeFilter: [...YOUTUBE_WATCH_TIMELINE_ATTRIBUTES]
