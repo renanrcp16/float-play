@@ -140,12 +140,22 @@ export class TimelineControl {
         target: safeTarget,
         anchorMediaTime: null
       };
-      this.update();
+      this.renderPendingLiveSeek(stateBeforeSeek);
       return;
     }
 
     this.pendingLiveSeek = null;
     this.update();
+  }
+
+  private renderPendingLiveSeek(state: MediaTimelineState): void {
+    const pending = this.pendingLiveSeek;
+
+    if (pending === null) {
+      return;
+    }
+
+    this.renderState(state, clampTimelineCurrent(pending.target, state), true);
   }
 
   private anchorPendingLiveSeek(): void {
@@ -162,20 +172,11 @@ export class TimelineControl {
   }
 
   private update(): void {
-    const input = this.input;
-    const timeDisplay = this.timeDisplay;
-    if (input === null || timeDisplay === null) return;
-
     const state = this.getTimelineState();
+
     if (state === null) {
       this.pendingLiveSeek = null;
-      this.renderedLive = false;
-      input.disabled = true;
-      input.value = "0";
-      input.style.setProperty("--floatplay-timeline-progress", "0%");
-      timeDisplay.setAttribute("aria-label", this.timeDisplayToggleLabel);
-      timeDisplay.title = this.timeDisplayToggleLabel;
-      timeDisplay.textContent = "0:00 / 0:00";
+      this.renderUnavailableState();
       return;
     }
 
@@ -193,6 +194,36 @@ export class TimelineControl {
       displayedCurrent = state.current;
     }
 
+    this.renderState(
+      state,
+      displayedCurrent,
+      this.pendingLiveSeek !== null || this.isLive()
+    );
+  }
+
+  private renderUnavailableState(): void {
+    const input = this.input;
+    const timeDisplay = this.timeDisplay;
+    if (input === null || timeDisplay === null) return;
+
+    this.renderedLive = false;
+    input.disabled = true;
+    input.value = "0";
+    input.style.setProperty("--floatplay-timeline-progress", "0%");
+    timeDisplay.setAttribute("aria-label", this.timeDisplayToggleLabel);
+    timeDisplay.title = this.timeDisplayToggleLabel;
+    timeDisplay.textContent = "0:00 / 0:00";
+  }
+
+  private renderState(
+    state: MediaTimelineState,
+    displayedCurrent: number,
+    isLive: boolean
+  ): void {
+    const input = this.input;
+    const timeDisplay = this.timeDisplay;
+    if (input === null || timeDisplay === null) return;
+
     input.disabled = false;
     input.min = state.start.toString();
     input.max = state.end.toString();
@@ -201,7 +232,6 @@ export class TimelineControl {
     const total = state.end - state.start;
     const elapsed = displayedCurrent - state.start;
     const progress = total > 0 ? (elapsed / total) * 100 : 0;
-    const isLive = this.pendingLiveSeek !== null || this.isLive();
     this.renderedLive = isLive;
     const liveLabel = isLive ? getLiveTimelineLabel(this.getDocumentLanguage()) : undefined;
     const displayText = formatTimelineTimeDisplay(elapsed, total, isLive ? "elapsed" : this.displayMode, liveLabel);
