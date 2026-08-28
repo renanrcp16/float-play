@@ -3,8 +3,10 @@ import {
   calculateViewportIntersectionArea,
   classifyYouTubeSurface,
   findDirectChildContaining,
-  hasYouTubeLiveHeadBadge,
+  hasYouTubeLivePlaybackSignal,
+  mapYouTubeWatchTimelineTimeToMediaTime,
   parseYouTubeMusicTimeInfo,
+  readYouTubeWatchTimelineState,
   YouTubeAdapter
 } from "./YouTubeAdapter";
 
@@ -94,17 +96,17 @@ describe("YouTubeAdapter.isLiveMedia", () => {
     expect(adapter.isLiveMedia(media, root)).toBe(true);
   });
 
-  it("recognizes YouTube livehead even when the media duration is finite", () => {
+  it("keeps a finite-duration YouTube broadcast live while playback is behind the livehead", () => {
     const root = {
       querySelector: (selector: string) =>
-        selector === ".ytp-live-badge-is-livehead" ? ({} as Element) : null
+        selector.includes(".ytp-time-display.ytp-live") ? ({} as Element) : null
     } as unknown as ParentNode;
     const media = { duration: 50_390 } as HTMLVideoElement;
 
     expect(adapter.isLiveMedia(media, root)).toBe(true);
   });
 
-  it("keeps finite VOD media non-live when the livehead badge is absent", () => {
+  it("keeps finite VOD media non-live when YouTube has no live playback signal", () => {
     const root = { querySelector: () => null } as unknown as ParentNode;
     const media = { duration: 300 } as HTMLVideoElement;
 
@@ -123,16 +125,69 @@ describe("classifyYouTubeSurface", () => {
   });
 });
 
-describe("hasYouTubeLiveHeadBadge", () => {
-  it("uses the dedicated livehead marker instead of a generic player live class", () => {
+describe("hasYouTubeLivePlaybackSignal", () => {
+  it("recognizes persistent YouTube live playback classes as well as the livehead badge", () => {
     const liveRoot = {
       querySelector: (selector: string) =>
-        selector === ".ytp-live-badge-is-livehead" ? ({} as Element) : null
+        selector.includes("#movie_player.ytp-live") ? ({} as Element) : null
     } as unknown as ParentNode;
     const vodRoot = { querySelector: () => null } as unknown as ParentNode;
 
-    expect(hasYouTubeLiveHeadBadge(liveRoot)).toBe(true);
-    expect(hasYouTubeLiveHeadBadge(vodRoot)).toBe(false);
+    expect(hasYouTubeLivePlaybackSignal(liveRoot)).toBe(true);
+    expect(hasYouTubeLivePlaybackSignal(vodRoot)).toBe(false);
+  });
+});
+
+describe("readYouTubeWatchTimelineState", () => {
+  it("uses the native watch progress coordinates so DVR playback starts at zero", () => {
+    const root = rootWithWatchProgress({
+      "aria-valuemin": "0",
+      "aria-valuemax": "43270",
+      "aria-valuenow": "0"
+    });
+
+    expect(readYouTubeWatchTimelineState(root)).toEqual({
+      start: 0,
+      end: 43_270,
+      safeEnd: 43_270,
+      current: 0
+    });
+  });
+
+  it("places the native watch timeline at 100% when YouTube is at the live edge", () => {
+    const root = rootWithWatchProgress({
+      "aria-valuemin": "0",
+      "aria-valuemax": "43270",
+      "aria-valuenow": "43270"
+    });
+
+    expect(readYouTubeWatchTimelineState(root)).toEqual({
+      start: 0,
+      end: 43_270,
+      safeEnd: 43_270,
+      current: 43_270
+    });
+  });
+
+  it("rejects incomplete native progress metadata", () => {
+    expect(readYouTubeWatchTimelineState(rootWithWatchProgress({ "aria-valuenow": "10" }))).toBeNull();
+  });
+});
+
+describe("mapYouTubeWatchTimelineTimeToMediaTime", () => {
+  const timeline = {
+    start: 0,
+    end: 43_270,
+    safeEnd: 43_270,
+    current: 43_270
+  };
+
+  it("removes the media timestamp offset when seeking to the beginning of DVR history", () => {
+    expect(mapYouTubeWatchTimelineTimeToMediaTime(46_901, timeline, 0)).toBe(3_631);
+  });
+
+  it("maps the native live edge back to the current media timestamp", () => {
+    expect(mapYouTubeWatchTimelineTimeToMediaTime(46_901, timeline, 43_270)).toBe(46_901);
   });
 });
 
@@ -235,3 +290,14 @@ describe("calculateViewportIntersectionArea", () => {
     ).toBe(0);
   });
 });
+
+function rootWithWatchProgress(attributes: Readonly<Record<string, string>>): ParentNode {
+  const progress = {
+    getAttribute: (name: string) => attributes[name] ?? null
+  } as unknown as HTMLElement;
+
+  return {
+    querySelector: (selector: string) =>
+      selector.includes(".ytp-progress-bar") ? progress : null
+  } as unknown as ParentNode;
+}
