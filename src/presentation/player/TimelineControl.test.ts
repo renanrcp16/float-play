@@ -30,7 +30,6 @@ describe("resolvePendingLiveSeekCurrent", () => {
         liveState,
         {
           target: 15_120_000,
-          mediaTimeBeforeSeek: 46_901,
           anchorMediaTime: null
         },
         46_901
@@ -43,7 +42,6 @@ describe("resolvePendingLiveSeekCurrent", () => {
       { ...liveState, current: 15_150_000 },
       {
         target: 15_120_000,
-        mediaTimeBeforeSeek: 46_901,
         anchorMediaTime: null
       },
       46_901
@@ -59,7 +57,6 @@ describe("resolvePendingLiveSeekCurrent", () => {
         liveState,
         {
           target: 15_120_000,
-          mediaTimeBeforeSeek: 46_901,
           anchorMediaTime: 8_000
         },
         8_005.5
@@ -73,7 +70,6 @@ describe("resolvePendingLiveSeekCurrent", () => {
         liveState,
         {
           target: liveState.end,
-          mediaTimeBeforeSeek: 46_901,
           anchorMediaTime: 8_000
         },
         8_010
