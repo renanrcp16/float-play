@@ -73,15 +73,18 @@ export function formatTimelineTimeDisplay(
   mode: TimeDisplayMode,
   endLabel?: string
 ): string {
+  if (endLabel !== undefined) {
+    return endLabel;
+  }
+
   const elapsed = Number.isFinite(elapsedSeconds) ? Math.max(elapsedSeconds, 0) : 0;
   const total = Number.isFinite(totalSeconds) ? Math.max(totalSeconds, 0) : 0;
   const primary =
     mode === "remaining"
       ? `-${formatMediaTime(Math.max(total - elapsed, 0))}`
       : formatMediaTime(elapsed);
-  const terminal = endLabel ?? formatMediaTime(total);
 
-  return `${primary} / ${terminal}`;
+  return `${primary} / ${formatMediaTime(total)}`;
 }
 
 export function getLiveTimelineLabel(language: string): string {
