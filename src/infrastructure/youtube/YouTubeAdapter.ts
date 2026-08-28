@@ -52,7 +52,7 @@ export class YouTubeAdapter {
   }
 
   public isLiveMedia(media: HTMLVideoElement, root: ParentNode = document): boolean {
-    return isLiveTimelineMedia(media) || hasYouTubeLiveHeadBadge(root);
+    return isLiveTimelineMedia(media) || hasYouTubeLivePlaybackSignal(root);
   }
 
   public findTriggerAnchor(root: ParentNode = document): YouTubeTriggerAnchor | null {
@@ -108,11 +108,15 @@ export class YouTubeAdapter {
     media: HTMLVideoElement,
     root: ParentNode = document
   ): MediaTimelineState | null {
-    if (!this.isAudioOnlyRequired()) {
-      return getMediaTimelineState(media);
+    if (this.isAudioOnlyRequired()) {
+      return readYouTubeMusicTimelineState(root) ?? getMediaTimelineState(media);
     }
 
-    return readYouTubeMusicTimelineState(root) ?? getMediaTimelineState(media);
+    if (this.isLiveMedia(media, root)) {
+      return readYouTubeWatchTimelineState(root) ?? getMediaTimelineState(media);
+    }
+
+    return getMediaTimelineState(media);
   }
 
   public seekTimelineTo(
@@ -120,25 +124,36 @@ export class YouTubeAdapter {
     time: number,
     root: ParentNode = document
   ): boolean {
-    if (!this.isAudioOnlyRequired()) {
-      return seekMediaTimelineTo(media, time);
+    if (this.isAudioOnlyRequired()) {
+      const nativeState = readYouTubeMusicTimelineState(root);
+
+      if (nativeState === null || !Number.isFinite(time)) {
+        return seekMediaTimelineTo(media, time);
+      }
+
+      const relativeTarget = clamp(time, nativeState.start, nativeState.safeEnd);
+      const message = createSeekBridgeMessage(relativeTarget);
+
+      if (message === null) {
+        return false;
+      }
+
+      this.postPlayerMessage(message);
+      return true;
     }
 
-    const nativeState = readYouTubeMusicTimelineState(root);
+    if (this.isLiveMedia(media, root)) {
+      const nativeState = readYouTubeWatchTimelineState(root);
+      const mediaTarget = nativeState === null
+        ? null
+        : mapYouTubeWatchTimelineTimeToMediaTime(media.currentTime, nativeState, time);
 
-    if (nativeState === null || !Number.isFinite(time)) {
-      return seekMediaTimelineTo(media, time);
+      if (mediaTarget !== null) {
+        return seekMediaTimelineTo(media, mediaTarget);
+      }
     }
 
-    const relativeTarget = clamp(time, nativeState.start, nativeState.safeEnd);
-    const message = createSeekBridgeMessage(relativeTarget);
-
-    if (message === null) {
-      return false;
-    }
-
-    this.postPlayerMessage(message);
-    return true;
+    return seekMediaTimelineTo(media, time);
   }
 
   public setVolume(volume: number): void {
@@ -249,8 +264,57 @@ export function classifyYouTubeSurface(location: PageLocation): YouTubeSurface |
   return isYouTubeHost && location.pathname === "/watch" ? "youtube-watch" : null;
 }
 
-export function hasYouTubeLiveHeadBadge(root: ParentNode): boolean {
-  return root.querySelector(".ytp-live-badge-is-livehead") !== null;
+export function hasYouTubeLivePlaybackSignal(root: ParentNode): boolean {
+  return root.querySelector(
+    "#movie_player.ytp-live, .ytp-time-display.ytp-live, .ytp-live-badge.ytp-live-badge-is-livehead"
+  ) !== null;
+}
+
+export function readYouTubeWatchTimelineState(root: ParentNode): MediaTimelineState | null {
+  const progress = root.querySelector<HTMLElement>(".ytp-progress-bar[role=\"slider\"], .ytp-progress-bar");
+
+  if (progress === null) {
+    return null;
+  }
+
+  const start = readAttributeNumber(progress, "aria-valuemin") ?? 0;
+  const end = readAttributeNumber(progress, "aria-valuemax");
+  const current = readAttributeNumber(progress, "aria-valuenow");
+
+  if (
+    end === null ||
+    current === null ||
+    end <= start ||
+    current < start - 1 ||
+    current > end + 1
+  ) {
+    return null;
+  }
+
+  return {
+    start,
+    end,
+    safeEnd: end,
+    current: clamp(current, start, end)
+  };
+}
+
+export function mapYouTubeWatchTimelineTimeToMediaTime(
+  mediaCurrentTime: number,
+  timeline: MediaTimelineState,
+  targetTime: number
+): number | null {
+  if (!Number.isFinite(mediaCurrentTime) || !Number.isFinite(targetTime)) {
+    return null;
+  }
+
+  const offset = mediaCurrentTime - timeline.current;
+
+  if (!Number.isFinite(offset)) {
+    return null;
+  }
+
+  return clamp(targetTime, timeline.start, timeline.safeEnd) + offset;
 }
 
 export function findDirectChildContaining(
@@ -386,8 +450,18 @@ function readControlNumber(
     }
   }
 
-  const attributeValue = Number(element.getAttribute(attributeName));
-  return Number.isFinite(attributeValue) ? attributeValue : null;
+  return readAttributeNumber(element, attributeName);
+}
+
+function readAttributeNumber(element: Element, attributeName: string): number | null {
+  const attribute = element.getAttribute(attributeName);
+
+  if (attribute === null) {
+    return null;
+  }
+
+  const value = Number(attribute);
+  return Number.isFinite(value) ? value : null;
 }
 
 function parseClockTime(value: string): number | null {
