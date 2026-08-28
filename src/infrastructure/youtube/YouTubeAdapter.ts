@@ -1,5 +1,6 @@
 import {
   getMediaTimelineState,
+  isLiveTimelineMedia,
   seekTimelineTo as seekMediaTimelineTo,
   type MediaTimelineState
 } from "../../application/MediaTimeline";
@@ -48,6 +49,10 @@ export class YouTubeAdapter {
 
   public isAudioOnlyRequired(location: PageLocation = window.location): boolean {
     return classifyYouTubeSurface(location) === "youtube-music";
+  }
+
+  public isLiveMedia(media: HTMLVideoElement, root: ParentNode = document): boolean {
+    return isLiveTimelineMedia(media) || hasYouTubeLiveHeadBadge(root);
   }
 
   public findTriggerAnchor(root: ParentNode = document): YouTubeTriggerAnchor | null {
@@ -242,6 +247,10 @@ export function classifyYouTubeSurface(location: PageLocation): YouTubeSurface |
 
   const isYouTubeHost = location.hostname === "www.youtube.com" || location.hostname === "youtube.com";
   return isYouTubeHost && location.pathname === "/watch" ? "youtube-watch" : null;
+}
+
+export function hasYouTubeLiveHeadBadge(root: ParentNode): boolean {
+  return root.querySelector(".ytp-live-badge-is-livehead") !== null;
 }
 
 export function findDirectChildContaining(
