@@ -15,11 +15,6 @@ import {
 } from "./YouTubePlayerBridgeProtocol";
 
 const YOUTUBE_WATCH_TIMELINE_SELECTOR = '.ytp-progress-bar[role="slider"], .ytp-progress-bar';
-const YOUTUBE_WATCH_TIMELINE_ATTRIBUTES = [
-  "aria-valuemin",
-  "aria-valuemax",
-  "aria-valuenow"
-] as const;
 
 interface PageLocation {
   readonly hostname: string;
@@ -124,37 +119,6 @@ export class YouTubeAdapter {
     }
 
     return getMediaTimelineState(media);
-  }
-
-  public subscribeTimelineUpdates(
-    _media: HTMLVideoElement,
-    listener: () => void,
-    signal: AbortSignal,
-    root: ParentNode = document
-  ): void {
-    if (this.isAudioOnlyRequired() || signal.aborted) {
-      return;
-    }
-
-    const observer = new MutationObserver((mutations) => {
-      if (mutations.some(isYouTubeWatchTimelineMutation)) {
-        listener();
-      }
-    });
-
-    observer.observe(root, {
-      attributes: true,
-      subtree: true,
-      attributeFilter: [...YOUTUBE_WATCH_TIMELINE_ATTRIBUTES]
-    });
-
-    signal.addEventListener(
-      "abort",
-      () => {
-        observer.disconnect();
-      },
-      { once: true }
-    );
   }
 
   public seekTimelineTo(
@@ -340,23 +304,6 @@ export function readYouTubeWatchTimelineState(root: ParentNode): MediaTimelineSt
     safeEnd: end,
     current: clamp(current, start, end)
   };
-}
-
-export function isYouTubeWatchTimelineMutation(
-  mutation: Pick<MutationRecord, "type" | "target" | "attributeName">
-): boolean {
-  if (
-    mutation.type !== "attributes" ||
-    mutation.attributeName === null ||
-    !YOUTUBE_WATCH_TIMELINE_ATTRIBUTES.includes(
-      mutation.attributeName as (typeof YOUTUBE_WATCH_TIMELINE_ATTRIBUTES)[number]
-    )
-  ) {
-    return false;
-  }
-
-  const target = mutation.target as { matches?: (selector: string) => boolean };
-  return target.matches?.(".ytp-progress-bar") === true;
 }
 
 export function findDirectChildContaining(
