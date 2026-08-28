@@ -11,7 +11,6 @@ import type { TimeDisplayMode } from "../../application/Settings";
 import type { Logger } from "../../shared/Logger";
 
 const LIVE_SEEK_RECONCILE_TOLERANCE_SECONDS = 2;
-const LIVE_SEEK_MEDIA_ANCHOR_THRESHOLD_SECONDS = 0.5;
 
 export interface TimelineMirror {
   getTimelineState(media: HTMLVideoElement): MediaTimelineState | null;
@@ -21,7 +20,6 @@ export interface TimelineMirror {
 
 export interface PendingLiveSeekState {
   readonly target: number;
-  readonly mediaTimeBeforeSeek: number;
   readonly anchorMediaTime: number | null;
 }
 
@@ -82,8 +80,6 @@ export class TimelineControl {
         () => {
           if (eventName === "seeked") {
             this.anchorPendingLiveSeek();
-          } else {
-            this.anchorPendingLiveSeekAfterMediaJump();
           }
           this.update();
         },
@@ -142,7 +138,6 @@ export class TimelineControl {
     if (didSeek && trackLiveSeek) {
       this.pendingLiveSeek = {
         target: safeTarget,
-        mediaTimeBeforeSeek: this.media.currentTime,
         anchorMediaTime: null
       };
       this.update();
@@ -157,25 +152,6 @@ export class TimelineControl {
     const pending = this.pendingLiveSeek;
 
     if (pending === null || !Number.isFinite(this.media.currentTime)) {
-      return;
-    }
-
-    this.pendingLiveSeek = {
-      ...pending,
-      anchorMediaTime: this.media.currentTime
-    };
-  }
-
-  private anchorPendingLiveSeekAfterMediaJump(): void {
-    const pending = this.pendingLiveSeek;
-
-    if (
-      pending === null ||
-      pending.anchorMediaTime !== null ||
-      !Number.isFinite(this.media.currentTime) ||
-      Math.abs(this.media.currentTime - pending.mediaTimeBeforeSeek) <
-        LIVE_SEEK_MEDIA_ANCHOR_THRESHOLD_SECONDS
-    ) {
       return;
     }
 
