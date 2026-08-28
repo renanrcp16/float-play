@@ -61,7 +61,7 @@ export class TimelineControl {
     timeDisplay.title = this.timeDisplayToggleLabel;
 
     input.addEventListener("input", () => this.seekFromInput(), { signal: this.lifecycle.signal });
-    timeDisplay.addEventListener("click", () => this.toggleDisplayMode(), { signal: this.lifecycle.signal });
+    timeDisplay.addEventListener("click", () => this.activateTimeDisplay(), { signal: this.lifecycle.signal });
 
     for (const eventName of ["timeupdate", "durationchange", "progress", "loadedmetadata", "seeked"] as const) {
       this.media.addEventListener(eventName, () => this.update(), { signal: this.lifecycle.signal });
@@ -84,13 +84,25 @@ export class TimelineControl {
     const input = this.input;
     if (input === null) return;
 
-    try {
-      const target = Number(input.value);
-      const didSeek = this.timelineMirror?.seekTimelineTo(this.media, target) ?? seekTimelineTo(this.media, target);
+    this.seekTo(Number(input.value));
+  }
 
-      if (!didSeek) {
-        this.logger.debug("No safe timeline seek target is currently available.");
-      }
+  private activateTimeDisplay(): void {
+    if (this.isLive()) {
+      const state = this.getTimelineState();
+      if (state !== null) this.seekTo(state.end);
+      return;
+    }
+
+    this.displayMode = getNextTimeDisplayMode(this.displayMode);
+    this.update();
+    this.onDisplayModeChange(this.displayMode);
+  }
+
+  private seekTo(target: number): void {
+    try {
+      const didSeek = this.timelineMirror?.seekTimelineTo(this.media, target) ?? seekTimelineTo(this.media, target);
+      if (!didSeek) this.logger.debug("No safe timeline seek target is currently available.");
     } catch (error) {
       this.logger.error("Unable to seek media from the timeline.", error);
     }
@@ -98,18 +110,12 @@ export class TimelineControl {
     this.update();
   }
 
-  private toggleDisplayMode(): void {
-    this.displayMode = getNextTimeDisplayMode(this.displayMode);
-    this.update();
-    this.onDisplayModeChange(this.displayMode);
-  }
-
   private update(): void {
     const input = this.input;
     const timeDisplay = this.timeDisplay;
     if (input === null || timeDisplay === null) return;
 
-    const state = this.timelineMirror?.getTimelineState(this.media) ?? getMediaTimelineState(this.media);
+    const state = this.getTimelineState();
     if (state === null) {
       input.disabled = true;
       input.value = "0";
@@ -126,13 +132,24 @@ export class TimelineControl {
     const total = state.end - state.start;
     const elapsed = state.current - state.start;
     const progress = total > 0 ? (elapsed / total) * 100 : 0;
-    const isLive = this.timelineMirror?.isLiveMedia?.(this.media) ?? isLiveTimelineMedia(this.media);
+    const isLive = this.isLive();
     const liveLabel = isLive ? getLiveTimelineLabel(this.getDocumentLanguage()) : undefined;
-    const displayText = formatTimelineTimeDisplay(elapsed, total, this.displayMode, liveLabel);
+    const displayText = formatTimelineTimeDisplay(elapsed, total, isLive ? "elapsed" : this.displayMode, liveLabel);
+    const actionLabel = liveLabel ?? this.timeDisplayToggleLabel;
 
     input.style.setProperty("--floatplay-timeline-progress", `${Math.min(Math.max(progress, 0), 100)}%`);
     input.setAttribute("aria-valuetext", displayText);
+    timeDisplay.setAttribute("aria-label", actionLabel);
+    timeDisplay.title = actionLabel;
     timeDisplay.textContent = displayText;
+  }
+
+  private getTimelineState(): MediaTimelineState | null {
+    return this.timelineMirror?.getTimelineState(this.media) ?? getMediaTimelineState(this.media);
+  }
+
+  private isLive(): boolean {
+    return this.timelineMirror?.isLiveMedia?.(this.media) ?? isLiveTimelineMedia(this.media);
   }
 
   private getDocumentLanguage(): string {
