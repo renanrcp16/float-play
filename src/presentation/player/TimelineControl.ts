@@ -13,6 +13,7 @@ import type { Logger } from "../../shared/Logger";
 export interface TimelineMirror {
   getTimelineState(media: HTMLVideoElement): MediaTimelineState | null;
   seekTimelineTo(media: HTMLVideoElement, time: number): boolean;
+  isLiveMedia?(media: HTMLVideoElement): boolean;
 }
 
 export class TimelineControl {
@@ -125,9 +126,8 @@ export class TimelineControl {
     const total = state.end - state.start;
     const elapsed = state.current - state.start;
     const progress = total > 0 ? (elapsed / total) * 100 : 0;
-    const liveLabel = isLiveTimelineMedia(this.media)
-      ? getLiveTimelineLabel(this.getDocumentLanguage())
-      : undefined;
+    const isLive = this.timelineMirror?.isLiveMedia?.(this.media) ?? isLiveTimelineMedia(this.media);
+    const liveLabel = isLive ? getLiveTimelineLabel(this.getDocumentLanguage()) : undefined;
     const displayText = formatTimelineTimeDisplay(elapsed, total, this.displayMode, liveLabel);
 
     input.style.setProperty("--floatplay-timeline-progress", `${Math.min(Math.max(progress, 0), 100)}%`);
