@@ -271,7 +271,7 @@ export function hasYouTubeLivePlaybackSignal(root: ParentNode): boolean {
 }
 
 export function readYouTubeWatchTimelineState(root: ParentNode): MediaTimelineState | null {
-  const progress = root.querySelector<HTMLElement>(".ytp-progress-bar[role=\"slider\"], .ytp-progress-bar");
+  const progress = root.querySelector<HTMLElement>('.ytp-progress-bar[role="slider"], .ytp-progress-bar');
 
   if (progress === null) {
     return null;
