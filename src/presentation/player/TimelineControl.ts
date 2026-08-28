@@ -10,15 +10,19 @@ import {
 import type { TimeDisplayMode } from "../../application/Settings";
 import type { Logger } from "../../shared/Logger";
 
+const LIVE_SEEK_RECONCILE_TOLERANCE_SECONDS = 2;
+const LIVE_SEEK_MEDIA_ANCHOR_THRESHOLD_SECONDS = 0.5;
+
 export interface TimelineMirror {
   getTimelineState(media: HTMLVideoElement): MediaTimelineState | null;
   seekTimelineTo(media: HTMLVideoElement, time: number): boolean;
   isLiveMedia?(media: HTMLVideoElement): boolean;
-  subscribeTimelineUpdates?(
-    media: HTMLVideoElement,
-    listener: () => void,
-    signal: AbortSignal
-  ): void;
+}
+
+export interface PendingLiveSeekState {
+  readonly target: number;
+  readonly mediaTimeBeforeSeek: number;
+  readonly anchorMediaTime: number | null;
 }
 
 export type TimeDisplayActivation = "seek-live" | "toggle-display-mode";
@@ -29,6 +33,7 @@ export class TimelineControl {
   private timeDisplay: HTMLButtonElement | null = null;
   private displayMode: TimeDisplayMode;
   private renderedLive = false;
+  private pendingLiveSeek: PendingLiveSeekState | null = null;
 
   public constructor(
     private readonly media: HTMLVideoElement,
@@ -72,16 +77,22 @@ export class TimelineControl {
     timeDisplay.addEventListener("click", () => this.activateTimeDisplay(), { signal: this.lifecycle.signal });
 
     for (const eventName of ["timeupdate", "durationchange", "progress", "loadedmetadata", "seeked"] as const) {
-      this.media.addEventListener(eventName, () => this.update(), { signal: this.lifecycle.signal });
+      this.media.addEventListener(
+        eventName,
+        () => {
+          if (eventName === "seeked") {
+            this.anchorPendingLiveSeek();
+          } else {
+            this.anchorPendingLiveSeekAfterMediaJump();
+          }
+          this.update();
+        },
+        { signal: this.lifecycle.signal }
+      );
     }
 
     this.input = input;
     this.timeDisplay = timeDisplay;
-    this.timelineMirror?.subscribeTimelineUpdates?.(
-      this.media,
-      () => this.update(),
-      this.lifecycle.signal
-    );
     root.append(input, timeDisplay);
     this.update();
     return root;
@@ -89,6 +100,7 @@ export class TimelineControl {
 
   public dispose(): void {
     if (!this.lifecycle.signal.aborted) this.lifecycle.abort();
+    this.pendingLiveSeek = null;
     this.input = null;
     this.timeDisplay = null;
   }
@@ -113,20 +125,64 @@ export class TimelineControl {
   }
 
   private seekTo(target: number): void {
+    const stateBeforeSeek = this.getTimelineState();
+    const trackLiveSeek = this.renderedLive && stateBeforeSeek !== null;
+    const safeTarget = stateBeforeSeek === null
+      ? target
+      : clampTimelineCurrent(target, stateBeforeSeek);
     let didSeek = false;
 
     try {
-      didSeek = this.timelineMirror?.seekTimelineTo(this.media, target) ?? seekTimelineTo(this.media, target);
+      didSeek = this.timelineMirror?.seekTimelineTo(this.media, safeTarget) ?? seekTimelineTo(this.media, safeTarget);
       if (!didSeek) this.logger.debug("No safe timeline seek target is currently available.");
     } catch (error) {
       this.logger.error("Unable to seek media from the timeline.", error);
     }
 
-    // YouTube live seeks are asynchronous. Keep the user's selected range position
-    // until the native progress bar publishes its authoritative aria-valuenow update.
-    if (shouldRefreshAfterSeek({ didSeek, renderedLive: this.renderedLive })) {
+    if (didSeek && trackLiveSeek) {
+      this.pendingLiveSeek = {
+        target: safeTarget,
+        mediaTimeBeforeSeek: this.media.currentTime,
+        anchorMediaTime: null
+      };
       this.update();
+      return;
     }
+
+    this.pendingLiveSeek = null;
+    this.update();
+  }
+
+  private anchorPendingLiveSeek(): void {
+    const pending = this.pendingLiveSeek;
+
+    if (pending === null || !Number.isFinite(this.media.currentTime)) {
+      return;
+    }
+
+    this.pendingLiveSeek = {
+      ...pending,
+      anchorMediaTime: this.media.currentTime
+    };
+  }
+
+  private anchorPendingLiveSeekAfterMediaJump(): void {
+    const pending = this.pendingLiveSeek;
+
+    if (
+      pending === null ||
+      pending.anchorMediaTime !== null ||
+      !Number.isFinite(this.media.currentTime) ||
+      Math.abs(this.media.currentTime - pending.mediaTimeBeforeSeek) <
+        LIVE_SEEK_MEDIA_ANCHOR_THRESHOLD_SECONDS
+    ) {
+      return;
+    }
+
+    this.pendingLiveSeek = {
+      ...pending,
+      anchorMediaTime: this.media.currentTime
+    };
   }
 
   private update(): void {
@@ -136,6 +192,7 @@ export class TimelineControl {
 
     const state = this.getTimelineState();
     if (state === null) {
+      this.pendingLiveSeek = null;
       this.renderedLive = false;
       input.disabled = true;
       input.value = "0";
@@ -146,15 +203,29 @@ export class TimelineControl {
       return;
     }
 
+    let displayedCurrent = resolvePendingLiveSeekCurrent(
+      state,
+      this.pendingLiveSeek,
+      this.media.currentTime
+    );
+
+    if (
+      this.pendingLiveSeek !== null &&
+      hasLiveSeekReconciled(state.current, displayedCurrent)
+    ) {
+      this.pendingLiveSeek = null;
+      displayedCurrent = state.current;
+    }
+
     input.disabled = false;
     input.min = state.start.toString();
     input.max = state.end.toString();
-    input.value = state.current.toString();
+    input.value = displayedCurrent.toString();
 
     const total = state.end - state.start;
-    const elapsed = state.current - state.start;
+    const elapsed = displayedCurrent - state.start;
     const progress = total > 0 ? (elapsed / total) * 100 : 0;
-    const isLive = this.isLive();
+    const isLive = this.pendingLiveSeek !== null || this.isLive();
     this.renderedLive = isLive;
     const liveLabel = isLive ? getLiveTimelineLabel(this.getDocumentLanguage()) : undefined;
     const displayText = formatTimelineTimeDisplay(elapsed, total, isLive ? "elapsed" : this.displayMode, liveLabel);
@@ -184,9 +255,35 @@ export function resolveTimeDisplayActivation(renderedLive: boolean): TimeDisplay
   return renderedLive ? "seek-live" : "toggle-display-mode";
 }
 
-export function shouldRefreshAfterSeek(input: {
-  readonly didSeek: boolean;
-  readonly renderedLive: boolean;
-}): boolean {
-  return !input.didSeek || !input.renderedLive;
+export function resolvePendingLiveSeekCurrent(
+  state: MediaTimelineState,
+  pending: PendingLiveSeekState | null,
+  mediaCurrentTime: number
+): number {
+  if (pending === null) {
+    return state.current;
+  }
+
+  const mediaDelta =
+    pending.anchorMediaTime !== null && Number.isFinite(mediaCurrentTime)
+      ? mediaCurrentTime - pending.anchorMediaTime
+      : 0;
+
+  return clampTimelineCurrent(pending.target + mediaDelta, state);
+}
+
+export function hasLiveSeekReconciled(
+  authoritativeCurrent: number,
+  displayedCurrent: number,
+  toleranceSeconds = LIVE_SEEK_RECONCILE_TOLERANCE_SECONDS
+): boolean {
+  return (
+    Number.isFinite(authoritativeCurrent) &&
+    Number.isFinite(displayedCurrent) &&
+    Math.abs(authoritativeCurrent - displayedCurrent) <= toleranceSeconds
+  );
+}
+
+function clampTimelineCurrent(value: number, state: MediaTimelineState): number {
+  return Math.min(Math.max(value, state.start), state.safeEnd);
 }
