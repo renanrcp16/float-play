@@ -3,6 +3,7 @@ import {
   calculateViewportIntersectionArea,
   classifyYouTubeSurface,
   findDirectChildContaining,
+  hasYouTubeLiveHeadBadge,
   parseYouTubeMusicTimeInfo,
   YouTubeAdapter
 } from "./YouTubeAdapter";
@@ -83,6 +84,34 @@ describe("YouTubeAdapter.isSupportedPage", () => {
   });
 });
 
+describe("YouTubeAdapter.isLiveMedia", () => {
+  const adapter = new YouTubeAdapter();
+
+  it("uses the media duration when the browser exposes an infinite live timeline", () => {
+    const root = { querySelector: () => null } as unknown as ParentNode;
+    const media = { duration: Number.POSITIVE_INFINITY } as HTMLVideoElement;
+
+    expect(adapter.isLiveMedia(media, root)).toBe(true);
+  });
+
+  it("recognizes YouTube livehead even when the media duration is finite", () => {
+    const root = {
+      querySelector: (selector: string) =>
+        selector === ".ytp-live-badge-is-livehead" ? ({} as Element) : null
+    } as unknown as ParentNode;
+    const media = { duration: 50_390 } as HTMLVideoElement;
+
+    expect(adapter.isLiveMedia(media, root)).toBe(true);
+  });
+
+  it("keeps finite VOD media non-live when the livehead badge is absent", () => {
+    const root = { querySelector: () => null } as unknown as ParentNode;
+    const media = { duration: 300 } as HTMLVideoElement;
+
+    expect(adapter.isLiveMedia(media, root)).toBe(false);
+  });
+});
+
 describe("classifyYouTubeSurface", () => {
   it("distinguishes regular watch pages from YouTube Music", () => {
     expect(classifyYouTubeSurface({ hostname: "www.youtube.com", pathname: "/watch" })).toBe(
@@ -91,6 +120,19 @@ describe("classifyYouTubeSurface", () => {
     expect(classifyYouTubeSurface({ hostname: "music.youtube.com", pathname: "/playlist" })).toBe(
       "youtube-music"
     );
+  });
+});
+
+describe("hasYouTubeLiveHeadBadge", () => {
+  it("uses the dedicated livehead marker instead of a generic player live class", () => {
+    const liveRoot = {
+      querySelector: (selector: string) =>
+        selector === ".ytp-live-badge-is-livehead" ? ({} as Element) : null
+    } as unknown as ParentNode;
+    const vodRoot = { querySelector: () => null } as unknown as ParentNode;
+
+    expect(hasYouTubeLiveHeadBadge(liveRoot)).toBe(true);
+    expect(hasYouTubeLiveHeadBadge(vodRoot)).toBe(false);
   });
 });
 
