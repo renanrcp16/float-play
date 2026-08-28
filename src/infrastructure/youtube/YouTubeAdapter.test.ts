@@ -1,10 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   calculateViewportIntersectionArea,
   classifyYouTubeSurface,
   findDirectChildContaining,
   hasYouTubeLivePlaybackSignal,
-  mapYouTubeWatchTimelineTimeToMediaTime,
   parseYouTubeMusicTimeInfo,
   readYouTubeWatchTimelineState,
   YouTubeAdapter
@@ -114,6 +113,48 @@ describe("YouTubeAdapter.isLiveMedia", () => {
   });
 });
 
+describe("YouTubeAdapter.seekTimelineTo", () => {
+  it("sends the native YouTube live coordinate through the player bridge without rewriting media.currentTime", () => {
+    const posted: unknown[] = [];
+    vi.stubGlobal("window", {
+      location: {
+        hostname: "www.youtube.com",
+        pathname: "/watch",
+        origin: "https://www.youtube.com"
+      },
+      postMessage: (message: unknown) => posted.push(message)
+    });
+
+    try {
+      const adapter = new YouTubeAdapter();
+      const media = {
+        duration: 50_390,
+        currentTime: 46_901
+      } as HTMLVideoElement;
+      const root = rootWithWatchProgress(
+        {
+          "aria-valuemin": "0",
+          "aria-valuemax": "43270",
+          "aria-valuenow": "20000"
+        },
+        true
+      );
+
+      expect(adapter.seekTimelineTo(media, 10_000, root)).toBe(true);
+      expect(media.currentTime).toBe(46_901);
+      expect(posted).toEqual([
+        {
+          channel: "floatplay:youtube-player",
+          type: "seek-to",
+          time: 10_000
+        }
+      ]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
 describe("classifyYouTubeSurface", () => {
   it("distinguishes regular watch pages from YouTube Music", () => {
     expect(classifyYouTubeSurface({ hostname: "www.youtube.com", pathname: "/watch" })).toBe(
@@ -171,23 +212,6 @@ describe("readYouTubeWatchTimelineState", () => {
 
   it("rejects incomplete native progress metadata", () => {
     expect(readYouTubeWatchTimelineState(rootWithWatchProgress({ "aria-valuenow": "10" }))).toBeNull();
-  });
-});
-
-describe("mapYouTubeWatchTimelineTimeToMediaTime", () => {
-  const timeline = {
-    start: 0,
-    end: 43_270,
-    safeEnd: 43_270,
-    current: 43_270
-  };
-
-  it("removes the media timestamp offset when seeking to the beginning of DVR history", () => {
-    expect(mapYouTubeWatchTimelineTimeToMediaTime(46_901, timeline, 0)).toBe(3_631);
-  });
-
-  it("maps the native live edge back to the current media timestamp", () => {
-    expect(mapYouTubeWatchTimelineTimeToMediaTime(46_901, timeline, 43_270)).toBe(46_901);
   });
 });
 
@@ -291,13 +315,19 @@ describe("calculateViewportIntersectionArea", () => {
   });
 });
 
-function rootWithWatchProgress(attributes: Readonly<Record<string, string>>): ParentNode {
+function rootWithWatchProgress(
+  attributes: Readonly<Record<string, string>>,
+  live = false
+): ParentNode {
   const progress = {
     getAttribute: (name: string) => attributes[name] ?? null
   } as unknown as HTMLElement;
 
   return {
-    querySelector: (selector: string) =>
-      selector.includes(".ytp-progress-bar") ? progress : null
+    querySelector: (selector: string) => {
+      if (selector.includes(".ytp-progress-bar")) return progress;
+      if (live && selector.includes("#movie_player.ytp-live")) return {} as Element;
+      return null;
+    }
   } as unknown as ParentNode;
 }
