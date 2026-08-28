@@ -124,9 +124,10 @@ describe("formatTimelineTimeDisplay", () => {
     expect(formatTimelineTimeDisplay(65, 300, "remaining")).toBe("-3:55 / 5:00");
   });
 
-  it("uses a live status instead of presenting the live edge as a final duration", () => {
-    expect(formatTimelineTimeDisplay(65, 300, "elapsed", "LIVE")).toBe("1:05 / LIVE");
-    expect(formatTimelineTimeDisplay(65, 300, "remaining", "LIVE")).toBe("-3:55 / LIVE");
+  it("shows only the live action label instead of an unstable numeric DVR time", () => {
+    expect(formatTimelineTimeDisplay(65, 300, "elapsed", "LIVE")).toBe("LIVE");
+    expect(formatTimelineTimeDisplay(65, 300, "remaining", "LIVE")).toBe("LIVE");
+    expect(formatTimelineTimeDisplay(65, 300, "elapsed", "AO VIVO")).toBe("AO VIVO");
   });
 });
 
