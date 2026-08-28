@@ -124,7 +124,7 @@ export class TimelineControl {
 
     // YouTube live seeks are asynchronous. Keep the user's selected range position
     // until the native progress bar publishes its authoritative aria-valuenow update.
-    if (!didSeek || !this.renderedLive) {
+    if (shouldRefreshAfterSeek({ didSeek, renderedLive: this.renderedLive })) {
       this.update();
     }
   }
@@ -182,4 +182,11 @@ export class TimelineControl {
 
 export function resolveTimeDisplayActivation(renderedLive: boolean): TimeDisplayActivation {
   return renderedLive ? "seek-live" : "toggle-display-mode";
+}
+
+export function shouldRefreshAfterSeek(input: {
+  readonly didSeek: boolean;
+  readonly renderedLive: boolean;
+}): boolean {
+  return !input.didSeek || !input.renderedLive;
 }
