@@ -133,20 +133,20 @@ describe("YouTubeAdapter.seekTimelineTo", () => {
       } as HTMLVideoElement;
       const root = rootWithWatchProgress(
         {
-          "aria-valuemin": "0",
-          "aria-valuemax": "43270",
-          "aria-valuenow": "20000"
+          "aria-valuemin": "15109468",
+          "aria-valuemax": "15152653",
+          "aria-valuenow": "15130000"
         },
         true
       );
 
-      expect(adapter.seekTimelineTo(media, 10_000, root)).toBe(true);
+      expect(adapter.seekTimelineTo(media, 15_120_000, root)).toBe(true);
       expect(media.currentTime).toBe(46_901);
       expect(posted).toEqual([
         {
           channel: "floatplay:youtube-player",
           type: "seek-to",
-          time: 10_000
+          time: 15_120_000
         }
       ]);
     } finally {
@@ -180,33 +180,33 @@ describe("hasYouTubeLivePlaybackSignal", () => {
 });
 
 describe("readYouTubeWatchTimelineState", () => {
-  it("uses the native watch progress coordinates so DVR playback starts at zero", () => {
+  it("keeps YouTube's absolute live DVR coordinates and lets presentation normalize them", () => {
     const root = rootWithWatchProgress({
-      "aria-valuemin": "0",
-      "aria-valuemax": "43270",
-      "aria-valuenow": "0"
+      "aria-valuemin": "15109468",
+      "aria-valuemax": "15152653",
+      "aria-valuenow": "15122009"
     });
 
     expect(readYouTubeWatchTimelineState(root)).toEqual({
-      start: 0,
-      end: 43_270,
-      safeEnd: 43_270,
-      current: 0
+      start: 15_109_468,
+      end: 15_152_653,
+      safeEnd: 15_152_653,
+      current: 15_122_009
     });
   });
 
   it("places the native watch timeline at 100% when YouTube is at the live edge", () => {
     const root = rootWithWatchProgress({
-      "aria-valuemin": "0",
-      "aria-valuemax": "43270",
-      "aria-valuenow": "43270"
+      "aria-valuemin": "15109468",
+      "aria-valuemax": "15152653",
+      "aria-valuenow": "15152653"
     });
 
     expect(readYouTubeWatchTimelineState(root)).toEqual({
-      start: 0,
-      end: 43_270,
-      safeEnd: 43_270,
-      current: 43_270
+      start: 15_109_468,
+      end: 15_152_653,
+      safeEnd: 15_152_653,
+      current: 15_152_653
     });
   });
 
