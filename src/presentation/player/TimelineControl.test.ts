@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveTimeDisplayActivation, shouldRefreshAfterSeek } from "./TimelineControl";
+import {
+  hasLiveSeekReconciled,
+  resolvePendingLiveSeekCurrent,
+  resolveTimeDisplayActivation
+} from "./TimelineControl";
+
+const liveState = {
+  start: 15_109_468,
+  end: 15_152_653,
+  safeEnd: 15_152_653,
+  current: 15_150_000
+};
 
 describe("resolveTimeDisplayActivation", () => {
   it("keeps a rendered live label bound to the live-edge action", () => {
@@ -12,13 +23,60 @@ describe("resolveTimeDisplayActivation", () => {
   });
 });
 
-describe("shouldRefreshAfterSeek", () => {
-  it("waits for the native YouTube live timeline after an accepted live seek", () => {
-    expect(shouldRefreshAfterSeek({ didSeek: true, renderedLive: true })).toBe(false);
+describe("resolvePendingLiveSeekCurrent", () => {
+  it("renders the selected live target immediately while YouTube still exposes the old native coordinate", () => {
+    expect(
+      resolvePendingLiveSeekCurrent(
+        liveState,
+        {
+          target: 15_120_000,
+          mediaTimeBeforeSeek: 46_901,
+          anchorMediaTime: null
+        },
+        46_901
+      )
+    ).toBe(15_120_000);
   });
 
-  it("refreshes immediately for regular media or rejected seeks", () => {
-    expect(shouldRefreshAfterSeek({ didSeek: true, renderedLive: false })).toBe(true);
-    expect(shouldRefreshAfterSeek({ didSeek: false, renderedLive: true })).toBe(true);
+  it("advances from the selected live target using media-time deltas after the seek has landed", () => {
+    expect(
+      resolvePendingLiveSeekCurrent(
+        liveState,
+        {
+          target: 15_120_000,
+          mediaTimeBeforeSeek: 46_901,
+          anchorMediaTime: 8_000
+        },
+        8_005.5
+      )
+    ).toBe(15_120_005.5);
+  });
+
+  it("clamps an optimistic live target to the current DVR window", () => {
+    expect(
+      resolvePendingLiveSeekCurrent(
+        liveState,
+        {
+          target: liveState.end,
+          mediaTimeBeforeSeek: 46_901,
+          anchorMediaTime: 8_000
+        },
+        8_010
+      )
+    ).toBe(liveState.end);
+  });
+
+  it("uses the authoritative coordinate when no live seek is pending", () => {
+    expect(resolvePendingLiveSeekCurrent(liveState, null, 8_000)).toBe(liveState.current);
+  });
+});
+
+describe("hasLiveSeekReconciled", () => {
+  it("accepts the native timeline once it catches the displayed pending position", () => {
+    expect(hasLiveSeekReconciled(15_120_001, 15_120_000)).toBe(true);
+  });
+
+  it("keeps the pending position while YouTube still exposes a stale coordinate", () => {
+    expect(hasLiveSeekReconciled(15_150_000, 15_120_000)).toBe(false);
   });
 });
