@@ -16,11 +16,14 @@ export interface TimelineMirror {
   isLiveMedia?(media: HTMLVideoElement): boolean;
 }
 
+export type TimeDisplayActivation = "seek-live" | "toggle-display-mode";
+
 export class TimelineControl {
   private readonly lifecycle = new AbortController();
   private input: HTMLInputElement | null = null;
   private timeDisplay: HTMLButtonElement | null = null;
   private displayMode: TimeDisplayMode;
+  private renderedLive = false;
 
   public constructor(
     private readonly media: HTMLVideoElement,
@@ -88,9 +91,9 @@ export class TimelineControl {
   }
 
   private activateTimeDisplay(): void {
-    if (this.isLive()) {
+    if (resolveTimeDisplayActivation(this.renderedLive) === "seek-live") {
       const state = this.getTimelineState();
-      if (state !== null) this.seekTo(state.end);
+      if (state !== null) this.seekTo(state.safeEnd);
       return;
     }
 
@@ -117,9 +120,12 @@ export class TimelineControl {
 
     const state = this.getTimelineState();
     if (state === null) {
+      this.renderedLive = false;
       input.disabled = true;
       input.value = "0";
       input.style.setProperty("--floatplay-timeline-progress", "0%");
+      timeDisplay.setAttribute("aria-label", this.timeDisplayToggleLabel);
+      timeDisplay.title = this.timeDisplayToggleLabel;
       timeDisplay.textContent = "0:00 / 0:00";
       return;
     }
@@ -133,6 +139,7 @@ export class TimelineControl {
     const elapsed = state.current - state.start;
     const progress = total > 0 ? (elapsed / total) * 100 : 0;
     const isLive = this.isLive();
+    this.renderedLive = isLive;
     const liveLabel = isLive ? getLiveTimelineLabel(this.getDocumentLanguage()) : undefined;
     const displayText = formatTimelineTimeDisplay(elapsed, total, isLive ? "elapsed" : this.displayMode, liveLabel);
     const actionLabel = liveLabel ?? this.timeDisplayToggleLabel;
@@ -155,4 +162,8 @@ export class TimelineControl {
   private getDocumentLanguage(): string {
     return this.document.documentElement.lang || this.document.defaultView?.navigator.language || "en";
   }
+}
+
+export function resolveTimeDisplayActivation(renderedLive: boolean): TimeDisplayActivation {
+  return renderedLive ? "seek-live" : "toggle-display-mode";
 }
