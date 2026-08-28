@@ -144,12 +144,17 @@ export class YouTubeAdapter {
 
     if (this.isLiveMedia(media, root)) {
       const nativeState = readYouTubeWatchTimelineState(root);
-      const mediaTarget = nativeState === null
-        ? null
-        : mapYouTubeWatchTimelineTimeToMediaTime(media.currentTime, nativeState, time);
 
-      if (mediaTarget !== null) {
-        return seekMediaTimelineTo(media, mediaTarget);
+      if (nativeState !== null && Number.isFinite(time)) {
+        const nativeTarget = clamp(time, nativeState.start, nativeState.safeEnd);
+        const message = createSeekBridgeMessage(nativeTarget);
+
+        if (message === null) {
+          return false;
+        }
+
+        this.postPlayerMessage(message);
+        return true;
       }
     }
 
@@ -297,24 +302,6 @@ export function readYouTubeWatchTimelineState(root: ParentNode): MediaTimelineSt
     safeEnd: end,
     current: clamp(current, start, end)
   };
-}
-
-export function mapYouTubeWatchTimelineTimeToMediaTime(
-  mediaCurrentTime: number,
-  timeline: MediaTimelineState,
-  targetTime: number
-): number | null {
-  if (!Number.isFinite(mediaCurrentTime) || !Number.isFinite(targetTime)) {
-    return null;
-  }
-
-  const offset = mediaCurrentTime - timeline.current;
-
-  if (!Number.isFinite(offset)) {
-    return null;
-  }
-
-  return clamp(targetTime, timeline.start, timeline.safeEnd) + offset;
 }
 
 export function findDirectChildContaining(
