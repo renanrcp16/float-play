@@ -37,18 +37,15 @@ describe("resolvePendingLiveSeekCurrent", () => {
     ).toBe(15_120_000);
   });
 
-  it("keeps a stale native coordinate from overwriting the selected live target before seeked", () => {
-    const displayedCurrent = resolvePendingLiveSeekCurrent(
-      { ...liveState, current: 15_150_000 },
-      {
-        target: 15_120_000,
-        anchorMediaTime: null
-      },
-      46_902
-    );
+  it("keeps stale time updates from overwriting the selected live target before seeked", () => {
+    const pending = {
+      target: 15_120_000,
+      anchorMediaTime: null
+    };
 
-    expect(displayedCurrent).toBe(15_120_000);
-    expect(hasLiveSeekReconciled(15_150_000, displayedCurrent)).toBe(false);
+    expect(resolvePendingLiveSeekCurrent(liveState, pending, 46_901)).toBe(15_120_000);
+    expect(resolvePendingLiveSeekCurrent(liveState, pending, 46_902)).toBe(15_120_000);
+    expect(hasLiveSeekReconciled(liveState.current, 15_120_000)).toBe(false);
   });
 
   it("advances from the selected live target using media-time deltas after seeked anchors the media clock", () => {
