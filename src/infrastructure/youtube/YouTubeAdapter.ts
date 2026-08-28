@@ -1,5 +1,6 @@
 import {
   getMediaTimelineState,
+  isLiveTimelineMedia,
   seekTimelineTo as seekMediaTimelineTo,
   type MediaTimelineState
 } from "../../application/MediaTimeline";
@@ -12,6 +13,8 @@ import {
   type YouTubePlayerBridgeMessage,
   type YouTubeTrackDirection
 } from "./YouTubePlayerBridgeProtocol";
+
+const YOUTUBE_WATCH_TIMELINE_SELECTOR = '.ytp-progress-bar[role="slider"], .ytp-progress-bar';
 
 interface PageLocation {
   readonly hostname: string;
@@ -48,6 +51,10 @@ export class YouTubeAdapter {
 
   public isAudioOnlyRequired(location: PageLocation = window.location): boolean {
     return classifyYouTubeSurface(location) === "youtube-music";
+  }
+
+  public isLiveMedia(media: HTMLVideoElement, root: ParentNode = document): boolean {
+    return isLiveTimelineMedia(media) || hasYouTubeLivePlaybackSignal(root);
   }
 
   public findTriggerAnchor(root: ParentNode = document): YouTubeTriggerAnchor | null {
@@ -103,11 +110,15 @@ export class YouTubeAdapter {
     media: HTMLVideoElement,
     root: ParentNode = document
   ): MediaTimelineState | null {
-    if (!this.isAudioOnlyRequired()) {
-      return getMediaTimelineState(media);
+    if (this.isAudioOnlyRequired()) {
+      return readYouTubeMusicTimelineState(root) ?? getMediaTimelineState(media);
     }
 
-    return readYouTubeMusicTimelineState(root) ?? getMediaTimelineState(media);
+    if (this.isLiveMedia(media, root)) {
+      return readYouTubeWatchTimelineState(root) ?? getMediaTimelineState(media);
+    }
+
+    return getMediaTimelineState(media);
   }
 
   public seekTimelineTo(
@@ -115,25 +126,41 @@ export class YouTubeAdapter {
     time: number,
     root: ParentNode = document
   ): boolean {
-    if (!this.isAudioOnlyRequired()) {
-      return seekMediaTimelineTo(media, time);
+    if (this.isAudioOnlyRequired()) {
+      const nativeState = readYouTubeMusicTimelineState(root);
+
+      if (nativeState === null || !Number.isFinite(time)) {
+        return seekMediaTimelineTo(media, time);
+      }
+
+      const relativeTarget = clamp(time, nativeState.start, nativeState.safeEnd);
+      const message = createSeekBridgeMessage(relativeTarget);
+
+      if (message === null) {
+        return false;
+      }
+
+      this.postPlayerMessage(message);
+      return true;
     }
 
-    const nativeState = readYouTubeMusicTimelineState(root);
+    if (this.isLiveMedia(media, root)) {
+      const nativeState = readYouTubeWatchTimelineState(root);
 
-    if (nativeState === null || !Number.isFinite(time)) {
-      return seekMediaTimelineTo(media, time);
+      if (nativeState !== null && Number.isFinite(time)) {
+        const nativeTarget = clamp(time, nativeState.start, nativeState.safeEnd);
+        const message = createSeekBridgeMessage(nativeTarget);
+
+        if (message === null) {
+          return false;
+        }
+
+        this.postPlayerMessage(message);
+        return true;
+      }
     }
 
-    const relativeTarget = clamp(time, nativeState.start, nativeState.safeEnd);
-    const message = createSeekBridgeMessage(relativeTarget);
-
-    if (message === null) {
-      return false;
-    }
-
-    this.postPlayerMessage(message);
-    return true;
+    return seekMediaTimelineTo(media, time);
   }
 
   public setVolume(volume: number): void {
@@ -242,6 +269,41 @@ export function classifyYouTubeSurface(location: PageLocation): YouTubeSurface |
 
   const isYouTubeHost = location.hostname === "www.youtube.com" || location.hostname === "youtube.com";
   return isYouTubeHost && location.pathname === "/watch" ? "youtube-watch" : null;
+}
+
+export function hasYouTubeLivePlaybackSignal(root: ParentNode): boolean {
+  return root.querySelector(
+    "#movie_player.ytp-live, .ytp-time-display.ytp-live, .ytp-live-badge.ytp-live-badge-is-livehead"
+  ) !== null;
+}
+
+export function readYouTubeWatchTimelineState(root: ParentNode): MediaTimelineState | null {
+  const progress = root.querySelector<HTMLElement>(YOUTUBE_WATCH_TIMELINE_SELECTOR);
+
+  if (progress === null) {
+    return null;
+  }
+
+  const start = readAttributeNumber(progress, "aria-valuemin") ?? 0;
+  const end = readAttributeNumber(progress, "aria-valuemax");
+  const current = readAttributeNumber(progress, "aria-valuenow");
+
+  if (
+    end === null ||
+    current === null ||
+    end <= start ||
+    current < start - 1 ||
+    current > end + 1
+  ) {
+    return null;
+  }
+
+  return {
+    start,
+    end,
+    safeEnd: end,
+    current: clamp(current, start, end)
+  };
 }
 
 export function findDirectChildContaining(
@@ -377,8 +439,18 @@ function readControlNumber(
     }
   }
 
-  const attributeValue = Number(element.getAttribute(attributeName));
-  return Number.isFinite(attributeValue) ? attributeValue : null;
+  return readAttributeNumber(element, attributeName);
+}
+
+function readAttributeNumber(element: Element, attributeName: string): number | null {
+  const attribute = element.getAttribute(attributeName);
+
+  if (attribute === null) {
+    return null;
+  }
+
+  const value = Number(attribute);
+  return Number.isFinite(value) ? value : null;
 }
 
 function parseClockTime(value: string): number | null {

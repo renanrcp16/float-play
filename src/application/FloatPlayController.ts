@@ -299,9 +299,9 @@ export class FloatPlayController {
         forwardSeconds: this.settings.seekForwardSeconds,
         timeDisplayMode: this.settings.timeDisplayMode,
         onTimeDisplayModeChange: (mode) => this.updateTimeDisplayMode(mode),
+        timelineMirror: this.youtube,
         ...(audioOnlyRequired
           ? {
-              timelineMirror: this.youtube,
               trackNavigation: {
                 previousLabel: this.labels.previousTrack,
                 nextLabel: this.labels.nextTrack,

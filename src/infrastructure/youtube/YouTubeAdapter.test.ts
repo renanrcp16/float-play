@@ -1,9 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   calculateViewportIntersectionArea,
   classifyYouTubeSurface,
   findDirectChildContaining,
+  hasYouTubeLivePlaybackSignal,
   parseYouTubeMusicTimeInfo,
+  readYouTubeWatchTimelineState,
   YouTubeAdapter
 } from "./YouTubeAdapter";
 
@@ -83,6 +85,76 @@ describe("YouTubeAdapter.isSupportedPage", () => {
   });
 });
 
+describe("YouTubeAdapter.isLiveMedia", () => {
+  const adapter = new YouTubeAdapter();
+
+  it("uses the media duration when the browser exposes an infinite live timeline", () => {
+    const root = { querySelector: () => null } as unknown as ParentNode;
+    const media = { duration: Number.POSITIVE_INFINITY } as HTMLVideoElement;
+
+    expect(adapter.isLiveMedia(media, root)).toBe(true);
+  });
+
+  it("keeps a finite-duration YouTube broadcast live while playback is behind the livehead", () => {
+    const root = {
+      querySelector: (selector: string) =>
+        selector.includes(".ytp-time-display.ytp-live") ? ({} as Element) : null
+    } as unknown as ParentNode;
+    const media = { duration: 50_390 } as HTMLVideoElement;
+
+    expect(adapter.isLiveMedia(media, root)).toBe(true);
+  });
+
+  it("keeps finite VOD media non-live when YouTube has no live playback signal", () => {
+    const root = { querySelector: () => null } as unknown as ParentNode;
+    const media = { duration: 300 } as HTMLVideoElement;
+
+    expect(adapter.isLiveMedia(media, root)).toBe(false);
+  });
+});
+
+describe("YouTubeAdapter.seekTimelineTo", () => {
+  it("sends the native YouTube live coordinate through the player bridge without rewriting media.currentTime", () => {
+    const posted: unknown[] = [];
+    vi.stubGlobal("window", {
+      location: {
+        hostname: "www.youtube.com",
+        pathname: "/watch",
+        origin: "https://www.youtube.com"
+      },
+      postMessage: (message: unknown) => posted.push(message)
+    });
+
+    try {
+      const adapter = new YouTubeAdapter();
+      const media = {
+        duration: 50_390,
+        currentTime: 46_901
+      } as HTMLVideoElement;
+      const root = rootWithWatchProgress(
+        {
+          "aria-valuemin": "15109468",
+          "aria-valuemax": "15152653",
+          "aria-valuenow": "15130000"
+        },
+        true
+      );
+
+      expect(adapter.seekTimelineTo(media, 15_120_000, root)).toBe(true);
+      expect(media.currentTime).toBe(46_901);
+      expect(posted).toEqual([
+        {
+          channel: "floatplay:youtube-player",
+          type: "seek-to",
+          time: 15_120_000
+        }
+      ]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
 describe("classifyYouTubeSurface", () => {
   it("distinguishes regular watch pages from YouTube Music", () => {
     expect(classifyYouTubeSurface({ hostname: "www.youtube.com", pathname: "/watch" })).toBe(
@@ -91,6 +163,55 @@ describe("classifyYouTubeSurface", () => {
     expect(classifyYouTubeSurface({ hostname: "music.youtube.com", pathname: "/playlist" })).toBe(
       "youtube-music"
     );
+  });
+});
+
+describe("hasYouTubeLivePlaybackSignal", () => {
+  it("recognizes persistent YouTube live playback classes as well as the livehead badge", () => {
+    const liveRoot = {
+      querySelector: (selector: string) =>
+        selector.includes("#movie_player.ytp-live") ? ({} as Element) : null
+    } as unknown as ParentNode;
+    const vodRoot = { querySelector: () => null } as unknown as ParentNode;
+
+    expect(hasYouTubeLivePlaybackSignal(liveRoot)).toBe(true);
+    expect(hasYouTubeLivePlaybackSignal(vodRoot)).toBe(false);
+  });
+});
+
+describe("readYouTubeWatchTimelineState", () => {
+  it("keeps YouTube's absolute live DVR coordinates and lets presentation normalize them", () => {
+    const root = rootWithWatchProgress({
+      "aria-valuemin": "15109468",
+      "aria-valuemax": "15152653",
+      "aria-valuenow": "15122009"
+    });
+
+    expect(readYouTubeWatchTimelineState(root)).toEqual({
+      start: 15_109_468,
+      end: 15_152_653,
+      safeEnd: 15_152_653,
+      current: 15_122_009
+    });
+  });
+
+  it("places the native watch timeline at 100% when YouTube is at the live edge", () => {
+    const root = rootWithWatchProgress({
+      "aria-valuemin": "15109468",
+      "aria-valuemax": "15152653",
+      "aria-valuenow": "15152653"
+    });
+
+    expect(readYouTubeWatchTimelineState(root)).toEqual({
+      start: 15_109_468,
+      end: 15_152_653,
+      safeEnd: 15_152_653,
+      current: 15_152_653
+    });
+  });
+
+  it("rejects incomplete native progress metadata", () => {
+    expect(readYouTubeWatchTimelineState(rootWithWatchProgress({ "aria-valuenow": "10" }))).toBeNull();
   });
 });
 
@@ -193,3 +314,20 @@ describe("calculateViewportIntersectionArea", () => {
     ).toBe(0);
   });
 });
+
+function rootWithWatchProgress(
+  attributes: Readonly<Record<string, string>>,
+  live = false
+): ParentNode {
+  const progress = {
+    getAttribute: (name: string) => attributes[name] ?? null
+  } as unknown as HTMLElement;
+
+  return {
+    querySelector: (selector: string) => {
+      if (selector.includes(".ytp-progress-bar")) return progress;
+      if (live && selector.includes("#movie_player.ytp-live")) return {} as Element;
+      return null;
+    }
+  } as unknown as ParentNode;
+}
