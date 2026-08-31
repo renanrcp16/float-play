@@ -5,9 +5,9 @@ This document prepares Chrome Web Store metadata and reviewer-facing explanation
 ## Current package identity
 
 - Name: FloatPlay
-- Published stable version: `1.1.1`
-- Current release target: `1.1.2`
-- Release type: focused patch hotfix
+- Published stable version: `1.1.2`
+- Current release target: none
+- Last release type: focused patch hotfix
 - Manifest: Manifest V3
 - Default locale: English
 - Additional locale: Brazilian Portuguese
@@ -17,6 +17,15 @@ This document prepares Chrome Web Store metadata and reviewer-facing explanation
 - Extension-page CSP: `default-src 'self'`
 - External messaging: closed with empty `externally_connectable.ids`
 - Web-accessible resource exposure: only `brand/icon.svg` on approved YouTube origins
+
+## v1.1.2 publication record
+
+- Chrome Web Store publication confirmed on 2026-08-31.
+- Exact released candidate SHA: `33f8aac63a4ec53fb8485e7a8052ff6479c6dfd0`.
+- Release ZIP: `floatplay-1.1.2.zip` (`16` files, `137209` bytes).
+- Release ZIP SHA-256: `7F5F9D0C036F9F4FB187E8B7CF6268514C3B074DC0107D2CB60A28FCBFF82247`.
+- GitHub Release: `https://github.com/renanrcp16/float-play/releases/tag/v1.1.2`.
+- No permission, site-access, persisted-setting, privacy, backend/network, analytics/telemetry, dependency, or MAIN-world message-type expansion was introduced.
 
 ## v1.1.2 hotfix scope
 
@@ -31,7 +40,7 @@ This release fixes Picture-in-Picture timeline behavior for YouTube live streams
 
 The release does not add a new permission, host, persisted setting, data-handling behavior, backend/network path, analytics/telemetry, dependency, or new MAIN-world message type.
 
-## Suggested update note
+## Update note used for this release
 
 English:
 
@@ -41,7 +50,7 @@ Brazilian Portuguese:
 
 > Corrige o comportamento da timeline do Picture-in-Picture em transmissões ao vivo do YouTube, com navegação DVR mais confiável e uma ação AO VIVO que retorna ao ponto mais recente da transmissão.
 
-The Chrome Web Store dashboard did not require a dedicated release-note field for v1.1.1. If the current dashboard still does not request one, no listing-description edit is required solely to publish this patch.
+No listing-description or screenshot change was required solely for this focused hotfix.
 
 ## Public release links
 
@@ -87,7 +96,7 @@ v1.1.2 keeps the v1.1.1 release posture unchanged:
 
 ## Store assets
 
-No new screenshot or promotional asset is required for v1.1.2. The hotfix changes live timeline semantics and reliability without introducing a new advertised surface or changing the overall player layout.
+No new screenshot or promotional asset was required for v1.1.2. The hotfix changes live timeline semantics and reliability without introducing a new advertised surface or changing the overall player layout.
 
 Existing listing screenshots remain valid. The Options Page screenshot workflow remains:
 
@@ -97,7 +106,7 @@ pnpm capture:store-screenshot
 
 ## Final dashboard review
 
-Before submission verify that:
+Immediately before any future submission verify that:
 
 - the single-purpose statement matches the shipped extension;
 - permission/site-access justifications match `public/manifest.json`;
@@ -105,4 +114,4 @@ Before submission verify that:
 - privacy-policy and support URLs work;
 - listing text/screenshots remain accurate;
 - no unsupported claims or comparative marketing were added;
-- the uploaded ZIP contains `manifest.json` at the root, reports `1.1.2`, and contains no source maps or repository artifacts.
+- the uploaded ZIP contains `manifest.json` at the root, reports the intended version, and contains no source maps or repository artifacts.
