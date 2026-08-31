@@ -4,16 +4,26 @@ This document is the canonical checklist for preparing a FloatPlay release candi
 
 ## Current release status
 
-- Public stable: `v1.1.1`
-- Current release target: `v1.1.2`
-- Release type: focused patch hotfix
-- Release branch: `release/v1.1.2`
+- Public stable: `v1.1.2`
+- Current release target: none
+- Last release type: focused patch hotfix
+- Released candidate SHA: `33f8aac63a4ec53fb8485e7a8052ff6479c6dfd0`
 - Release issue: #136
-- Runtime baseline before release prep: `eafc821b1ff8f7dc5ca00827b4426a1524caf49b`
 
 `package.json` and `public/manifest.json` must remain synchronized. Any package-relevant change after candidate validation creates a new candidate SHA and invalidates candidate-specific validation/package records.
 
-Existing release tags are immutable. Do not move or recreate `v1.0.0`, `v1.1.0`, or `v1.1.1`.
+Existing release tags are immutable. Do not move or recreate `v1.0.0`, `v1.1.0`, `v1.1.1`, or `v1.1.2`.
+
+## v1.1.2 publication record
+
+- Chrome Web Store publication confirmed on 2026-08-31.
+- Exact released candidate SHA: `33f8aac63a4ec53fb8485e7a8052ff6479c6dfd0`.
+- Release tag: `v1.1.2` on that exact SHA.
+- GitHub Release: `https://github.com/renanrcp16/float-play/releases/tag/v1.1.2`.
+- Release ZIP: `floatplay-1.1.2.zip` (`16` files, `137209` bytes).
+- Release ZIP SHA-256: `7F5F9D0C036F9F4FB187E8B7CF6268514C3B074DC0107D2CB60A28FCBFF82247`.
+- GitHub asset digest matches: `sha256:7f5f9d0c036f9f4fb187e8b7cf6268514c3b074dc0107d2cb60a28fcbff82247`.
+- Targeted real YouTube live validation passed before release preparation.
 
 ## v1.1.2 scope
 
@@ -77,7 +87,7 @@ Synthetic E2E is not proof of live YouTube compatibility. The #135 targeted real
 12. After Chrome Web Store publication is confirmed, create tag `v1.1.2` on the exact released SHA and publish a GitHub Release with the same ZIP.
 13. Close #136 only after Store publication, tag, and GitHub Release are confirmed.
 
-If any package-relevant change is required after the release-prep merge, stop and treat the new merged SHA as a new candidate.
+This workflow completed successfully for v1.1.2. Any later documentation or development commits on `main` do not change the immutable released candidate or tag.
 
 ## Release package contract
 
@@ -85,7 +95,7 @@ If any package-relevant change is required after the release-prep merge, stop an
 
 Before upload, confirm at minimum:
 
-- `manifest.json` is at the archive root and reports `1.1.2`;
+- `manifest.json` is at the archive root and reports the intended release version;
 - `content.js`, `youtube-player-main.js`, `service-worker.js`, `options.html`, `options.js`, and `options.css` are present;
 - `_locales/en/messages.json` and `_locales/pt_BR/messages.json` are present;
 - required icons and `brand/icon.svg` are present;
@@ -101,4 +111,4 @@ v1.1.2 changes live timeline/player synchronization only. It does not change dat
 
 ## Final gate
 
-Do not tag or publish the GitHub Release before the exact v1.1.2 package is published on the Chrome Web Store. The release tracker #136 remains open until all publication steps are complete.
+The v1.1.2 package passed candidate validation, package inspection, Chrome Web Store publication, exact-tag verification, and GitHub Release asset/digest verification. The released candidate SHA and `v1.1.2` tag are immutable for release-record purposes.

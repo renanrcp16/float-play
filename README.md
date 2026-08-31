@@ -4,7 +4,7 @@ FloatPlay is a Chrome extension that enhances YouTube and YouTube Music Picture-
 
 ## Status
 
-FloatPlay `v1.1.1` is publicly available on the Chrome Web Store. `v1.1.2` is being prepared as a focused hotfix for YouTube live-stream Picture-in-Picture timeline behavior.
+FloatPlay `v1.1.2` is publicly available on the Chrome Web Store. This focused hotfix improves YouTube live-stream Picture-in-Picture timeline behavior.
 
 - [Install FloatPlay from the Chrome Web Store](https://chromewebstore.google.com/detail/floatplay/eegmhncffdkhjlnnifaaghkgfphicpgo)
 - [View FloatPlay GitHub Releases](https://github.com/renanrcp16/float-play/releases)
