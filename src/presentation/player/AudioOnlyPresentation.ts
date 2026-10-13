@@ -1,9 +1,9 @@
 import type { Logger } from "../../shared/Logger";
 
 export const AUDIO_ONLY_COMPACT_WIDTH = 250;
-export const AUDIO_ONLY_COMPACT_HEIGHT = 80;
+export const AUDIO_ONLY_COMPACT_HEIGHT = 104;
 export const AUDIO_ONLY_MENU_WIDTH = 300;
-export const AUDIO_ONLY_MENU_HEIGHT = 120;
+export const AUDIO_ONLY_MENU_HEIGHT = 144;
 export const AUDIO_ONLY_CLASS = "floatplay-audio-only";
 
 export interface ViewportSize {

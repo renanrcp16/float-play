@@ -53,6 +53,14 @@ export class YouTubeAdapter {
     return classifyYouTubeSurface(location) === "youtube-music";
   }
 
+  public getCurrentTrackTitle(root: ParentNode = document): string | null {
+    if (!this.isAudioOnlyRequired()) {
+      return null;
+    }
+
+    return readYouTubeMusicTrackTitle(root);
+  }
+
   public isLiveMedia(media: HTMLVideoElement, root: ParentNode = document): boolean {
     return isLiveTimelineMedia(media) || hasYouTubeLivePlaybackSignal(root);
   }
@@ -332,6 +340,19 @@ export function selectYouTubeMusicMedia(
     (video) => !video.ended && (video.readyState > 0 || video.currentSrc.length > 0)
   );
   return ready ?? candidates[0] ?? null;
+}
+
+export function readYouTubeMusicTrackTitle(root: ParentNode): string | null {
+  const titleElement = root.querySelector<HTMLElement>("ytmusic-player-bar .title");
+
+  if (titleElement === null) {
+    return null;
+  }
+
+  const textContent = titleElement.textContent?.replace(/\s+/g, " ").trim();
+  const title = textContent || titleElement.getAttribute("title")?.trim() || "";
+
+  return title.length > 0 ? title : null;
 }
 
 export function parseYouTubeMusicTimeInfo(text: string): MediaTimelineState | null {

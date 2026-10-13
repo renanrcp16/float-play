@@ -16,7 +16,7 @@ The v1.1 line includes supported YouTube Music playback, persistent Audio-only m
 - Document Picture-in-Picture mini player for supported YouTube watch pages and YouTube Music.
 - Play/Pause, configurable seeking, timeline, volume/mute, playback speed, keyboard shortcuts, and auto-hide controls.
 - YouTube live streams use the native DVR coordinate space for PiP seeking and show a stable `LIVE` / `AO VIVO` action instead of an unreliable numeric live clock.
-- YouTube Music Audio-only playback with current-track timeline plus previous/next track controls.
+- YouTube Music Audio-only playback with the current track title, current-track timeline, and previous/next track controls.
 - Persistent Audio-only preference for standard YouTube and optional PiP video-surface Play/Pause.
 - Icon-only YouTube/YouTube Music entry points with one-time onboarding guidance.
 - Full Options Page with synchronized preferences and English/Brazilian Portuguese localization.
