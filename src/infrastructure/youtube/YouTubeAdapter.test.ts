@@ -5,6 +5,7 @@ import {
   findDirectChildContaining,
   hasYouTubeLivePlaybackSignal,
   parseYouTubeMusicTimeInfo,
+  readYouTubeMusicTrackTitle,
   readYouTubeWatchTimelineState,
   YouTubeAdapter
 } from "./YouTubeAdapter";
@@ -231,6 +232,39 @@ describe("findDirectChildContaining", () => {
     (otherParent as { parentElement?: HTMLElement | null }).parentElement = null;
 
     expect(findDirectChildContaining(parent, nested)).toBeNull();
+  });
+});
+
+describe("readYouTubeMusicTrackTitle", () => {
+  it("normalizes whitespace in the current track title", () => {
+    const titleElement = {
+      textContent: "  A Song\n  Title  ",
+      getAttribute: () => null
+    } as unknown as HTMLElement;
+    const root = {
+      querySelector: (selector: string) =>
+        selector === "ytmusic-player-bar .title" ? titleElement : null
+    } as unknown as ParentNode;
+
+    expect(readYouTubeMusicTrackTitle(root)).toBe("A Song Title");
+  });
+
+  it("falls back to the native title attribute when text is empty", () => {
+    const titleElement = {
+      textContent: "  ",
+      getAttribute: (name: string) => name === "title" ? "Fallback title" : null
+    } as unknown as HTMLElement;
+    const root = {
+      querySelector: () => titleElement
+    } as unknown as ParentNode;
+
+    expect(readYouTubeMusicTrackTitle(root)).toBe("Fallback title");
+  });
+
+  it("returns null when the player bar has no usable title", () => {
+    const root = { querySelector: () => null } as unknown as ParentNode;
+
+    expect(readYouTubeMusicTrackTitle(root)).toBeNull();
   });
 });
 
