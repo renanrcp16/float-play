@@ -84,7 +84,7 @@ Its responsibilities include:
 - finding the active connected `<video>`;
 - ranking standard YouTube candidates by visible viewport area;
 - restricting YouTube Music media discovery to the player media rather than unrelated page videos;
-- reading the current-track YouTube Music timeline from the native player-bar state when media timestamps are cumulative;
+- reading the current YouTube Music track title and current-track timeline from native player-bar state;
 - requesting current-track seeking through the narrow same-page bridge on YouTube Music;
 - requesting previous/next track navigation through the same narrow bridge on YouTube Music;
 - sending minimal same-page synchronization messages for volume, mute, and playback-rate compatibility.
