@@ -24,20 +24,20 @@ describe("Audio-only presentation sizing", () => {
   });
 
   test("calculates the exact delta between compact and menu viewports", () => {
-    expect(calculateViewportResizeDelta(250, 80, 300, 120)).toEqual({
+    expect(calculateViewportResizeDelta(250, 104, 300, 144)).toEqual({
       width: 50,
       height: 40
     });
-    expect(calculateViewportResizeDelta(300, 120, 250, 80)).toEqual({
+    expect(calculateViewportResizeDelta(300, 144, 250, 104)).toEqual({
       width: -50,
       height: -40
     });
   });
 
   test("calculates the exact delta needed to restore a previous video viewport", () => {
-    expect(calculateViewportResizeDelta(250, 80, 480, 270)).toEqual({
+    expect(calculateViewportResizeDelta(250, 104, 480, 270)).toEqual({
       width: 230,
-      height: 190
+      height: 166
     });
   });
 });
