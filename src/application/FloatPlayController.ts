@@ -164,6 +164,7 @@ export class FloatPlayController {
 
     if (this.pip.isOpen() && this.youtube.isAudioOnlyRequired()) {
       this.reconcileYouTubeMusicMedia();
+      this.playerShell?.setTrackTitle(this.youtube.getCurrentTrackTitle());
     }
 
     this.trigger.refreshPlacement(this.youtube.findTriggerAnchor());
@@ -302,6 +303,9 @@ export class FloatPlayController {
         timelineMirror: this.youtube,
         ...(audioOnlyRequired
           ? {
+              trackTitle: {
+                initialTitle: this.youtube.getCurrentTrackTitle()
+              },
               trackNavigation: {
                 previousLabel: this.labels.previousTrack,
                 nextLabel: this.labels.nextTrack,
