@@ -28,6 +28,7 @@ export interface PlayerPlaybackConfig {
   readonly onTimeDisplayModeChange: (mode: TimeDisplayMode) => void;
   readonly timelineMirror?: TimelineMirror;
   readonly trackNavigation?: TrackNavigationConfig;
+  readonly trackTitle?: { readonly initialTitle: string | null };
 }
 
 type NavigationDirection = "backward" | "forward";
@@ -38,6 +39,7 @@ export class PlayerShell {
   private mounted = false;
   private playbackButton: HTMLButtonElement | null = null;
   private timelineControl: TimelineControl | null = null;
+  private trackTitleElement: HTMLDivElement | null = null;
 
   public constructor(
     private readonly media: HTMLVideoElement,
@@ -71,6 +73,18 @@ export class PlayerShell {
 
     const controls = document.createElement("div");
     controls.className = "floatplay-controls";
+
+    const trackTitleConfig = this.config.trackTitle;
+    const trackTitleElement = trackTitleConfig === undefined
+      ? null
+      : document.createElement("div");
+
+    if (trackTitleElement !== null && trackTitleConfig !== undefined) {
+      trackTitleElement.className = "floatplay-track-title";
+      trackTitleElement.setAttribute("aria-live", "polite");
+      trackTitleElement.setAttribute("aria-atomic", "true");
+      this.updateTrackTitleElement(trackTitleElement, trackTitleConfig.initialTitle);
+    }
 
     const buttonRow = document.createElement("div");
     buttonRow.className = "floatplay-button-row";
@@ -112,6 +126,9 @@ export class PlayerShell {
       buttonRow.append(nextTrackButton);
     }
 
+    if (trackTitleElement !== null) {
+      controls.append(trackTitleElement);
+    }
     controls.append(timelineControl.create(), buttonRow);
     root.append(this.media, controls);
     document.body.replaceChildren(root);
@@ -168,9 +185,18 @@ export class PlayerShell {
 
     this.playbackButton = playbackButton;
     this.timelineControl = timelineControl;
+    this.trackTitleElement = trackTitleElement;
     this.mounted = true;
     this.installStyles(document);
     this.updatePlaybackButton();
+  }
+
+  public setTrackTitle(title: string | null): void {
+    if (this.trackTitleElement === null) {
+      return;
+    }
+
+    this.updateTrackTitleElement(this.trackTitleElement, title);
   }
 
   public dispose(): void {
@@ -182,7 +208,20 @@ export class PlayerShell {
     this.lifecycle.abort();
     this.playbackButton = null;
     this.timelineControl = null;
+    this.trackTitleElement = null;
     this.mounted = false;
+  }
+
+  private updateTrackTitleElement(element: HTMLDivElement, title: string | null): void {
+    const normalizedTitle = title?.replace(/\s+/g, " ").trim() || null;
+    const text = normalizedTitle ?? "";
+
+    if (element.textContent !== text) {
+      element.textContent = text;
+    }
+
+    element.hidden = normalizedTitle === null;
+    element.title = normalizedTitle ?? "";
   }
 
   private createNavigationButton(
@@ -378,6 +417,24 @@ export class PlayerShell {
           rgb(0 0 0 / 58%) 100%
         );
         pointer-events: none;
+      }
+
+      .floatplay-track-title {
+        display: block;
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        color: #fff;
+        font: 500 12px/1.2 system-ui, sans-serif;
+        text-overflow: ellipsis;
+        text-shadow: 0 1px 3px rgb(0 0 0 / 90%);
+        white-space: nowrap;
+        user-select: none;
+        pointer-events: none;
+      }
+
+      .floatplay-track-title[hidden] {
+        display: none;
       }
 
       .floatplay-button-row {
