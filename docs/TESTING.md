@@ -20,7 +20,7 @@ Passing deterministic E2E does not prove compatibility with the current live You
 - **S0-04 — Playback continuity:** moving the video does not structurally break playback.
 - **S0-05 — State preservation:** current time, volume, mute state, and playback rate are preserved. An external rate above 2x is not reduced merely by opening FloatPlay.
 - **S0-06 — Restore:** closing PiP restores the exact video element to its original logical DOM position.
-- **S0-07 — Repeatability:** repeated open/close cycles do not create duplicate behavior, lose the media element, or accumulate FloatPlay errors.
+- **S0-07 — Repeatability:** repeated open/close cycles do not create duplicate behavior, lose the media element, or accumulate FloatPlay errors. If YouTube reparents the same connected video while the PiP window is being created, the session must remain open and restore the video to its current origin.
 - **S0-08 — Resize and aspect ratio:** the initial PiP window follows the media's intrinsic aspect ratio when dimensions are available. Reopening asks Chrome to prefer the freshly calculated initial geometry instead of the user's previous manual resize. User-driven native resizing may still change the window aspect ratio; FloatPlay keeps the full video visible with `object-fit: contain` rather than cropping it.
 
 ## Spike 0 architectural investigation
