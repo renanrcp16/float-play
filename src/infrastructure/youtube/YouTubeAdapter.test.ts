@@ -215,6 +215,86 @@ describe("readYouTubeWatchTimelineState", () => {
   });
 });
 
+describe("YouTubeAdapter.findTriggerAnchor", () => {
+  const createElement = (parentElement: HTMLElement | null = null) => {
+    const querySelector = vi.fn();
+    const element = { parentElement, querySelector } as unknown as HTMLElement;
+
+    return { element, querySelector };
+  };
+
+  it("anchors after the volume wrapper in the current YouTube Music mini-player", () => {
+    vi.stubGlobal("window", {
+      location: { hostname: "music.youtube.com", pathname: "/watch" }
+    });
+
+    try {
+      const adapter = new YouTubeAdapter();
+      const { element: rightControls, querySelector: queryRightControls } = createElement();
+      const { element: volumeWrapper } = createElement(rightControls);
+      const { element: volumeButton } = createElement(volumeWrapper);
+      const { element: miniPlayer, querySelector: queryMiniPlayer } = createElement();
+
+      queryMiniPlayer.mockImplementation((selector: string) =>
+        selector === ".ytMusicMiniPlayerRightSection" ? rightControls : null
+      );
+      queryRightControls.mockImplementation((selector: string) =>
+        selector === ".ytMusicMiniPlayerMuteButton button, .ytMusicMiniPlayerVolumeWrapper button"
+          ? volumeButton
+          : null
+      );
+
+      const queryRoot = vi.fn((selector: string) =>
+        selector === "ytmusic-miniplayer" ? miniPlayer : null
+      );
+      const root = { querySelector: queryRoot } as unknown as ParentNode;
+
+      expect(adapter.findTriggerAnchor(root)).toEqual({
+        parent: rightControls,
+        reference: volumeWrapper,
+        position: "after",
+        compact: true
+      });
+      expect(queryRoot).toHaveBeenCalledWith("ytmusic-miniplayer");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("retains the legacy YouTube Music player-bar anchor", () => {
+    vi.stubGlobal("window", {
+      location: { hostname: "music.youtube.com", pathname: "/watch" }
+    });
+
+    try {
+      const adapter = new YouTubeAdapter();
+      const { element: rightControls, querySelector: queryRightControls } = createElement();
+      const { element: volumeControl } = createElement(rightControls);
+      const { element: volumeButton } = createElement(volumeControl);
+      const { element: playerBar, querySelector: queryPlayerBar } = createElement();
+
+      queryPlayerBar.mockReturnValue(rightControls);
+      queryRightControls.mockImplementation((selector: string) =>
+        selector === ".volume.ytmusic-player-bar" ? volumeButton : null
+      );
+
+      const queryRoot = vi.fn((selector: string) =>
+        selector === "ytmusic-player-bar" ? playerBar : null
+      );
+      const root = { querySelector: queryRoot } as unknown as ParentNode;
+
+      expect(adapter.findTriggerAnchor(root)).toEqual({
+        parent: rightControls,
+        reference: volumeControl,
+        position: "after",
+        compact: true
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
 describe("findDirectChildContaining", () => {
   it("returns the direct control group that contains a nested volume slider", () => {
     const parent = {} as HTMLElement;

@@ -200,6 +200,29 @@ export class YouTubeAdapter {
   }
 
   private findMusicTriggerAnchor(root: ParentNode): YouTubeTriggerAnchor | null {
+    const miniPlayer = root.querySelector<HTMLElement>("ytmusic-miniplayer");
+    const miniPlayerRightControls =
+      miniPlayer?.querySelector<HTMLElement>(".ytMusicMiniPlayerRightSection") ?? null;
+    const miniPlayerVolumeButton =
+      miniPlayerRightControls?.querySelector<HTMLElement>(
+        ".ytMusicMiniPlayerMuteButton button, .ytMusicMiniPlayerVolumeWrapper button"
+      ) ?? null;
+    const miniPlayerVolumeControl =
+      miniPlayerRightControls !== null && miniPlayerVolumeButton !== null
+        ? findDirectChildContaining(miniPlayerRightControls, miniPlayerVolumeButton)
+        : null;
+
+    if (miniPlayerRightControls !== null && miniPlayerVolumeControl !== null) {
+      return {
+        parent: miniPlayerRightControls,
+        reference: miniPlayerVolumeControl,
+        position: "after",
+        compact: true
+      };
+    }
+
+    // Keep support for the legacy player bar while YouTube Music rolls out
+    // the mini-player layout across different surfaces and accounts.
     const playerBar = root.querySelector("ytmusic-player-bar");
     const rightControls = playerBar?.querySelector<HTMLElement>("#right-controls");
 
