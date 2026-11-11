@@ -111,7 +111,11 @@ export class FloatPlayController {
     window.addEventListener(
       "pagehide",
       () => {
-        this.dispose();
+        this.logger.warn("The YouTube opener document fired pagehide.", {
+          pathname: window.location.pathname,
+          pipOpen: this.pip.isOpen()
+        });
+        this.dispose("opener-pagehide");
       },
       { once: true, signal: this.lifecycle.signal }
     );
@@ -119,10 +123,16 @@ export class FloatPlayController {
     this.reconcile();
   }
 
-  public dispose(): void {
+  public dispose(reason = "controller-dispose"): void {
     if (this.lifecycle.signal.aborted) {
       return;
     }
+
+    this.logger.warn("FloatPlay controller is disposing.", {
+      reason,
+      pathname: window.location.pathname,
+      pipOpen: this.pip.isOpen()
+    });
 
     this.lifecycle.abort();
     this.observer.disconnect();
@@ -134,7 +144,7 @@ export class FloatPlayController {
 
     this.trigger.dispose();
     this.disposePresentation();
-    this.pip.dispose();
+    this.pip.dispose(reason);
   }
 
   private scheduleReconcile(): void {
@@ -156,7 +166,7 @@ export class FloatPlayController {
       this.trigger.setCoachmarkVisible(false);
 
       if (this.pip.isOpen()) {
-        this.pip.dispose();
+        this.pip.dispose("unsupported-page-reconcile");
       }
 
       return;
@@ -237,7 +247,7 @@ export class FloatPlayController {
       this.logger.debug("FloatPlay player session opened successfully.");
     } catch (error) {
       this.disposePresentation();
-      this.pip.dispose();
+      this.pip.dispose("open-error");
       this.logger.error("Unable to open the FloatPlay player session.", error);
     } finally {
       this.busy = false;
