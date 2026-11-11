@@ -102,7 +102,10 @@ describe("DocumentPipManager", () => {
     const harness = createHarness();
     const opening = harness.manager.open(harness.media);
 
-    const replacementSibling = { nodeType: 8 } as Node;
+    const replacementSibling = {
+      nodeType: 8,
+      parentNode: harness.replacementParent
+    } as unknown as Node;
     harness.mediaState.parentElement = harness.replacementParent as unknown as HTMLElement;
     harness.mediaState.nextSibling = replacementSibling;
     harness.pendingWindow.resolve(harness.pipWindow);
@@ -119,9 +122,14 @@ describe("DocumentPipManager", () => {
     expect(harness.pipWindow.close).not.toHaveBeenCalled();
     expect(harness.manager.isOpen()).toBe(true);
 
+    harness.placeholder.isConnected = false;
     harness.manager.dispose();
 
-    expect(harness.placeholder.replaceWith).toHaveBeenCalledWith(harness.media);
+    expect(harness.replacementParent.insertBefore).toHaveBeenCalledWith(
+      harness.media,
+      replacementSibling
+    );
+    expect(harness.placeholder.remove).toHaveBeenCalledOnce();
     expect(harness.manager.isOpen()).toBe(false);
   });
 
