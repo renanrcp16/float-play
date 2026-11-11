@@ -121,6 +121,7 @@ The bridge is compatibility synchronization, not a general page-control API. Flo
 - media movement into the PiP document;
 - initial window geometry hints;
 - PiP document baseline styling;
+- capturing the media's current DOM origin after asynchronous PiP window creation, tolerating same-node YouTube reparenting during launch;
 - safe restoration of the exact media node;
 - replacement of the active media node inside an existing session when YouTube Music advances to a new player media element;
 - session lifecycle and cleanup;
