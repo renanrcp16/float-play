@@ -109,7 +109,9 @@ export class DocumentPipManager {
 
     if (!media.isConnected || parent === null) {
       pipWindow.close();
-      throw new Error("The selected media element was detached while the Picture-in-Picture window was opening.");
+      throw new Error(
+        "The selected media element was detached while the Picture-in-Picture window was opening."
+      );
     }
 
     const nextSibling = media.nextSibling;
