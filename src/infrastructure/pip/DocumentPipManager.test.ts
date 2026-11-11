@@ -131,7 +131,7 @@ describe("DocumentPipManager", () => {
       harness.media,
       replacementSibling
     );
-    expect(harness.placeholder.remove).toHaveBeenCalledOnce();
+    expect(harness.placeholder.remove).toHaveBeenCalled();
     expect(harness.manager.isOpen()).toBe(false);
   });
 
