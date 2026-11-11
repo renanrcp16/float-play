@@ -99,11 +99,27 @@ export class DocumentPipManager {
     const nextSibling = media.nextSibling;
     const videoViewportSize = this.calculateVideoViewportSize(media);
     const initialSize = preferredInitialSize ?? videoViewportSize;
+
+    this.logger.warn("Requesting a Document PiP window.", {
+      pathname: window.location.pathname,
+      userAgent: navigator.userAgent,
+      existingPipWindow: api.window !== null,
+      mediaConnected: media.isConnected,
+      mediaHasParent: media.parentElement !== null
+    });
+
     const pipWindow = await api.requestWindow({
       width: initialSize.width,
       height: initialSize.height,
       disallowReturnToOpener: true,
       preferInitialWindowPlacement: true
+    });
+
+    this.logger.warn("The Document PiP window request resolved.", {
+      pipWindowClosed: pipWindow.closed,
+      mediaConnected: media.isConnected,
+      mediaHasParent: media.parentElement !== null,
+      parentUnchanged: media.parentElement === parent
     });
 
     if (!media.isConnected || media.parentElement !== parent) {
@@ -130,19 +146,66 @@ export class DocumentPipManager {
     this.session = session;
 
     try {
-      this.preparePipDocument(pipWindow.document);
-      pipWindow.document.body.append(media);
+      pipWindow.addEventListener(
+        "beforeunload",
+        () => {
+          this.logger.warn("The Document PiP window fired beforeunload.", {
+            pipWindowClosed: pipWindow.closed,
+            pipDocumentReadyState: pipWindow.document.readyState,
+            pipDocumentVisibility: pipWindow.document.visibilityState,
+            mediaConnected: session.media.isConnected,
+            mediaOwnerIsPipDocument: session.media.ownerDocument === pipWindow.document
+          });
+        },
+        { signal: lifecycle.signal }
+      );
 
       pipWindow.addEventListener(
         "pagehide",
-        () => {
+        (event: PageTransitionEvent) => {
+          this.logger.warn("The Document PiP window fired pagehide.", {
+            persisted: event.persisted,
+            timeStamp: Math.round(event.timeStamp),
+            sessionIsCurrent: this.session === session,
+            pipWindowClosed: pipWindow.closed,
+            pipDocumentReadyState: pipWindow.document.readyState,
+            pipDocumentVisibility: pipWindow.document.visibilityState,
+            pipDocumentPictureInPictureIsCurrent: this.getApi()?.window === pipWindow,
+            mediaConnected: session.media.isConnected,
+            mediaOwnerIsPipDocument: session.media.ownerDocument === pipWindow.document,
+            mediaParent: session.media.parentElement?.tagName ?? null,
+            openerVisibility: document.visibilityState,
+            openerPathname: window.location.pathname
+          });
           this.restoreSession(session);
         },
         {
+          capture: true,
           once: true,
           signal: lifecycle.signal
         }
       );
+
+      pipWindow.addEventListener(
+        "unload",
+        () => {
+          this.logger.warn("The Document PiP window fired unload.", {
+            pipWindowClosed: pipWindow.closed,
+            mediaConnected: session.media.isConnected,
+            openerPathname: window.location.pathname
+          });
+        },
+        { signal: lifecycle.signal }
+      );
+
+      this.preparePipDocument(pipWindow.document);
+      pipWindow.document.body.append(media);
+
+      this.logger.warn("The media element was appended to the Document PiP window.", {
+        pipWindowClosed: pipWindow.closed,
+        mediaConnected: media.isConnected,
+        sessionIsCurrent: this.session === session
+      });
     } catch (error) {
       this.restoreSession(session);
       pipWindow.close();
@@ -203,12 +266,19 @@ export class DocumentPipManager {
     return this.toPublicSession(session);
   }
 
-  public dispose(): void {
+  public dispose(reason = "unspecified"): void {
     const session = this.session;
 
     if (session === null) {
       return;
     }
+
+    this.logger.warn("FloatPlay requested the Document PiP window to close.", {
+      reason,
+      pipWindowClosed: session.pipWindow.closed,
+      mediaConnected: session.media.isConnected,
+      openerPathname: window.location.pathname
+    });
 
     this.restoreSession(session);
     session.pipWindow.close();
