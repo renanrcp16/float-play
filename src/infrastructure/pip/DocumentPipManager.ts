@@ -84,9 +84,7 @@ export class DocumentPipManager {
       return this.toPublicSession(this.session);
     }
 
-    const parent = media.parentElement;
-
-    if (!media.isConnected || parent === null) {
+    if (!media.isConnected || media.parentElement === null) {
       throw new Error("The selected media element is no longer connected to the page.");
     }
 
@@ -96,7 +94,6 @@ export class DocumentPipManager {
       throw new DocumentPipUnavailableError();
     }
 
-    const nextSibling = media.nextSibling;
     const videoViewportSize = this.calculateVideoViewportSize(media);
     const initialSize = preferredInitialSize ?? videoViewportSize;
     const pipWindow = await api.requestWindow({
@@ -106,11 +103,16 @@ export class DocumentPipManager {
       preferInitialWindowPlacement: true
     });
 
-    if (!media.isConnected || media.parentElement !== parent) {
+    // YouTube can reparent the same video while requestWindow() is pending.
+    // Restore it to its current location instead of treating that as a stale media node.
+    const parent = media.parentElement;
+
+    if (!media.isConnected || parent === null) {
       pipWindow.close();
-      throw new Error("The media element changed while the Picture-in-Picture window was opening.");
+      throw new Error("The selected media element was detached while the Picture-in-Picture window was opening.");
     }
 
+    const nextSibling = media.nextSibling;
     const placeholder = document.createComment("floatplay-media-origin");
     parent.insertBefore(placeholder, media);
 
