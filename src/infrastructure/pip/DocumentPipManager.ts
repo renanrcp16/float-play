@@ -99,11 +99,25 @@ export class DocumentPipManager {
     const nextSibling = media.nextSibling;
     const videoViewportSize = this.calculateVideoViewportSize(media);
     const initialSize = preferredInitialSize ?? videoViewportSize;
+
+    this.logger.warn("Requesting a Document PiP window.", {
+      pathname: window.location.pathname,
+      mediaConnected: media.isConnected,
+      mediaHasParent: media.parentElement !== null
+    });
+
     const pipWindow = await api.requestWindow({
       width: initialSize.width,
       height: initialSize.height,
       disallowReturnToOpener: true,
       preferInitialWindowPlacement: true
+    });
+
+    this.logger.warn("The Document PiP window request resolved.", {
+      pipWindowClosed: pipWindow.closed,
+      mediaConnected: media.isConnected,
+      mediaHasParent: media.parentElement !== null,
+      parentUnchanged: media.parentElement === parent
     });
 
     if (!media.isConnected || media.parentElement !== parent) {
@@ -136,6 +150,12 @@ export class DocumentPipManager {
       pipWindow.addEventListener(
         "pagehide",
         () => {
+          this.logger.warn("The Document PiP window fired pagehide.", {
+            sessionIsCurrent: this.session === session,
+            pipWindowClosed: pipWindow.closed,
+            mediaConnected: session.media.isConnected,
+            openerPathname: window.location.pathname
+          });
           this.restoreSession(session);
         },
         {
@@ -143,6 +163,12 @@ export class DocumentPipManager {
           signal: lifecycle.signal
         }
       );
+
+      this.logger.warn("The media element was appended to the Document PiP window.", {
+        pipWindowClosed: pipWindow.closed,
+        mediaConnected: media.isConnected,
+        sessionIsCurrent: this.session === session
+      });
     } catch (error) {
       this.restoreSession(session);
       pipWindow.close();
@@ -203,12 +229,19 @@ export class DocumentPipManager {
     return this.toPublicSession(session);
   }
 
-  public dispose(): void {
+  public dispose(reason = "unspecified"): void {
     const session = this.session;
 
     if (session === null) {
       return;
     }
+
+    this.logger.warn("FloatPlay requested the Document PiP window to close.", {
+      reason,
+      pipWindowClosed: session.pipWindow.closed,
+      mediaConnected: session.media.isConnected,
+      openerPathname: window.location.pathname
+    });
 
     this.restoreSession(session);
     session.pipWindow.close();
