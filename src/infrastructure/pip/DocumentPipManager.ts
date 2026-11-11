@@ -102,6 +102,8 @@ export class DocumentPipManager {
 
     this.logger.warn("Requesting a Document PiP window.", {
       pathname: window.location.pathname,
+      userAgent: navigator.userAgent,
+      existingPipWindow: api.window !== null,
       mediaConnected: media.isConnected,
       mediaHasParent: media.parentElement !== null
     });
