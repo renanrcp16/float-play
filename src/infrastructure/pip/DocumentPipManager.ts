@@ -145,20 +145,55 @@ export class DocumentPipManager {
 
     try {
       pipWindow.addEventListener(
-        "pagehide",
+        "beforeunload",
         () => {
+          this.logger.warn("The Document PiP window fired beforeunload.", {
+            pipWindowClosed: pipWindow.closed,
+            pipDocumentReadyState: pipWindow.document.readyState,
+            pipDocumentVisibility: pipWindow.document.visibilityState,
+            mediaConnected: session.media.isConnected,
+            mediaOwnerIsPipDocument: session.media.ownerDocument === pipWindow.document
+          });
+        },
+        { signal: lifecycle.signal }
+      );
+
+      pipWindow.addEventListener(
+        "pagehide",
+        (event: PageTransitionEvent) => {
           this.logger.warn("The Document PiP window fired pagehide.", {
+            persisted: event.persisted,
+            timeStamp: Math.round(event.timeStamp),
             sessionIsCurrent: this.session === session,
             pipWindowClosed: pipWindow.closed,
+            pipDocumentReadyState: pipWindow.document.readyState,
+            pipDocumentVisibility: pipWindow.document.visibilityState,
+            pipDocumentPictureInPictureIsCurrent: this.getApi()?.window === pipWindow,
             mediaConnected: session.media.isConnected,
+            mediaOwnerIsPipDocument: session.media.ownerDocument === pipWindow.document,
+            mediaParent: session.media.parentElement?.tagName ?? null,
+            openerVisibility: document.visibilityState,
             openerPathname: window.location.pathname
           });
           this.restoreSession(session);
         },
         {
+          capture: true,
           once: true,
           signal: lifecycle.signal
         }
+      );
+
+      pipWindow.addEventListener(
+        "unload",
+        () => {
+          this.logger.warn("The Document PiP window fired unload.", {
+            pipWindowClosed: pipWindow.closed,
+            mediaConnected: session.media.isConnected,
+            openerPathname: window.location.pathname
+          });
+        },
+        { signal: lifecycle.signal }
       );
 
       this.preparePipDocument(pipWindow.document);
