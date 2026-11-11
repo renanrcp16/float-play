@@ -66,10 +66,11 @@ function createHarness() {
     head: { append: vi.fn() },
     body: { append: vi.fn() }
   };
+  const closePipWindow = vi.fn();
   const pipWindow = {
     document: pipDocument,
     addEventListener: vi.fn(),
-    close: vi.fn()
+    close: closePipWindow
   } as unknown as Window;
 
   const logger: Logger = {
@@ -88,6 +89,7 @@ function createHarness() {
     pendingWindow,
     pipDocument,
     pipWindow,
+    closePipWindow,
     placeholder,
     replacementParent
   };
@@ -119,7 +121,7 @@ describe("DocumentPipManager", () => {
     );
     expect(harness.initialParent.insertBefore).not.toHaveBeenCalled();
     expect(harness.pipDocument.body.append).toHaveBeenCalledWith(harness.media);
-    expect(harness.pipWindow.close).not.toHaveBeenCalled();
+    expect(harness.closePipWindow).not.toHaveBeenCalled();
     expect(harness.manager.isOpen()).toBe(true);
 
     harness.placeholder.isConnected = false;
@@ -145,7 +147,7 @@ describe("DocumentPipManager", () => {
       "The selected media element was detached while the Picture-in-Picture window was opening."
     );
 
-    expect(harness.pipWindow.close).toHaveBeenCalledOnce();
+    expect(harness.closePipWindow).toHaveBeenCalledOnce();
     expect(harness.pageDocument.createComment).not.toHaveBeenCalled();
     expect(harness.manager.isOpen()).toBe(false);
   });
