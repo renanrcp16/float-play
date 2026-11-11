@@ -216,8 +216,12 @@ describe("readYouTubeWatchTimelineState", () => {
 });
 
 describe("YouTubeAdapter.findTriggerAnchor", () => {
-  const createElement = (parentElement: HTMLElement | null = null) =>
-    ({ parentElement, querySelector: vi.fn() }) as unknown as HTMLElement;
+  const createElement = (parentElement: HTMLElement | null = null) => {
+    const querySelector = vi.fn();
+    const element = { parentElement, querySelector } as unknown as HTMLElement;
+
+    return { element, querySelector };
+  };
 
   it("anchors after the volume wrapper in the current YouTube Music mini-player", () => {
     vi.stubGlobal("window", {
@@ -226,25 +230,24 @@ describe("YouTubeAdapter.findTriggerAnchor", () => {
 
     try {
       const adapter = new YouTubeAdapter();
-      const rightControls = createElement();
-      const volumeWrapper = createElement(rightControls);
-      const volumeButton = createElement(volumeWrapper);
-      const miniPlayer = createElement();
+      const { element: rightControls, querySelector: queryRightControls } = createElement();
+      const { element: volumeWrapper } = createElement(rightControls);
+      const { element: volumeButton } = createElement(volumeWrapper);
+      const { element: miniPlayer, querySelector: queryMiniPlayer } = createElement();
 
-      vi.mocked(miniPlayer.querySelector).mockImplementation((selector: string) =>
+      queryMiniPlayer.mockImplementation((selector: string) =>
         selector === ".ytMusicMiniPlayerRightSection" ? rightControls : null
       );
-      vi.mocked(rightControls.querySelector).mockImplementation((selector: string) =>
+      queryRightControls.mockImplementation((selector: string) =>
         selector === ".ytMusicMiniPlayerMuteButton button, .ytMusicMiniPlayerVolumeWrapper button"
           ? volumeButton
           : null
       );
 
-      const root = {
-        querySelector: vi.fn((selector: string) =>
-          selector === "ytmusic-miniplayer" ? miniPlayer : null
-        )
-      } as unknown as ParentNode;
+      const queryRoot = vi.fn((selector: string) =>
+        selector === "ytmusic-miniplayer" ? miniPlayer : null
+      );
+      const root = { querySelector: queryRoot } as unknown as ParentNode;
 
       expect(adapter.findTriggerAnchor(root)).toEqual({
         parent: rightControls,
@@ -252,7 +255,7 @@ describe("YouTubeAdapter.findTriggerAnchor", () => {
         position: "after",
         compact: true
       });
-      expect(root.querySelector).toHaveBeenCalledWith("ytmusic-miniplayer");
+      expect(queryRoot).toHaveBeenCalledWith("ytmusic-miniplayer");
     } finally {
       vi.unstubAllGlobals();
     }
@@ -265,21 +268,20 @@ describe("YouTubeAdapter.findTriggerAnchor", () => {
 
     try {
       const adapter = new YouTubeAdapter();
-      const rightControls = createElement();
-      const volumeControl = createElement(rightControls);
-      const volumeButton = createElement(volumeControl);
-      const playerBar = createElement();
+      const { element: rightControls, querySelector: queryRightControls } = createElement();
+      const { element: volumeControl } = createElement(rightControls);
+      const { element: volumeButton } = createElement(volumeControl);
+      const { element: playerBar, querySelector: queryPlayerBar } = createElement();
 
-      vi.mocked(playerBar.querySelector).mockReturnValue(rightControls);
-      vi.mocked(rightControls.querySelector).mockImplementation((selector: string) =>
+      queryPlayerBar.mockReturnValue(rightControls);
+      queryRightControls.mockImplementation((selector: string) =>
         selector === ".volume.ytmusic-player-bar" ? volumeButton : null
       );
 
-      const root = {
-        querySelector: vi.fn((selector: string) =>
-          selector === "ytmusic-player-bar" ? playerBar : null
-        )
-      } as unknown as ParentNode;
+      const queryRoot = vi.fn((selector: string) =>
+        selector === "ytmusic-player-bar" ? playerBar : null
+      );
+      const root = { querySelector: queryRoot } as unknown as ParentNode;
 
       expect(adapter.findTriggerAnchor(root)).toEqual({
         parent: rightControls,
