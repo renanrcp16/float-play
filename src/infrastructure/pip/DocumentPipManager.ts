@@ -144,9 +144,6 @@ export class DocumentPipManager {
     this.session = session;
 
     try {
-      this.preparePipDocument(pipWindow.document);
-      pipWindow.document.body.append(media);
-
       pipWindow.addEventListener(
         "pagehide",
         () => {
@@ -163,6 +160,9 @@ export class DocumentPipManager {
           signal: lifecycle.signal
         }
       );
+
+      this.preparePipDocument(pipWindow.document);
+      pipWindow.document.body.append(media);
 
       this.logger.warn("The media element was appended to the Document PiP window.", {
         pipWindowClosed: pipWindow.closed,
